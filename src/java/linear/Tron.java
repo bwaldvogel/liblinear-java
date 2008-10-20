@@ -121,7 +121,7 @@ class Tron {
             break;
          }
          if ( Math.abs(actred) <= 1.0e-12 * Math.abs(f) && Math.abs(prered) <= 1.0e-12 * Math.abs(f) ) {
-            System.out.printf("warning: actred and prered too small\n");
+            info("warning: actred and prered too small" + NL);
             break;
          }
       }
