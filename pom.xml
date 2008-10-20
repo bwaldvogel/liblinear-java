@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>liblinear</groupId>
+   <artifactId>liblinear</artifactId>
+   <name>liblinear</name>
+   <version>1.33</version>
+   <url>http://www.csie.ntu.edu.tw/~cjlin/liblinear/</url>
+   <build>
+      <sourceDirectory>src/java</sourceDirectory>
+      <testSourceDirectory>src/test</testSourceDirectory>
+      <plugins>
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <source>1.6</source>
+               <target>1.6</target>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
+   <dependencies>
+      <!-- this dependency needs to be installed manually (see the lib) -->
+      <dependency>
+         <groupId>org.netlib.jlapack</groupId>
+         <artifactId>blas</artifactId>
+         <version>0.8</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>4.5</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>fest</groupId>
+         <artifactId>fest-assert</artifactId>
+         <version>1.0a1</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+</project>

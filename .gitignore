@@ -1,0 +1,10 @@
+.*
+*.o
+.*.swp
+.project
+.classpath
+
+!.gitignore
+
+/target
+/data

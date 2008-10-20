@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+   <!--  we wont to stick to the original liblinear method names -->
+   <Match>
+      <Bug pattern="NM_METHOD_NAMING_CONVENTION" />
+   </Match>
+</FindBugsFilter>
