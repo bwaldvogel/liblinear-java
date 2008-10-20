@@ -35,13 +35,12 @@ public class Train {
       new Train().run(args);
    }
 
-   private int       bias;
+   private int       bias             = 1;
    private boolean   cross_validation = false;
    private String    inputFilename;
    private String    modelFilename;
    private int       nr_fold;
    private Parameter param            = null;
-
    private Problem   prob             = null;
 
    private void do_cross_validation() {
@@ -89,9 +88,18 @@ public class Train {
       return prob;
    }
 
-   private void parse_command_line( String argv[] ) {
+   int getBias() {
+      return bias;
+   }
+
+   Parameter getParameter() {
+      return param;
+   }
+
+   void parse_command_line( String argv[] ) {
       int i;
 
+      // eps: see setting below
       param = new Parameter(SolverType.L2LOSS_SVM_DUAL, 1, Double.POSITIVE_INFINITY);
       // default values
       bias = 1;
@@ -160,6 +168,15 @@ public class Train {
          ++p; // whew...
          modelFilename = argv[i].substring(p) + ".model";
       }
+
+      if ( param.eps == Double.POSITIVE_INFINITY ) {
+         if ( param.solverType == SolverType.L2_LR || param.solverType == SolverType.L2LOSS_SVM ) {
+            param.setEps(0.01);
+         } else if ( param.solverType == SolverType.L2LOSS_SVM_DUAL || param.solverType == SolverType.L1LOSS_SVM_DUAL
+            || param.solverType == SolverType.MCSVM_CS ) {
+            param.setEps(0.1);
+         }
+      }
    }
 
    // read in a problem (in libsvm format)
@@ -200,6 +217,7 @@ public class Train {
          }
 
          prob = new Problem();
+         prob.bias = bias;
          prob.l = vy.size();
          prob.n = max_index;
          if ( bias >= 0 ) {
@@ -211,7 +229,7 @@ public class Train {
 
             if ( bias >= 0 ) {
                assert prob.x[i][prob.x[i].length - 1] == null;
-               prob.x[i][prob.x[i].length - 1] = new FeatureNode(max_index, bias);
+               prob.x[i][prob.x[i].length - 1] = new FeatureNode(max_index + 1, bias);
             } else {
                assert prob.x[i][prob.x[i].length - 1] != null;
             }

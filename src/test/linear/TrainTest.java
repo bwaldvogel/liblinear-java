@@ -15,6 +15,25 @@ import org.junit.Test;
 public class TrainTest {
 
    @Test
+   public void testParseCommandLine() {
+      Train train = new Train();
+
+      for ( SolverType solver : SolverType.values() ) {
+         train.parse_command_line(new String[] { "-B", "5", "-s", "" + solver.ordinal(), "model-filename" });
+         Parameter param = train.getParameter();
+         assertThat(param.solverType).isEqualTo(solver);
+         // check default eps
+         if ( solver.ordinal() == 0 || solver.ordinal() == 2 ) {
+            assertThat(param.eps).isEqualTo(0.01);
+         } else {
+            assertThat(param.eps).isEqualTo(0.1);
+         }
+         // check if bias is set
+         assertThat(train.getBias()).isEqualTo(5);
+      }
+   }
+
+   @Test
    public void testReadProblem() throws Exception {
 
       File file = File.createTempFile("svm", "test");
@@ -39,10 +58,25 @@ public class TrainTest {
       train.readProblem(file.getAbsolutePath());
 
       Problem prob = train.getProblem();
+      assertThat(prob.bias).isEqualTo(1);
       assertThat(prob.y).hasSize(lines.size());
       assertThat(prob.y).isEqualTo(new int[] { 1, 2, 1, 1, 2 });
       assertThat(prob.n).isEqualTo(8);
-      System.out.println(prob.l);
+      assertThat(prob.l).isEqualTo(prob.y.length);
+      assertThat(prob.x).hasSize(prob.y.length);
 
+      for ( FeatureNode[] nodes : prob.x ) {
+
+         assertThat(nodes).size().isLessThanOrEqualTo(prob.n);
+         for ( FeatureNode node : nodes ) {
+            // bias term
+            if ( prob.bias >= 0 && nodes[nodes.length - 1] == node ) {
+               assertThat(node.index).isEqualTo(prob.n);
+               assertThat(node.value).isEqualTo(prob.bias);
+            } else {
+               assertThat(node.index).isLessThan(prob.n);
+            }
+         }
+      }
    }
 }
