@@ -1,9 +1,9 @@
 package linear;
 
-public final class FeatureNode {
+public class FeatureNode {
 
-   final int    index;
-   final double value;
+   public final int    index;
+   public final double value;
 
    public FeatureNode( final int index, final double value ) {
       if ( index < 1 ) throw new IllegalArgumentException("index must be >= 1");

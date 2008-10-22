@@ -33,7 +33,7 @@ public class Problem {
    /** the number of training data */
    public int             l;
 
-   /** the number of feature (including the bias feature if bias >= 0) */
+   /** the number of features (including the bias feature if bias >= 0) */
    public int             n;
 
    /** an array containing the target values */
