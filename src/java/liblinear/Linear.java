@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 public class Linear {
 
    /** set this to false if you don't want anything written to stdout */
-   public static boolean      DEBUG_OUTPUT = true;
+   private static boolean     DEBUG_OUTPUT = true;
 
    /** platform-independent new-line string */
    public final static String NL           = System.getProperty("line.separator");
@@ -650,5 +650,13 @@ public class Linear {
       default:
          throw new IllegalStateException("unknown solver type: " + param.solverType);
       }
+   }
+
+   public static void disableDebugOutput() {
+      DEBUG_OUTPUT = false;
+   }
+
+   public static void enableDebugOutput() {
+      DEBUG_OUTPUT = false;
    }
 }

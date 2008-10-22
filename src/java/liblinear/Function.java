@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 // origin: tron.h
 public interface Function {

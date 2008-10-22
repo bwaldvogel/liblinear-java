@@ -1,7 +1,7 @@
-package linear;
+package liblinear;
 
+import static liblinear.Linear.NL;
 import static org.fest.assertions.Assertions.assertThat;
-import static linear.Linear.NL;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 class L2LrFunction implements Function {
 

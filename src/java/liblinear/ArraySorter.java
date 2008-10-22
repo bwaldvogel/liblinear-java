@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 
 final class ArraySorter {

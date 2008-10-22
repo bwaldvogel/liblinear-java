@@ -1,10 +1,10 @@
-package linear;
+package liblinear;
 
 
-final class DoubleArrayPointer {
+final class IntArrayPointer {
 
-   private final double[] _array;
-   private int            _offset;
+   private final int[] _array;
+   private int         _offset;
 
 
    public void setOffset( int offset ) {
@@ -12,16 +12,16 @@ final class DoubleArrayPointer {
       _offset = offset;
    }
 
-   public DoubleArrayPointer( final double[] array, final int offset ) {
+   public IntArrayPointer( final int[] array, final int offset ) {
       _array = array;
       setOffset(offset);
    }
 
-   public double get( final int index ) {
+   public int get( final int index ) {
       return _array[_offset + index];
    }
 
-   public void set( final int index, final double value ) {
+   public void set( final int index, final int value ) {
       _array[_offset + index] = value;
    }
 }

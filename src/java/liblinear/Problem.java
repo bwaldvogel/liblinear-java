@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 /**
  *  Problem describes the problem

@@ -1,7 +1,7 @@
-package linear;
+package liblinear;
 
-import static linear.Linear.NL;
-import static linear.Linear.info;
+import static liblinear.Linear.NL;
+import static liblinear.Linear.info;
 import static org.netlib.blas.DAXPY.DAXPY;
 import static org.netlib.blas.DDOT.DDOT;
 import static org.netlib.blas.DNRM2.DNRM2;

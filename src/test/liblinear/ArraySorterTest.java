@@ -1,7 +1,7 @@
-package linear;
+package liblinear;
 
+import static liblinear.Linear.swap;
 import static org.fest.assertions.Assertions.assertThat;
-import static linear.Linear.swap;
 
 import java.util.Random;
 

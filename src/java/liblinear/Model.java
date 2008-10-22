@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 import java.util.Arrays;
 
@@ -14,9 +14,9 @@ public final class Model {
    int[]      label;
 
    /** number of classes */
-   int        nr_class;  // TODO: this is equal to label.length
+   int        nr_class;  // this is equal to label.length
 
-   int        nr_feature; // TODO label.length / w.length?
+   int        nr_feature;
 
    SolverType solverType;
 

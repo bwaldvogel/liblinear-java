@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 public enum SolverType {
    /** L2-regularized logistic regression */

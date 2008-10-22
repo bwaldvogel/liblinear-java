@@ -1,8 +1,8 @@
-package linear;
+package liblinear;
 
-import static linear.Linear.info;
-import static linear.Linear.infoFlush;
-import static linear.Linear.swap;
+import static liblinear.Linear.info;
+import static liblinear.Linear.infoFlush;
+import static liblinear.Linear.swap;
 
 import java.util.Arrays;
 

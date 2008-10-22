@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 public class L2LossSVMFunction implements Function {
 

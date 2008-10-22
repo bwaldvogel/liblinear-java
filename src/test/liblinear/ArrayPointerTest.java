@@ -1,4 +1,4 @@
-package linear;
+package liblinear;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;

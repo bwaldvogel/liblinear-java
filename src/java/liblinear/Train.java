@@ -1,6 +1,6 @@
-package linear;
+package liblinear;
 
-import static linear.Linear.NL;
+import static liblinear.Linear.NL;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
