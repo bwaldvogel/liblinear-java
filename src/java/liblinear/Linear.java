@@ -102,7 +102,6 @@ public class Linear {
       int max_nr_class = 16;
       int nr_class = 0;
 
-      // this is a workaround for the realloc in the original source
       int[] label = new int[max_nr_class];
       int[] count = new int[max_nr_class];
       int[] data_label = new int[l];
@@ -119,6 +118,7 @@ public class Linear {
          }
          data_label[i] = j;
          if ( j == nr_class ) {
+            // realloc
             if ( nr_class == max_nr_class ) {
                max_nr_class *= 2;
                label = Arrays.copyOf(label, max_nr_class);

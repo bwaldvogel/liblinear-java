@@ -14,7 +14,7 @@ public final class Model {
    int[]      label;
 
    /** number of classes */
-   int        nr_class;  // this is equal to label.length
+   int        nr_class;
 
    int        nr_feature;
 

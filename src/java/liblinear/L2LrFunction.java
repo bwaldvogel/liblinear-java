@@ -32,7 +32,6 @@ class L2LrFunction implements Function {
       for ( int i = 0; i < prob.l; i++ ) {
          Xv[i] = 0;
          for ( FeatureNode s : prob.x[i] ) {
-            // XXX 0-based index?
             Xv[i] += v[s.index - 1] * s.value;
          }
       }
@@ -48,7 +47,6 @@ class L2LrFunction implements Function {
 
       for ( int i = 0; i < l; i++ ) {
          for ( FeatureNode s : x[i] ) {
-            // XXX 0-based index?
             XTv[s.index - 1] += v[i] * s.value;
          }
       }
