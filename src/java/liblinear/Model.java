@@ -22,6 +22,18 @@ public final class Model {
 
    double[]   w;
 
+   public int getNrClass() {
+      return nr_class;
+   }
+
+   public int getNrFeature() {
+      return nr_feature;
+   }
+
+   public int[] getLabels() {
+      return Arrays.copyOf(label, nr_class);
+   }
+
    @Override
    public String toString() {
       StringBuilder sb = new StringBuilder("Model");
