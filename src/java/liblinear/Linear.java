@@ -657,6 +657,6 @@ public class Linear {
    }
 
    public static void enableDebugOutput() {
-      DEBUG_OUTPUT = false;
+      DEBUG_OUTPUT = true;
    }
 }
