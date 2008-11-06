@@ -1,13 +1,20 @@
 package liblinear;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Formatter;
+import java.util.Locale;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -26,13 +33,15 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
+   private static final Charset MODEL_CHARSET = Charset.forName("ISO-8859-1");
+
    /** set this to false if you don't want anything written to stdout */
-   private static boolean     DEBUG_OUTPUT = true;
+   private static boolean       DEBUG_OUTPUT  = true;
 
    /** platform-independent new-line string */
-   public final static String NL           = System.getProperty("line.separator");
+   public final static String   NL            = System.getProperty("line.separator");
 
-   final static Random        random       = new Random();
+   final static Random          random        = new Random();
 
    /**
     * @param target predicted classes
@@ -118,7 +127,6 @@ public class Linear {
          }
          data_label[i] = j;
          if ( j == nr_class ) {
-            // realloc
             if ( nr_class == max_nr_class ) {
                max_nr_class *= 2;
                label = Arrays.copyOf(label, max_nr_class);
@@ -161,15 +169,40 @@ public class Linear {
       System.out.flush();
    }
 
-   public static Model loadModel( String modelFileName ) throws IOException {
-      File file = new File(modelFileName);
+   /**
+    * @param s the string to parse for the double value
+    * @throws IllegalArgumentException if s represents NaN or Infinity
+    */
+   static double atof( String s ) {
 
+      double d = Double.parseDouble(s);
+      if ( Double.isNaN(d) || Double.isInfinite(d) ) {
+         throw new IllegalArgumentException("NaN or Infinity in input: " + s);
+      }
+      return (d);
+   }
+
+   /**
+    * @param s the string to parse for the integer value
+    */
+   static int atoi( String s ) {
+      return Integer.parseInt(s);
+   }
+
+   /**
+    * Loads the model from the file with ISO-8859-1 charset.
+    * It uses {@link Locale.ENGLISH} for number formatting.
+    *
+    * <p><b>Note: The input stream is closed after reading or in case of an exception.</b></p>
+    */
+   public static Model loadModel( InputStream inputStream ) throws IOException {
       Model model = new Model();
 
       model.label = null;
 
       Pattern whitespace = Pattern.compile("\\s+");
-      BufferedReader reader = new BufferedReader(new FileReader(file));
+
+      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, MODEL_CHARSET));
       try {
          String line = null;
          while ( (line = reader.readLine()) != null ) {
@@ -181,17 +214,18 @@ public class Linear {
                }
                model.solverType = solver;
             } else if ( split[0].equals("nr_class") ) {
-               model.nr_class = Integer.parseInt(split[1]);
+               model.nr_class = atoi(split[1]);
+               Integer.parseInt(split[1]);
             } else if ( split[0].equals("nr_feature") ) {
-               model.nr_feature = Integer.parseInt(split[1]);
+               model.nr_feature = atoi(split[1]);
             } else if ( split[0].equals("bias") ) {
-               model.bias = Double.parseDouble(split[1]);
+               model.bias = atof(split[1]);
             } else if ( split[0].equals("w") ) {
                break;
             } else if ( split[0].equals("label") ) {
                model.label = new int[model.nr_class];
                for ( int i = 0; i < model.nr_class; i++ ) {
-                  model.label[i] = Integer.parseInt(split[i + 1]);
+                  model.label[i] = atoi(split[i + 1]);
                }
             } else {
                throw new RuntimeException("unknown text in model file: [" + line + "]");
@@ -216,7 +250,7 @@ public class Linear {
                      throw new EOFException("unexpected EOF");
                   }
                   if ( ch == ' ' ) {
-                     model.w[i * nr_w + j] = Double.parseDouble(new String(buffer, 0, b));
+                     model.w[i * nr_w + j] = atof(new String(buffer, 0, b));
                      break;
                   } else {
                      buffer[b++] = ch;
@@ -226,10 +260,26 @@ public class Linear {
          }
       }
       finally {
-         reader.close();
+         closeQuietly(reader);
       }
 
       return model;
+   }
+
+   /**
+    * Loads the model from the file with ISO-8859-1 charset.
+    * It uses {@link Locale.ENGLISH} for number formatting.
+    */
+   public static Model loadModel( File modelFile ) throws IOException {
+      return loadModel(new FileInputStream(modelFile));
+   }
+
+   private static void closeQuietly( Closeable c ) {
+      if ( c == null ) return;
+      try {
+         c.close();
+      }
+      catch ( Throwable t ) {}
    }
 
    public static int predict( Model model, FeatureNode[] x ) {
@@ -305,8 +355,20 @@ public class Linear {
       }
    }
 
-   public static void saveModel( String modelFileName, Model model ) throws FileNotFoundException {
 
+   private static void printf( Formatter formatter, String format, Object... args ) throws IOException {
+      formatter.format(format, args);
+      IOException ioException = formatter.ioException();
+      if ( ioException != null ) throw ioException;
+   }
+
+   /**
+    * Writes the model to the output stream with ISO-8859-1 charset.
+    * It uses {@link Locale.ENGLISH} for number formatting.
+    *
+    * <p><b>Note: The output stream is closed after reading or in case of an exception.</b></p>
+    */
+   public static void saveModel( OutputStream modelOutput, Model model ) throws IOException {
       int nr_feature = model.nr_feature;
       int n = nr_feature;
       if ( model.bias >= 0 ) n++;
@@ -314,30 +376,43 @@ public class Linear {
       int nr_w = model.nr_class;
       if ( model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS ) nr_w = 1;
 
-      File file = new File(modelFileName);
-      PrintStream out = new PrintStream(file);
+      Formatter formatter = new Formatter(modelOutput, MODEL_CHARSET.name(), Locale.ENGLISH);
       try {
-         out.printf("solver_type %s\n", model.solverType.name());
-         out.printf("nr_class %d\n", model.nr_class);
-         out.printf("label");
-         for ( int i = 0; i < model.nr_class; i++ )
-            out.printf(" %d", model.label[i]);
-         out.printf("\n");
+         printf(formatter, "solver_type %s\n", model.solverType.name());
+         printf(formatter, "nr_class %d\n", model.nr_class);
 
-         out.printf("nr_feature %d\n", nr_feature);
-
-         out.printf("bias %.16g\n", model.bias);
-
-         out.printf("w\n");
-         for ( int i = 0; i < n; i++ ) {
-            for ( int j = 0; j < nr_w; j++ )
-               out.printf("%.16g ", model.w[i * nr_w + j]);
-            out.printf("\n");
+         printf(formatter, "label");
+         for ( int i = 0; i < model.nr_class; i++ ) {
+            printf(formatter, " %d", model.label[i]);
          }
+         printf(formatter, "\n");
+
+         printf(formatter, "nr_feature %d\n", nr_feature);
+         printf(formatter, "bias %.16g\n", model.bias);
+
+         printf(formatter, "w\n");
+         for ( int i = 0; i < n; i++ ) {
+            for ( int j = 0; j < nr_w; j++ ) {
+               printf(formatter, "%.16g ", model.w[i * nr_w + j]);
+            }
+            printf(formatter, "\n");
+         }
+
+         formatter.flush();
+         IOException ioException = formatter.ioException();
+         if ( ioException != null ) throw ioException;
       }
       finally {
-         out.close();
+         formatter.close();
       }
+   }
+
+   /**
+    * Writes the model to the file with ISO-8859-1 charset.
+    * It uses {@link Locale.ENGLISH} for number formatting.
+    */
+   public static void saveModel( File modelFile, Model model ) throws IOException {
+      saveModel(new BufferedOutputStream(new FileOutputStream(modelFile)), model);
    }
 
    private static void solve_linear_c_svc( Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type ) {

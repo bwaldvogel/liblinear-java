@@ -1,8 +1,11 @@
 package liblinear;
 
 import static liblinear.Linear.NL;
+import static liblinear.Linear.atof;
+import static liblinear.Linear.atoi;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,25 +14,6 @@ import java.util.StringTokenizer;
 
 
 public class Train {
-
-   /**
-    * @param s the string to parse for the double value
-    * @throws IllegalArgumentException if s represents NaN or Infinity
-    */
-   private static double atof( String s ) {
-      double d = Double.parseDouble(s);
-      if ( Double.isNaN(d) || Double.isInfinite(d) ) {
-         throw new IllegalArgumentException("NaN or Infinity in input: " + s);
-      }
-      return (d);
-   }
-
-   /**
-    * @param s the string to parse for the integer value
-    */
-   private static int atoi( String s ) {
-      return Integer.parseInt(s);
-   }
 
    public static void main( String[] args ) throws IOException {
       new Train().run(args);
@@ -252,7 +236,7 @@ public class Train {
          do_cross_validation();
       else {
          Model model = Linear.train(prob, param);
-         Linear.saveModel(modelFilename, model);
+         Linear.saveModel(new File(modelFilename), model);
       }
    }
 }

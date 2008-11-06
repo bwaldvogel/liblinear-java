@@ -35,8 +35,6 @@ public final class Parameter {
 
    int[]      weightLabel = null;
 
-   /* these are for training only */
-
    public Parameter( SolverType solverType, double C, double eps ) {
       setSolverType(solverType);
       setC(C);
@@ -44,8 +42,8 @@ public final class Parameter {
    }
 
    public void setWeights( double[] weights, int[] weightLabels ) {
-      if ( weights == null ) throw new IllegalArgumentException("weight must not be null");
-      if ( weightLabels == null || weightLabels.length != weights.length ) throw new IllegalArgumentException("weightlabels must have same length as weight");
+      if ( weights == null ) throw new IllegalArgumentException("'weight' must not be null");
+      if ( weightLabels == null || weightLabels.length != weights.length ) throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
       this.weightLabel = Arrays.copyOf(weightLabels, weightLabels.length);
       this.weight = Arrays.copyOf(weights, weights.length);
    }

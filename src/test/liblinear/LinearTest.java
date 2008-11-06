@@ -1,15 +1,27 @@
 package liblinear;
 
+import static org.easymock.EasyMock.anyInt;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Random;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 
 public class LinearTest {
+
+   private static Random random = new Random();
 
    @BeforeClass
    public static void disableDebugOutput() {
@@ -26,25 +38,67 @@ public class LinearTest {
       assertThat(f).isEqualTo(new int[] { 1, 2, 3, 4, 5 });
    }
 
+   private Model createSomeModel() {
+      Model model = new Model();
+      model.solverType = SolverType.L2_LR;
+      model.bias = 2;
+      model.label = new int[] { 1, Integer.MAX_VALUE, 2 };
+      model.w = new double[model.label.length * 300];
+      for ( int i = 0; i < model.w.length; i++ ) {
+         // precision should be at least 1e-4
+         model.w[i] = Math.round(random.nextDouble() * 100000.0) / 10000.0;
+      }
+      model.nr_feature = model.w.length / model.label.length - 1;
+      model.nr_class = model.label.length;
+      return model;
+   }
+
    @Test
    public void testLoadSaveModel() throws Exception {
-      Model model = new Model();
+
+      Model model = null;
       for ( SolverType solverType : SolverType.values() ) {
+         model = createSomeModel();
          model.solverType = solverType;
-         model.bias = 243.0;
-         model.w = new double[] { 1, 2, 0, 4, 5, 6, 0, 7, 8, 9, 1, 723.99 };
-         model.label = new int[] { 1, Integer.MAX_VALUE, 2 };
-         model.nr_feature = model.w.length / model.label.length - 1;
-         model.nr_class = model.label.length;
 
          File tempFile = File.createTempFile("liblinear", "modeltest");
          tempFile.deleteOnExit();
-         Linear.saveModel(tempFile.getAbsolutePath(), model);
-         Model loadedModel = Linear.loadModel(tempFile.getAbsolutePath());
+         Linear.saveModel(tempFile, model);
 
-         assertThat(loadedModel.w).isEqualTo(model.w);
+         Model loadedModel = Linear.loadModel(tempFile);
          assertThat(loadedModel).isEqualTo(model);
       }
+   }
+
+   @Test
+   public void testSaveModelWithIOException() throws Exception {
+      Model model = createSomeModel();
+
+      OutputStream out = createMock(OutputStream.class);
+      Object[] mocks = new Object[] { out };
+
+      IOException ioException = new IOException("some reason");
+
+      out.write(isA(byte[].class), anyInt(), anyInt());
+      expectLastCall().anyTimes();
+      out.write(anyInt());
+      expectLastCall().anyTimes();
+      out.write(isA(byte[].class));
+      expectLastCall().anyTimes();
+      out.flush();
+      expectLastCall().andThrow(ioException);
+      out.close();
+      expectLastCall().times(1);
+
+      replay(mocks);
+      try {
+         Linear.saveModel(out, model);
+         fail("IOException expected");
+      }
+      catch ( IOException e ) {
+         assertThat(e).isEqualTo(ioException);
+      }
+      verify(mocks);
    }
 
    /**
