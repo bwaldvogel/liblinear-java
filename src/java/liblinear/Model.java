@@ -1,26 +1,29 @@
 package liblinear;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 
 /**
  * use {@link Linear#loadModel(String)} and {@link Linear#saveModel(String, Model)} to load/save it
  */
-public final class Model {
+public final class Model implements Serializable {
 
-   double     bias;
+   private static final long serialVersionUID = -6456047576741854834L;
+
+   double                    bias;
 
    /** label of each class (label[n]) */
-   int[]      label;
+   int[]                     label;
 
    /** number of classes */
-   int        nr_class;
+   int                       nr_class;
 
-   int        nr_feature;
+   int                       nr_feature;
 
-   SolverType solverType;
+   SolverType                solverType;
 
-   double[]   w;
+   double[]                  w;
 
    public int getNrClass() {
       return nr_class;
