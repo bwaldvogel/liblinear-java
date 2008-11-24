@@ -1,16 +1,16 @@
 package liblinear;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Formatter;
@@ -33,15 +33,17 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
-   private static final Charset MODEL_CHARSET = Charset.forName("ISO-8859-1");
+   static final Charset   FILE_CHARSET   = Charset.forName("ISO-8859-1");
+
+   static final Locale    DEFAULT_LOCALE = Locale.ENGLISH;
 
    /** set this to false if you don't want anything written to stdout */
-   private static boolean       DEBUG_OUTPUT  = true;
+   private static boolean DEBUG_OUTPUT   = true;
 
    /** platform-independent new-line string */
-   public final static String   NL            = System.getProperty("line.separator");
+   final static String    NL             = System.getProperty("line.separator");
 
-   final static Random          random        = new Random();
+   final static Random    random         = new Random();
 
    /**
     * @param target predicted classes
@@ -186,26 +188,28 @@ public class Linear {
     * @param s the string to parse for the integer value
     */
    static int atoi( String s ) {
+      if ( s == null || s.length() < 1 ) throw new IllegalArgumentException("Can't convert empty string to integer");
+      // Integer.parseInt doesn't accept '+' prefixed strings
+      if ( s.charAt(0) == '+' ) s = s.substring(1);
       return Integer.parseInt(s);
    }
 
    /**
-    * Loads the model from the file with ISO-8859-1 charset.
+    * Loads the model from inputReader.
     * It uses {@link Locale.ENGLISH} for number formatting.
     *
-    * <p><b>Note: The input stream is closed after reading or in case of an exception.</b></p>
+    * <p><b>Note: The inputReader is closed after reading or in case of an exception.</b></p>
     */
-   public static Model loadModel( InputStream inputStream ) throws IOException {
+   public static Model loadModel( BufferedReader inputReader ) throws IOException {
       Model model = new Model();
 
       model.label = null;
 
       Pattern whitespace = Pattern.compile("\\s+");
 
-      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, MODEL_CHARSET));
       try {
          String line = null;
-         while ( (line = reader.readLine()) != null ) {
+         while ( (line = inputReader.readLine()) != null ) {
             String[] split = whitespace.split(line);
             if ( split[0].equals("solver_type") ) {
                SolverType solver = SolverType.valueOf(split[1]);
@@ -245,7 +249,7 @@ public class Linear {
             for ( int j = 0; j < nr_w; j++ ) {
                int b = 0;
                while ( true ) {
-                  int ch = reader.read();
+                  int ch = inputReader.read();
                   if ( ch == -1 ) {
                      throw new EOFException("unexpected EOF");
                   }
@@ -260,7 +264,7 @@ public class Linear {
          }
       }
       finally {
-         closeQuietly(reader);
+         closeQuietly(inputReader);
       }
 
       return model;
@@ -271,10 +275,11 @@ public class Linear {
     * It uses {@link Locale.ENGLISH} for number formatting.
     */
    public static Model loadModel( File modelFile ) throws IOException {
-      return loadModel(new FileInputStream(modelFile));
+      BufferedReader inputReader = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), FILE_CHARSET));
+      return loadModel(inputReader);
    }
 
-   private static void closeQuietly( Closeable c ) {
+   static void closeQuietly( Closeable c ) {
       if ( c == null ) return;
       try {
          c.close();
@@ -356,19 +361,19 @@ public class Linear {
    }
 
 
-   private static void printf( Formatter formatter, String format, Object... args ) throws IOException {
+   static void printf( Formatter formatter, String format, Object... args ) throws IOException {
       formatter.format(format, args);
       IOException ioException = formatter.ioException();
       if ( ioException != null ) throw ioException;
    }
 
    /**
-    * Writes the model to the output stream with ISO-8859-1 charset.
+    * Writes the model to the modelOutput.
     * It uses {@link Locale.ENGLISH} for number formatting.
     *
-    * <p><b>Note: The output stream is closed after reading or in case of an exception.</b></p>
+    * <p><b>Note: The modelOutput is closed after reading or in case of an exception.</b></p>
     */
-   public static void saveModel( OutputStream modelOutput, Model model ) throws IOException {
+   public static void saveModel( Writer modelOutput, Model model ) throws IOException {
       int nr_feature = model.nr_feature;
       int n = nr_feature;
       if ( model.bias >= 0 ) n++;
@@ -376,7 +381,7 @@ public class Linear {
       int nr_w = model.nr_class;
       if ( model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS ) nr_w = 1;
 
-      Formatter formatter = new Formatter(modelOutput, MODEL_CHARSET.name(), Locale.ENGLISH);
+      Formatter formatter = new Formatter(modelOutput, DEFAULT_LOCALE);
       try {
          printf(formatter, "solver_type %s\n", model.solverType.name());
          printf(formatter, "nr_class %d\n", model.nr_class);
@@ -412,7 +417,8 @@ public class Linear {
     * It uses {@link Locale.ENGLISH} for number formatting.
     */
    public static void saveModel( File modelFile, Model model ) throws IOException {
-      saveModel(new BufferedOutputStream(new FileOutputStream(modelFile)), model);
+      BufferedWriter modelOutput = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(modelFile), FILE_CHARSET));
+      saveModel(modelOutput, model);
    }
 
    private static void solve_linear_c_svc( Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type ) {

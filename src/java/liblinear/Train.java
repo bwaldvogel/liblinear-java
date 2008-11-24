@@ -178,9 +178,7 @@ public class Train {
             StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
 
             String token = st.nextToken();
-            // Integer.valueOf doens't accept the String "+1"
-            if ( token.startsWith("+") ) token = token.substring(1);
-            vy.add(Integer.valueOf(token));
+            vy.add(atoi(token));
             int m = st.countTokens() / 2;
             FeatureNode[] x;
             if ( bias >= 0 ) {

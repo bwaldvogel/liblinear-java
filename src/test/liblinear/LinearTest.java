@@ -1,9 +1,7 @@
 package liblinear;
 
-import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 import static org.fest.assertions.Assertions.assertThat;
@@ -11,7 +9,7 @@ import static org.fest.assertions.Fail.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -38,7 +36,7 @@ public class LinearTest {
       assertThat(f).isEqualTo(new int[] { 1, 2, 3, 4, 5 });
    }
 
-   private Model createSomeModel() {
+   public static Model createSomeModel() {
       Model model = new Model();
       model.solverType = SolverType.L2_LR;
       model.bias = 2;
@@ -51,6 +49,43 @@ public class LinearTest {
       model.nr_feature = model.w.length / model.label.length - 1;
       model.nr_class = model.label.length;
       return model;
+   }
+
+   @Test
+   public void testAtoi() {
+      assertThat(Linear.atoi("+25")).isEqualTo(25);
+      assertThat(Linear.atoi("-345345")).isEqualTo(-345345);
+      assertThat(Linear.atoi("+0")).isEqualTo(0);
+      assertThat(Linear.atoi("0")).isEqualTo(0);
+      assertThat(Linear.atoi("2147483647")).isEqualTo(Integer.MAX_VALUE);
+      assertThat(Linear.atoi("-2147483648")).isEqualTo(Integer.MIN_VALUE);
+   }
+
+   @Test(expected = NumberFormatException.class)
+   public void testAtoiInvalidData() {
+      Linear.atoi("+");
+   }
+
+   @Test(expected = NumberFormatException.class)
+   public void testAtoiInvalidData2() {
+      Linear.atoi("abc");
+   }
+
+   @Test(expected = NumberFormatException.class)
+   public void testAtoiInvalidData3() {
+      Linear.atoi(" ");
+   }
+
+   @Test
+   public void testAtof() {
+      assertThat(Linear.atof("+25")).isEqualTo(25);
+      assertThat(Linear.atof("-25.12345678")).isEqualTo(-25.12345678);
+      assertThat(Linear.atof("0.345345299")).isEqualTo(0.345345299);
+   }
+
+   @Test(expected = NumberFormatException.class)
+   public void testAtofInvalidData() {
+      Linear.atof("0.5t");
    }
 
    @Test
@@ -74,17 +109,11 @@ public class LinearTest {
    public void testSaveModelWithIOException() throws Exception {
       Model model = createSomeModel();
 
-      OutputStream out = createMock(OutputStream.class);
+      Writer out = createNiceMock(Writer.class);
       Object[] mocks = new Object[] { out };
 
       IOException ioException = new IOException("some reason");
 
-      out.write(isA(byte[].class), anyInt(), anyInt());
-      expectLastCall().anyTimes();
-      out.write(anyInt());
-      expectLastCall().anyTimes();
-      out.write(isA(byte[].class));
-      expectLastCall().anyTimes();
       out.flush();
       expectLastCall().andThrow(ioException);
       out.close();
