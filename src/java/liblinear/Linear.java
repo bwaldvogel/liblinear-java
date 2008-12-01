@@ -43,7 +43,7 @@ public class Linear {
    /** platform-independent new-line string */
    final static String    NL             = System.getProperty("line.separator");
 
-   final static Random    random         = new Random();
+   final static Random    random         = new Random(0);
 
    /**
     * @param target predicted classes
