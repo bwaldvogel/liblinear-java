@@ -19,7 +19,7 @@ public class TrainTest {
       Train train = new Train();
 
       for ( SolverType solver : SolverType.values() ) {
-         train.parse_command_line(new String[] { "-B", "5", "-s", "" + solver.ordinal(), "model-filename" });
+         train.parse_command_line(new String[] { "-B", "5.3", "-s", "" + solver.ordinal(), "model-filename" });
          Parameter param = train.getParameter();
          assertThat(param.solverType).isEqualTo(solver);
          // check default eps
@@ -29,7 +29,7 @@ public class TrainTest {
             assertThat(param.eps).isEqualTo(0.1);
          }
          // check if bias is set
-         assertThat(train.getBias()).isEqualTo(5);
+         assertThat(train.getBias()).isEqualTo(5.3);
       }
    }
 

@@ -19,7 +19,7 @@ public class Train {
       new Train().run(args);
    }
 
-   private int       bias             = 1;
+   private double    bias             = 1;
    private boolean   cross_validation = false;
    private String    inputFilename;
    private String    modelFilename;
@@ -72,7 +72,7 @@ public class Train {
       return prob;
    }
 
-   int getBias() {
+   double getBias() {
       return bias;
    }
 
@@ -106,7 +106,7 @@ public class Train {
             param.setEps(atof(argv[i]));
             break;
          case 'B':
-            bias = atoi(argv[i]);
+            bias = atof(argv[i]);
             break;
          case 'w':
             ++nr_weight;
