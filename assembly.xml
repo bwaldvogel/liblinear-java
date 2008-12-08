@@ -1,0 +1,15 @@
+<assembly>
+   <id>with-deps</id>
+   <formats>
+      <format>jar</format>
+   </formats>
+   <includeBaseDirectory>false</includeBaseDirectory>
+   <dependencySets>
+      <dependencySet>
+         <outputDirectory></outputDirectory>
+         <outputFileNameMapping></outputFileNameMapping>
+         <unpack>true</unpack>
+         <scope>compile</scope>
+      </dependencySet>
+   </dependencySets>
+</assembly>
