@@ -1,10 +1,9 @@
 package liblinear;
 
+import static liblinear.Linear.copyOf;
 import static liblinear.Linear.info;
 import static liblinear.Linear.infoFlush;
 import static liblinear.Linear.swap;
-
-import java.util.Arrays;
 
 
 /**
@@ -247,7 +246,7 @@ class SolverMCSVM_CS {
 
       int r;
       assert active_i <= B.length; // no padding
-      double[] D = Arrays.copyOf(B, active_i);
+      double[] D = copyOf(B, active_i);
       // clone(D, B, active_i);
 
       if ( yi < active_i ) D[yi] += A_i * C_yi;

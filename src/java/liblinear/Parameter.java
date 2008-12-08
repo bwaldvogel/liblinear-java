@@ -1,6 +1,6 @@
 package liblinear;
 
-import java.util.Arrays;
+import static liblinear.Linear.copyOf;
 
 
 /**
@@ -43,9 +43,10 @@ public final class Parameter {
 
    public void setWeights( double[] weights, int[] weightLabels ) {
       if ( weights == null ) throw new IllegalArgumentException("'weight' must not be null");
-      if ( weightLabels == null || weightLabels.length != weights.length ) throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
-      this.weightLabel = Arrays.copyOf(weightLabels, weightLabels.length);
-      this.weight = Arrays.copyOf(weights, weights.length);
+      if ( weightLabels == null || weightLabels.length != weights.length )
+         throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
+      this.weightLabel = copyOf(weightLabels, weightLabels.length);
+      this.weight = copyOf(weights, weights.length);
    }
 
    public int getNumWeights() {

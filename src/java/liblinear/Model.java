@@ -3,6 +3,8 @@ package liblinear;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import static liblinear.Linear.copyOf;
+
 
 /**
  * use {@link Linear#loadModel(String)} and {@link Linear#saveModel(String, Model)} to load/save it
@@ -34,7 +36,7 @@ public final class Model implements Serializable {
    }
 
    public int[] getLabels() {
-      return Arrays.copyOf(label, nr_class);
+      return copyOf(label, nr_class);
    }
 
    @Override

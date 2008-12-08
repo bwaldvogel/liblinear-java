@@ -10,7 +10,6 @@ import static org.fest.assertions.Fail.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.BeforeClass;
@@ -19,7 +18,7 @@ import org.junit.Test;
 
 public class LinearTest {
 
-   private static Random random = new Random();
+   private static Random random = new Random(0);
 
    @BeforeClass
    public static void disableDebugOutput() {
@@ -30,7 +29,7 @@ public class LinearTest {
    public void testRealloc() {
 
       int[] f = new int[] { 1, 2, 3 };
-      f = Arrays.copyOf(f, 5);
+      f = Linear.copyOf(f, 5);
       f[3] = 4;
       f[4] = 5;
       assertThat(f).isEqualTo(new int[] { 1, 2, 3, 4, 5 });
