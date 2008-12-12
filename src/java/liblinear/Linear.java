@@ -32,17 +32,18 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
-   static final Charset   FILE_CHARSET   = Charset.forName("ISO-8859-1");
+   static final Charset      FILE_CHARSET        = Charset.forName("ISO-8859-1");
 
-   static final Locale    DEFAULT_LOCALE = Locale.ENGLISH;
+   static final Locale       DEFAULT_LOCALE      = Locale.ENGLISH;
 
    /** set this to false if you don't want anything written to stdout */
-   private static boolean DEBUG_OUTPUT   = true;
+   private static boolean    DEBUG_OUTPUT        = true;
 
    /** platform-independent new-line string */
-   final static String    NL             = System.getProperty("line.separator");
+   final static String       NL                  = System.getProperty("line.separator");
 
-   final static Random    random         = new Random(0);
+   private static final long DEFAULT_RANDOM_SEED = 0L;
+   static Random             random              = new Random(DEFAULT_RANDOM_SEED);
 
    /**
     * @param target predicted classes
@@ -756,5 +757,14 @@ public class Linear {
 
    public static void enableDebugOutput() {
       DEBUG_OUTPUT = true;
+   }
+
+   /**
+    * resets the PRNG
+    *
+    * this is i.a. needed for regression testing (eg. the Weka wrapper)
+    */
+   public static void resetRandom() {
+      random = new Random(DEFAULT_RANDOM_SEED);
    }
 }
