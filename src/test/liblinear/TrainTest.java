@@ -79,4 +79,83 @@ public class TrainTest {
          }
       }
    }
+
+   @Test(expected = InvalidInputDataException.class)
+   public void testReadUnsortedProblem() throws Exception {
+      File file = File.createTempFile("svm", "test");
+      file.deleteOnExit();
+
+      Collection<String> lines = new ArrayList<String>();
+      lines.add("1 1:1  3:1  4:1   6:1");
+      lines.add("2 2:1  3:1  5:1   7:1");
+      lines.add("1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
+
+      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+      try {
+         for ( String line : lines )
+            writer.append(line).append(NL);
+      }
+      finally {
+         writer.close();
+      }
+
+      Train train = new Train();
+      train.readProblem(file.getAbsolutePath());
+   }
+
+
+   @Test(expected = InvalidInputDataException.class)
+   public void testReadProblemWithInvalidIndex() throws Exception {
+      File file = File.createTempFile("svm", "test");
+      file.deleteOnExit();
+
+      Collection<String> lines = new ArrayList<String>();
+      lines.add("1 1:1  3:1  4:1   6:1");
+      lines.add("2 2:1  3:1  5:1  -4:1");
+
+      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+      try {
+         for ( String line : lines )
+            writer.append(line).append(NL);
+      }
+      finally {
+         writer.close();
+      }
+
+      Train train = new Train();
+      try {
+         train.readProblem(file.getAbsolutePath());
+      }
+      catch ( InvalidInputDataException e ) {
+         throw e;
+      }
+   }
+
+   @Test(expected = InvalidInputDataException.class)
+   public void testReadWrongProblem() throws Exception {
+      File file = File.createTempFile("svm", "test");
+      file.deleteOnExit();
+
+      Collection<String> lines = new ArrayList<String>();
+      lines.add("1 1:1  3:1  4:1   6:1");
+      lines.add("2 2:1  3:1  5:1   7:1");
+      lines.add("1 3:1  5:a"); // here's the mistake: incomplete line
+
+      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+      try {
+         for ( String line : lines )
+            writer.append(line).append(NL);
+      }
+      finally {
+         writer.close();
+      }
+
+      Train train = new Train();
+      try {
+         train.readProblem(file.getAbsolutePath());
+      }
+      catch ( InvalidInputDataException e ) {
+         throw e;
+      }
+   }
 }

@@ -15,7 +15,7 @@ import java.util.StringTokenizer;
 
 public class Train {
 
-   public static void main( String[] args ) throws IOException {
+   public static void main( String[] args ) throws IOException, InvalidInputDataException {
       new Train().run(args);
    }
 
@@ -163,22 +163,36 @@ public class Train {
       }
    }
 
-   // read in a problem (in libsvm format)
-   void readProblem( String filename ) throws IOException {
+   /**
+    * reads a problem from LibSVM format
+    * @param filename the name of the svm file
+    * @throws IOException obviously in case of any I/O exception ;)
+    * @throws InvalidInputDataException if the input file is not correctly formatted
+    */
+   void readProblem( String filename ) throws IOException, InvalidInputDataException {
       BufferedReader fp = new BufferedReader(new FileReader(filename));
       List<Integer> vy = new ArrayList<Integer>();
       List<FeatureNode[]> vx = new ArrayList<FeatureNode[]>();
       int max_index = 0;
 
+      int lineNr = 0;
+
       try {
          while ( true ) {
             String line = fp.readLine();
             if ( line == null ) break;
+            lineNr++;
 
             StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
-
             String token = st.nextToken();
-            vy.add(atoi(token));
+
+            try {
+               vy.add(atoi(token));
+            }
+            catch ( NumberFormatException e ) {
+               throw new InvalidInputDataException("invalid label: " + token, filename, lineNr, e);
+            }
+
             int m = st.countTokens() / 2;
             FeatureNode[] x;
             if ( bias >= 0 ) {
@@ -186,10 +200,31 @@ public class Train {
             } else {
                x = new FeatureNode[m];
             }
+            int indexBefore = 0;
             for ( int j = 0; j < m; j++ ) {
-               int index = atoi(st.nextToken());
-               double value = atof(st.nextToken());
-               x[j] = new FeatureNode(index, value);
+
+               token = st.nextToken();
+               int index;
+               try {
+                  index = atoi(token);
+               }
+               catch ( NumberFormatException e ) {
+                  throw new InvalidInputDataException("invalid index: " + token, filename, lineNr, e);
+               }
+
+               // assert that indices are valid and sorted
+               if ( index < 0 ) throw new InvalidInputDataException("invalid index: " + index, filename, lineNr);
+               if ( index <= indexBefore ) throw new InvalidInputDataException("indices must be sorted in ascending order", filename, lineNr);
+               indexBefore = index;
+
+               token = st.nextToken();
+               try {
+                  double value = atof(token);
+                  x[j] = new FeatureNode(index, value);
+               }
+               catch ( NumberFormatException e ) {
+                  throw new InvalidInputDataException("invalid value: " + token, filename, lineNr);
+               }
             }
             if ( m > 0 ) {
                max_index = Math.max(max_index, x[m - 1].index);
@@ -198,36 +233,41 @@ public class Train {
             vx.add(x);
          }
 
-         prob = new Problem();
-         prob.bias = bias;
-         prob.l = vy.size();
-         prob.n = max_index;
-         if ( bias >= 0 ) {
-            prob.n++;
-         }
-         prob.x = new FeatureNode[prob.l][];
-         for ( int i = 0; i < prob.l; i++ ) {
-            prob.x[i] = vx.get(i);
-
-            if ( bias >= 0 ) {
-               assert prob.x[i][prob.x[i].length - 1] == null;
-               prob.x[i][prob.x[i].length - 1] = new FeatureNode(max_index + 1, bias);
-            } else {
-               assert prob.x[i][prob.x[i].length - 1] != null;
-            }
-         }
-
-         prob.y = new int[prob.l];
-         for ( int i = 0; i < prob.l; i++ )
-            prob.y[i] = vy.get(i);
+         prob = constructProblem(vy, vx, max_index);
       }
       finally {
          fp.close();
       }
    }
 
+   private Problem constructProblem( List<Integer> vy, List<FeatureNode[]> vx, int max_index ) {
+      Problem prob = new Problem();
+      prob.bias = bias;
+      prob.l = vy.size();
+      prob.n = max_index;
+      if ( bias >= 0 ) {
+         prob.n++;
+      }
+      prob.x = new FeatureNode[prob.l][];
+      for ( int i = 0; i < prob.l; i++ ) {
+         prob.x[i] = vx.get(i);
 
-   private void run( String[] args ) throws IOException {
+         if ( bias >= 0 ) {
+            assert prob.x[i][prob.x[i].length - 1] == null;
+            prob.x[i][prob.x[i].length - 1] = new FeatureNode(max_index + 1, bias);
+         } else {
+            assert prob.x[i][prob.x[i].length - 1] != null;
+         }
+      }
+
+      prob.y = new int[prob.l];
+      for ( int i = 0; i < prob.l; i++ )
+         prob.y[i] = vy.get(i);
+
+      return prob;
+   }
+
+   private void run( String[] args ) throws IOException, InvalidInputDataException {
       parse_command_line(args);
       readProblem(inputFilename);
       if ( cross_validation )

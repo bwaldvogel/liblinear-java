@@ -173,10 +173,11 @@ public class Linear {
 
    /**
     * @param s the string to parse for the double value
-    * @throws IllegalArgumentException if s represents NaN or Infinity
+    * @throws IllegalArgumentException if s is empty or represents NaN or Infinity
+    * @throws NumberFormatException see {@link Double#parseDouble(String)}
     */
    static double atof( String s ) {
-
+      if ( s == null || s.length() < 1 ) throw new IllegalArgumentException("Can't convert empty string to integer");
       double d = Double.parseDouble(s);
       if ( Double.isNaN(d) || Double.isInfinite(d) ) {
          throw new IllegalArgumentException("NaN or Infinity in input: " + s);
@@ -186,8 +187,10 @@ public class Linear {
 
    /**
     * @param s the string to parse for the integer value
+    * @throws IllegalArgumentException if s is empty
+    * @throws NumberFormatException see {@link Integer#parseInt(String)}
     */
-   static int atoi( String s ) {
+   static int atoi( String s ) throws NumberFormatException {
       if ( s == null || s.length() < 1 ) throw new IllegalArgumentException("Can't convert empty string to integer");
       // Integer.parseInt doesn't accept '+' prefixed strings
       if ( s.charAt(0) == '+' ) s = s.substring(1);
@@ -611,10 +614,23 @@ public class Linear {
       array.set(idxB, temp);
    }
 
+   /**
+    * @throws IllegalArgumentException if the feature nodes of prob are not sorted in ascending order
+    */
    public static Model train( Problem prob, Parameter param ) {
 
       if ( prob == null ) throw new IllegalArgumentException("problem must not be null");
       if ( param == null ) throw new IllegalArgumentException("parameter must not be null");
+
+      for ( FeatureNode[] nodes : prob.x ) {
+         int indexBefore = 0;
+         for ( FeatureNode n : nodes ) {
+            if ( n.index <= indexBefore ) {
+               throw new IllegalArgumentException("feature nodes must be sorted by index in ascending order");
+            }
+            indexBefore = n.index;
+         }
+      }
 
       int i, j;
       int l = prob.l;

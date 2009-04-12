@@ -174,4 +174,29 @@ public class LinearTest {
          }
       }
    }
+
+   @Test(expected = IllegalArgumentException.class)
+   public void testTrainUnsortedProblem() {
+      Problem prob = new Problem();
+      prob.bias = -1;
+      prob.l = 1;
+      prob.n = 2;
+      prob.x = new FeatureNode[4][];
+      prob.x[0] = new FeatureNode[2];
+
+      prob.x[0][0] = new FeatureNode(2, 1);
+      prob.x[0][1] = new FeatureNode(1, 1);
+
+      prob.y = new int[4];
+      prob.y[0] = 0;
+
+      Parameter param = new Parameter(SolverType.L2_LR, 10, 0.1);
+      try {
+         Linear.train(prob, param);
+      }
+      catch ( IllegalArgumentException e ) {
+         assertThat(e).message().contains("nodes").contains("sorted").contains("ascending").contains("order");
+         throw e;
+      }
+   }
 }
