@@ -77,7 +77,25 @@ public final class Model implements Serializable {
       if ( solverType == null ) {
          if ( other.solverType != null ) return false;
       } else if ( !solverType.equals(other.solverType) ) return false;
-      if ( !Arrays.equals(w, other.w) ) return false;
+      if ( !equals(w, other.w) ) return false;
+      return true;
+   }
+
+   /**
+    * don't use {@link Arrays#equals(double[], double[])} here, cause 0.0 and -0.0 should be handled the same
+    *
+    * @see Linear#saveModel(java.io.Writer, Model)
+    */
+   protected static boolean equals( double[] a, double[] a2 ) {
+      if ( a == a2 ) return true;
+      if ( a == null || a2 == null ) return false;
+
+      int length = a.length;
+      if ( a2.length != length ) return false;
+
+      for ( int i = 0; i < length; i++ )
+         if ( a[i] != a2[i] ) return false;
+
       return true;
    }
 }

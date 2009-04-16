@@ -419,7 +419,14 @@ public class Linear {
          printf(formatter, "w\n");
          for ( int i = 0; i < n; i++ ) {
             for ( int j = 0; j < nr_w; j++ ) {
-               printf(formatter, "%.16g ", model.w[i * nr_w + j]);
+               double value = model.w[i * nr_w + j];
+
+               /** this optimization is the reason for {@link Model#equals(double[], double[])} */
+               if ( value == 0.0 ) {
+                  printf(formatter, "%d ", 0);
+               } else {
+                  printf(formatter, "%.16g ", value);
+               }
             }
             printf(formatter, "\n");
          }

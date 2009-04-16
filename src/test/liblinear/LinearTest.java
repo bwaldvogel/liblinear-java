@@ -45,6 +45,11 @@ public class LinearTest {
          // precision should be at least 1e-4
          model.w[i] = Math.round(random.nextDouble() * 100000.0) / 10000.0;
       }
+
+      // force at least one value to be zero
+      model.w[random.nextInt(model.w.length)] = 0.0;
+      model.w[random.nextInt(model.w.length)] = -0.0;
+
       model.nr_feature = model.w.length / model.label.length - 1;
       model.nr_class = model.label.length;
       return model;
