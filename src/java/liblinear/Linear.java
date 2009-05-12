@@ -72,7 +72,7 @@ public class Linear {
          subprob.bias = prob.bias;
          subprob.n = prob.n;
          subprob.l = l - (end - begin);
-         subprob.x = new FeatureNode[l][];
+         subprob.x = new FeatureNode[subprob.l][];
          subprob.y = new int[subprob.l];
 
          k = 0;

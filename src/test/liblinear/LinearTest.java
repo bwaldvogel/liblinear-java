@@ -10,7 +10,12 @@ import static org.fest.assertions.Fail.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,17 +30,7 @@ public class LinearTest {
       Linear.disableDebugOutput();
    }
 
-   @Test
-   public void testRealloc() {
-
-      int[] f = new int[] { 1, 2, 3 };
-      f = Linear.copyOf(f, 5);
-      f[3] = 4;
-      f[4] = 5;
-      assertThat(f).isEqualTo(new int[] { 1, 2, 3, 4, 5 });
-   }
-
-   public static Model createSomeModel() {
+   public static Model createRandomModel() {
       Model model = new Model();
       model.solverType = SolverType.L2_LR;
       model.bias = 2;
@@ -53,6 +48,44 @@ public class LinearTest {
       model.nr_feature = model.w.length / model.label.length - 1;
       model.nr_class = model.label.length;
       return model;
+   }
+
+   public static Problem createRandomProblem( int numClasses ) {
+      Problem prob = new Problem();
+      prob.bias = -1;
+      prob.l = random.nextInt(100) + 1;
+      prob.n = random.nextInt(100) + 1;
+      prob.x = new FeatureNode[prob.l][];
+      prob.y = new int[prob.l];
+
+      for ( int i = 0; i < prob.l; i++ ) {
+
+         prob.y[i] = random.nextInt(numClasses);
+
+         Set<Integer> randomNumbers = new TreeSet<Integer>();
+         int num = random.nextInt(prob.n) + 1;
+         for ( int j = 0; j < num; j++ ) {
+            randomNumbers.add(random.nextInt(prob.n) + 1);
+         }
+         List<Integer> randomIndices = new ArrayList<Integer>(randomNumbers);
+         Collections.sort(randomIndices);
+
+         prob.x[i] = new FeatureNode[randomIndices.size()];
+         for ( int j = 0; j < randomIndices.size(); j++ ) {
+            prob.x[i][j] = new FeatureNode(randomIndices.get(j), random.nextDouble());
+         }
+      }
+      return prob;
+   }
+
+   @Test
+   public void testRealloc() {
+
+      int[] f = new int[] { 1, 2, 3 };
+      f = Linear.copyOf(f, 5);
+      f[3] = 4;
+      f[4] = 5;
+      assertThat(f).isEqualTo(new int[] { 1, 2, 3, 4, 5 });
    }
 
    @Test
@@ -97,7 +130,7 @@ public class LinearTest {
 
       Model model = null;
       for ( SolverType solverType : SolverType.values() ) {
-         model = createSomeModel();
+         model = createRandomModel();
          model.solverType = solverType;
 
          File tempFile = File.createTempFile("liblinear", "modeltest");
@@ -110,8 +143,25 @@ public class LinearTest {
    }
 
    @Test
+   public void testCrossValidation() throws Exception {
+
+      int numClasses = random.nextInt(10) + 1;
+
+      Problem prob = createRandomProblem(numClasses);
+
+      Parameter param = new Parameter(SolverType.L2_LR, 10, 0.01);
+      int nr_fold = 10;
+      int[] target = new int[prob.l];
+      Linear.crossValidation(prob, param, nr_fold, target);
+
+      for ( int clazz : target ) {
+         assertThat(clazz).isGreaterThanOrEqualTo(0).isLessThan(numClasses);
+      }
+   }
+
+   @Test
    public void testSaveModelWithIOException() throws Exception {
-      Model model = createSomeModel();
+      Model model = createRandomModel();
 
       Writer out = createNiceMock(Writer.class);
       Object[] mocks = new Object[] { out };

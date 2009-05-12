@@ -15,7 +15,7 @@ import org.junit.Test;
 
 public class PredictTest {
 
-   private Model         testModel = LinearTest.createSomeModel();
+   private Model         testModel = LinearTest.createRandomModel();
    private StringBuilder sb        = new StringBuilder();
    private Writer        writer    = new StringWriter();
 
