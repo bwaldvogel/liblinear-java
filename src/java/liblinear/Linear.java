@@ -342,7 +342,7 @@ public class Linear {
          return 0;
    }
 
-   static int predictValues( Model model, FeatureNode[] x, double[] dec_values ) {
+   public static int predictValues( Model model, FeatureNode[] x, double[] dec_values ) {
       int n;
       if ( model.bias >= 0 )
          n = model.nr_feature + 1;
