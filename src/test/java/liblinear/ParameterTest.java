@@ -41,7 +41,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("same").contains("length");
+         assertThat(e.getMessage()).contains("same").contains("length");
       }
    }
 
@@ -74,7 +74,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("must").contains("not").contains("<= 0");
+         assertThat(e.getMessage()).contains("must").contains("not").contains("<= 0");
       }
 
       try {
@@ -82,7 +82,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("must").contains("not").contains("<= 0");
+         assertThat(e.getMessage()).contains("must").contains("not").contains("<= 0");
       }
    }
 
@@ -100,7 +100,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("must").contains("not").contains("<= 0");
+         assertThat(e.getMessage()).contains("must").contains("not").contains("<= 0");
       }
 
       try {
@@ -108,7 +108,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("must").contains("not").contains("<= 0");
+         assertThat(e.getMessage()).contains("must").contains("not").contains("<= 0");
       }
    }
 
@@ -123,7 +123,7 @@ public class ParameterTest {
          fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("must").contains("not").contains("null");
+         assertThat(e.getMessage()).contains("must").contains("not").contains("null");
       }
    }
 

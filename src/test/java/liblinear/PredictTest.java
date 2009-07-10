@@ -1,7 +1,7 @@
 package liblinear;
 
-import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.BufferedReader;
 import java.io.PrintStream;
@@ -21,7 +21,7 @@ public class PredictTest {
 
    @Before
    public void setUp() {
-      System.setOut(createNiceMock(PrintStream.class)); // dev/null
+      System.setOut(mock(PrintStream.class)); // dev/null
       assertThat(testModel.getNrClass()).isGreaterThanOrEqualTo(2);
       assertThat(testModel.getNrFeature()).isGreaterThanOrEqualTo(10);
    }

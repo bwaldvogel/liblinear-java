@@ -1,11 +1,10 @@
 package liblinear;
 
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.classextension.EasyMock.createNiceMock;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +18,7 @@ import java.util.TreeSet;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
 
 
 public class LinearTest {
@@ -163,17 +163,12 @@ public class LinearTest {
    public void testSaveModelWithIOException() throws Exception {
       Model model = createRandomModel();
 
-      Writer out = createNiceMock(Writer.class);
-      Object[] mocks = new Object[] { out };
+      Writer out = PowerMockito.mock(Writer.class);
 
       IOException ioException = new IOException("some reason");
 
-      out.flush();
-      expectLastCall().andThrow(ioException);
-      out.close();
-      expectLastCall().times(1);
+      doThrow(ioException).when(out).flush();
 
-      replay(mocks);
       try {
          Linear.saveModel(out, model);
          fail("IOException expected");
@@ -181,7 +176,9 @@ public class LinearTest {
       catch ( IOException e ) {
          assertThat(e).isEqualTo(ioException);
       }
-      verify(mocks);
+
+      verify(out).flush();
+      verify(out, times(1)).close();
    }
 
    /**
@@ -230,7 +227,7 @@ public class LinearTest {
       }
    }
 
-   @Test(expected = IllegalArgumentException.class)
+   @Test
    public void testTrainUnsortedProblem() {
       Problem prob = new Problem();
       prob.bias = -1;
@@ -248,10 +245,10 @@ public class LinearTest {
       Parameter param = new Parameter(SolverType.L2_LR, 10, 0.1);
       try {
          Linear.train(prob, param);
+         fail("IllegalArgumentException expected");
       }
       catch ( IllegalArgumentException e ) {
-         assertThat(e).message().contains("nodes").contains("sorted").contains("ascending").contains("order");
-         throw e;
+         assertThat(e.getMessage()).contains("nodes").contains("sorted").contains("ascending").contains("order");
       }
    }
 }

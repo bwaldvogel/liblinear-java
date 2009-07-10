@@ -67,7 +67,7 @@ public class TrainTest {
 
       for ( FeatureNode[] nodes : prob.x ) {
 
-         assertThat(nodes).size().isLessThanOrEqualTo(prob.n);
+         assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
          for ( FeatureNode node : nodes ) {
             // bias term
             if ( prob.bias >= 0 && nodes[nodes.length - 1] == node ) {
