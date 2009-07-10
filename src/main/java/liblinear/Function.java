@@ -3,15 +3,15 @@ package liblinear;
 // origin: tron.h
 public interface Function {
 
-   // double fun(double *w);
-   // void grad(double *w, double *g);
-   // void Hv(double *s, double *Hs);
+    // double fun(double *w);
+    // void grad(double *w, double *g);
+    // void Hv(double *s, double *Hs);
 
-   double fun( double[] w );
+    double fun(double[] w);
 
-   void grad( double[] w, double[] g );
+    void grad(double[] w, double[] g);
 
-   void Hv( double[] s, double[] Hs );
+    void Hv(double[] s, double[] Hs);
 
-   int get_nr_variable();
+    int get_nr_variable();
 }

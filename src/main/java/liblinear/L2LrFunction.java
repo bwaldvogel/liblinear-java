@@ -2,115 +2,115 @@ package liblinear;
 
 class L2LrFunction implements Function {
 
-   private final double[] C;
-   private final double[] z;
-   private final double[] D;
-   private final Problem  prob;
+    private final double[] C;
+    private final double[] z;
+    private final double[] D;
+    private final Problem  prob;
 
-   public L2LrFunction( Problem prob, double Cp, double Cn ) {
-      int i;
-      int l = prob.l;
-      int[] y = prob.y;
+    public L2LrFunction( Problem prob, double Cp, double Cn ) {
+        int i;
+        int l = prob.l;
+        int[] y = prob.y;
 
-      this.prob = prob;
+        this.prob = prob;
 
-      z = new double[l];
-      D = new double[l];
-      C = new double[l];
+        z = new double[l];
+        D = new double[l];
+        C = new double[l];
 
-      for ( i = 0; i < l; i++ ) {
-         if ( y[i] == 1 )
-            C[i] = Cp;
-         else
-            C[i] = Cn;
-      }
-   }
-
-
-   private void Xv( double[] v, double[] Xv ) {
-
-      for ( int i = 0; i < prob.l; i++ ) {
-         Xv[i] = 0;
-         for ( FeatureNode s : prob.x[i] ) {
-            Xv[i] += v[s.index - 1] * s.value;
-         }
-      }
-   }
-
-   private void XTv( double[] v, double[] XTv ) {
-      int l = prob.l;
-      int n = prob.n;
-      FeatureNode[][] x = prob.x;
-
-      for ( int i = 0; i < n; i++ )
-         XTv[i] = 0;
-
-      for ( int i = 0; i < l; i++ ) {
-         for ( FeatureNode s : x[i] ) {
-            XTv[s.index - 1] += v[i] * s.value;
-         }
-      }
-   }
+        for (i = 0; i < l; i++) {
+            if (y[i] == 1)
+                C[i] = Cp;
+            else
+                C[i] = Cn;
+        }
+    }
 
 
-   public double fun( double[] w ) {
-      int i;
-      double f = 0;
-      int[] y = prob.y;
-      int l = prob.l;
-      int n = prob.n;
+    private void Xv(double[] v, double[] Xv) {
 
-      Xv(w, z);
-      for ( i = 0; i < l; i++ ) {
-         double yz = y[i] * z[i];
-         if ( yz >= 0 )
-            f += C[i] * Math.log(1 + Math.exp(-yz));
-         else
-            f += C[i] * (-yz + Math.log(1 + Math.exp(yz)));
-      }
-      f = 2.0 * f;
-      for ( i = 0; i < n; i++ )
-         f += w[i] * w[i];
-      f /= 2.0;
+        for (int i = 0; i < prob.l; i++) {
+            Xv[i] = 0;
+            for (FeatureNode s : prob.x[i]) {
+                Xv[i] += v[s.index - 1] * s.value;
+            }
+        }
+    }
 
-      return (f);
-   }
+    private void XTv(double[] v, double[] XTv) {
+        int l = prob.l;
+        int n = prob.n;
+        FeatureNode[][] x = prob.x;
 
-   public void grad( double[] w, double[] g ) {
-      int i;
-      int[] y = prob.y;
-      int l = prob.l;
-      int n = prob.n;
+        for (int i = 0; i < n; i++)
+            XTv[i] = 0;
 
-      for ( i = 0; i < l; i++ ) {
-         z[i] = 1 / (1 + Math.exp(-y[i] * z[i]));
-         D[i] = z[i] * (1 - z[i]);
-         z[i] = C[i] * (z[i] - 1) * y[i];
-      }
-      XTv(z, g);
+        for (int i = 0; i < l; i++) {
+            for (FeatureNode s : x[i]) {
+                XTv[s.index - 1] += v[i] * s.value;
+            }
+        }
+    }
 
-      for ( i = 0; i < n; i++ )
-         g[i] = w[i] + g[i];
-   }
 
-   public void Hv( double[] s, double[] Hs ) {
-      int i;
-      int l = prob.l;
-      int n = prob.n;
-      double[] wa = new double[l];
+    public double fun(double[] w) {
+        int i;
+        double f = 0;
+        int[] y = prob.y;
+        int l = prob.l;
+        int n = prob.n;
 
-      Xv(s, wa);
-      for ( i = 0; i < l; i++ )
-         wa[i] = C[i] * D[i] * wa[i];
+        Xv(w, z);
+        for (i = 0; i < l; i++) {
+            double yz = y[i] * z[i];
+            if (yz >= 0)
+                f += C[i] * Math.log(1 + Math.exp(-yz));
+            else
+                f += C[i] * (-yz + Math.log(1 + Math.exp(yz)));
+        }
+        f = 2.0 * f;
+        for (i = 0; i < n; i++)
+            f += w[i] * w[i];
+        f /= 2.0;
 
-      XTv(wa, Hs);
-      for ( i = 0; i < n; i++ )
-         Hs[i] = s[i] + Hs[i];
-      // delete[] wa;
-   }
+        return (f);
+    }
 
-   public int get_nr_variable() {
-      return prob.n;
-   }
+    public void grad(double[] w, double[] g) {
+        int i;
+        int[] y = prob.y;
+        int l = prob.l;
+        int n = prob.n;
+
+        for (i = 0; i < l; i++) {
+            z[i] = 1 / (1 + Math.exp(-y[i] * z[i]));
+            D[i] = z[i] * (1 - z[i]);
+            z[i] = C[i] * (z[i] - 1) * y[i];
+        }
+        XTv(z, g);
+
+        for (i = 0; i < n; i++)
+            g[i] = w[i] + g[i];
+    }
+
+    public void Hv(double[] s, double[] Hs) {
+        int i;
+        int l = prob.l;
+        int n = prob.n;
+        double[] wa = new double[l];
+
+        Xv(s, wa);
+        for (i = 0; i < l; i++)
+            wa[i] = C[i] * D[i] * wa[i];
+
+        XTv(wa, Hs);
+        for (i = 0; i < n; i++)
+            Hs[i] = s[i] + Hs[i];
+        // delete[] wa;
+    }
+
+    public int get_nr_variable() {
+        return prob.n;
+    }
 
 }
