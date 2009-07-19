@@ -216,6 +216,13 @@ public class LinearTest {
                 Parameter param = new Parameter(solver, C, 0.1);
                 Model model = Linear.train(prob, param);
 
+                double[] featureWeights = model.getFeatureWeights();
+                if (solver == SolverType.MCSVM_CS) {
+                    assertThat(featureWeights.length).isEqualTo(8);
+                } else {
+                    assertThat(featureWeights.length).isEqualTo(4);
+                }
+
                 int i = 0;
                 for (int value : prob.y) {
                     int prediction = Linear.predict(model, prob.x[i]);

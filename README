@@ -68,13 +68,13 @@ On other systems, consult `Makefile' to build them (e.g., see
 'Building Windows binaries' in this file) or use the pre-built
 binaries (Windows binaries are in the directory `windows').
 
-This software uses some level-1 BLAS subroutines. The needed functions are 
+This software uses some level-1 BLAS subroutines. The needed functions are
 included in this package.  If a BLAS library is available on your
 machine, you may use it by modifying the Makefile: Unmark the following line
 
         #LIBS ?= -lblas
 
-and mark 
+and mark
 
         LIBS ?= blas/blas.a
 
@@ -111,7 +111,7 @@ min_w w^Tw/2 + C \sum log(1 + exp(-y_i w^Tx_i))
 
 For L2-loss SVM dual (-s 1), we solve
 
-min_alpha  0.5(alpha^T (Q + I/2/C) alpha) - e^T alpha 
+min_alpha  0.5(alpha^T (Q + I/2/C) alpha) - e^T alpha
     s.t.   0 <= alpha_i,
 
 For L2-loss SVM (-s 2), we solve
@@ -120,14 +120,14 @@ min_w w^Tw/2 + C \sum max(0, 1- y_i w^Tx_i)^2
 
 For L1-loss SVM dual (-s 3), we solve
 
-min_alpha  0.5(alpha^T Q alpha) - e^T alpha 
+min_alpha  0.5(alpha^T Q alpha) - e^T alpha
     s.t.   0 <= alpha_i <= C,
 
 where
 
 Q is a matrix with Q_ij = y_i y_j x_i^T x_j.
 
-If bias >= 0, w becomes [w; w_{n+1}] and x becomes [x; bias].  
+If bias >= 0, w becomes [w; w_{n+1}] and x becomes [x; bias].
 
 The primal-dual relationship implies that -s 1 and -s 2 gives the same
 model.
@@ -189,8 +189,8 @@ class 4         class 1,2,3.    10      10
 
 > train -c 10 -w3 1 -w2 5 two_class_data_file
 
-If there are only two classes, we train ONE model. 
-The C values for the two classes are 10 and 50. 
+If there are only two classes, we train ONE model.
+The C values for the two classes are 10 and 50.
 
 > predict -b 1 test_file data_file.model output_file
 
@@ -263,10 +263,10 @@ Library Usage
     solver_type can be one of L2_LR, L2LOSS_SVM_DUAL, L2LOSS_SVM, L1LOSS_SVM_DUAL, MCSVM_CS.
 
     L2_LR               L2-regularized logistic regression
-    L2LOSS_SVM_DUAL     L2-loss support vector machines (dual) 
+    L2LOSS_SVM_DUAL     L2-loss support vector machines (dual)
     L2LOSS_SVM          L2-loss support vector machines (primal)
-    L1LOSS_SVM_DUAL     L1-loss support vector machines (dual)  
-    MCSVM_CS multi-class support vector machines by Crammer and Singer        
+    L1LOSS_SVM_DUAL     L1-loss support vector machines (dual)
+    MCSVM_CS multi-class support vector machines by Crammer and Singer
 
     C is the cost of constraints violation. (we usually use 1 to 1000)
     eps is the stopping criterion. (we usually use 0.01).
@@ -285,6 +285,38 @@ Library Usage
 
     *NOTE* To avoid wrong parameters, check_parameter() should be
     called before train().
+
+    struct model stores the model obtained from the training procedure:
+
+        struct model
+        {
+                struct parameter param;
+                int nr_class;           /* number of classes */
+                int nr_feature;
+                double *w;
+                int *label;             /* label of each class */
+                double bias;
+        };
+
+    param describes the parameters used to obtain the model.
+
+    nr_class and nr_feature are the number of classes and features, respectively.
+
+    The nr_feature*nr_class array w gives feature weights. We use one
+    against the rest for multi-class classification, so each feature
+    index corresponds to nr_class weight values. Weights are
+    organized in the following way
+
+    +------------------+------------------+------------+
+    | nr_class weights | nr_class weights |  ...
+    | for 1st feature  | for 2nd feature  |
+    +------------------+------------------+------------+
+
+    If bias >= 0, x becomes [x; bias]. The number of features is
+    increased by one, so w is a (nr_feature+1)*nr_class array. The
+    value of bias is stored in the variable bias.
+
+    The array label stores class labels.
 
 - Function: void cross_validation(const problem *prob, const parameter *param, int nr_fold, double *target);
 
@@ -306,7 +338,7 @@ Library Usage
 
     This function gives nr_w decision values in the array
     dec_values. nr_w is 1 if there are two classes except multi-class
-    svm by Crammer and Singer (-s 4), and is the number of classes otherwise. 
+    svm by Crammer and Singer (-s 4), and is the number of classes otherwise.
 
     We implement one-vs-the rest multi-class strategy (-s 0,1,2,3) and
     multi-class svm by Crammer and Singer (-s 4) for multi-class SVM.

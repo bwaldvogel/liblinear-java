@@ -7,6 +7,8 @@ import java.util.Arrays;
 
 
 /**
+ * <p>Model stores the model obtained from the training procedure</p>
+ *
  * use {@link Linear#loadModel(String)} and {@link Linear#saveModel(String, Model)} to load/save it
  */
 public final class Model implements Serializable {
@@ -18,25 +20,61 @@ public final class Model implements Serializable {
     /** label of each class (label[n]) */
     int[]                     label;
 
-    /** number of classes */
     int                       nr_class;
 
     int                       nr_feature;
 
     SolverType                solverType;
 
+    /** feature weight array */
     double[]                  w;
 
+    /**
+     * @return number of classes
+     */
     public int getNrClass() {
         return nr_class;
     }
 
+    /**
+     * @return number of features
+     */
     public int getNrFeature() {
         return nr_feature;
     }
 
     public int[] getLabels() {
         return copyOf(label, nr_class);
+    }
+
+    /**
+     * The nr_feature*nr_class array w gives feature weights. We use one
+     * against the rest for multi-class classification, so each feature
+     * index corresponds to nr_class weight values. Weights are
+     * organized in the following way
+     *
+     * <pre>
+     * +------------------+------------------+------------+
+     * | nr_class weights | nr_class weights |  ...
+     * | for 1st feature  | for 2nd feature  |
+     * +------------------+------------------+------------+
+     * </pre>
+     *
+     * If bias &gt;= 0, x becomes [x; bias]. The number of features is
+     * increased by one, so w is a (nr_feature+1)*nr_class array. The
+     * value of bias is stored in the variable bias.
+     * @see #getBias()
+     * @return a <b>copy of</b> the feature weight array as described
+     */
+    public double[] getFeatureWeights() {
+        return Linear.copyOf(w, w.length);
+    }
+
+    /**
+     * @see #getFeatureWeights()
+     */
+    public double getBias() {
+        return bias;
     }
 
     @Override
