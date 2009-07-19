@@ -1,6 +1,6 @@
 package liblinear;
 
-public class L2LossSVMFunction implements Function {
+class L2LossSVMFunction implements Function {
 
     private final Problem  prob;
     private final double[] C;
