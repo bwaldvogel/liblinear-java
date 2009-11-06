@@ -13,7 +13,7 @@ public class ParameterTest {
 
     @Before
     public void setUp() {
-        _param = new Parameter(SolverType.L1LOSS_SVM_DUAL, 100, 1e-3);
+        _param = new Parameter(SolverType.L2R_L1LOSS_SVC_DUAL, 100, 1e-3);
     }
 
     @Test

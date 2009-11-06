@@ -2,7 +2,6 @@ package liblinear;
 
 import static liblinear.Linear.copyOf;
 import static liblinear.Linear.info;
-import static liblinear.Linear.infoFlush;
 import static liblinear.Linear.swap;
 
 
@@ -34,7 +33,7 @@ class SolverMCSVM_CS {
     private final double   eps;
     private final double[] G;
     private final int      max_iter;
-    private final int      n, l;
+    private final int      w_size, l;
     private final int      nr_class;
     private final Problem  prob;
 
@@ -48,7 +47,7 @@ class SolverMCSVM_CS {
 
 
     public SolverMCSVM_CS( Problem prob, int nr_class, double[] C, double eps, int max_iter ) {
-        this.n = prob.n;
+        this.w_size = prob.n;
         this.l = prob.l;
         this.nr_class = nr_class;
         this.eps = eps;
@@ -59,7 +58,7 @@ class SolverMCSVM_CS {
         this.G = new double[nr_class];
     }
 
-    private boolean be_shrunken(int m, int yi, double alpha_i, double minG) {
+    private boolean be_shrunk(int m, int yi, double alpha_i, double minG) {
         double bound = 0;
         if (m == yi) bound = C[yi];
         if (alpha_i == bound && G[m] < minG) return true;
@@ -84,7 +83,7 @@ class SolverMCSVM_CS {
         // initial
         for (i = 0; i < l * nr_class; i++)
             alpha[i] = 0;
-        for (i = 0; i < n * nr_class; i++)
+        for (i = 0; i < w_size * nr_class; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
             for (m = 0; m < nr_class; m++)
@@ -146,10 +145,10 @@ class SolverMCSVM_CS {
                     }
 
                     for (m = 0; m < active_size_i[i]; m++) {
-                        if (be_shrunken(m, y_index[i], alpha_i.get(alpha_index_i.get(m)), minG)) {
+                        if (be_shrunk(m, y_index[i], alpha_i.get(alpha_index_i.get(m)), minG)) {
                             active_size_i[i]--;
                             while (active_size_i[i] > m) {
-                                if (!be_shrunken(active_size_i[i], y_index[i], alpha_i.get(alpha_index_i.get(active_size_i[i])), minG)) {
+                                if (!be_shrunk(active_size_i[i], y_index[i], alpha_i.get(alpha_index_i.get(active_size_i[i])), minG)) {
                                     swap(alpha_index_i, m, active_size_i[i]);
                                     swap(G, m, active_size_i[i]);
                                     if (y_index[i] == active_size_i[i])
@@ -203,7 +202,6 @@ class SolverMCSVM_CS {
 
             if (iter % 10 == 0) {
                 info(".");
-                infoFlush();
             }
 
             if (stopping < eps_shrink) {
@@ -214,7 +212,6 @@ class SolverMCSVM_CS {
                     for (i = 0; i < l; i++)
                         active_size_i[i] = nr_class;
                     info("*");
-                    infoFlush();
                     eps_shrink = Math.max(eps_shrink / 2, eps);
                     start_from_all = true;
                 }
@@ -228,7 +225,7 @@ class SolverMCSVM_CS {
         // calculate objective value
         double v = 0;
         int nSV = 0;
-        for (i = 0; i < n * nr_class; i++)
+        for (i = 0; i < w_size * nr_class; i++)
             v += w[i] * w[i];
         v = 0.5 * v;
         for (i = 0; i < l * nr_class; i++) {

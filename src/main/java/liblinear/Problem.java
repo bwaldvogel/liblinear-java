@@ -1,5 +1,9 @@
 package liblinear;
 
+import java.io.File;
+import java.io.IOException;
+
+
 /**
  *  <p>Problem describes the problem</p>
  *
@@ -47,4 +51,11 @@ public class Problem {
      * to the end of each data instance
      */
     public double          bias;
+
+    /**
+     * see {@link Train#readProblem(File, double)}
+     */
+    public static Problem readFromFile(File file, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(file, bias);
+    }
 }

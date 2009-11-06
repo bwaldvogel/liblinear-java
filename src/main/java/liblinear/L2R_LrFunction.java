@@ -1,13 +1,13 @@
 package liblinear;
 
-class L2LrFunction implements Function {
+class L2R_LrFunction implements Function {
 
     private final double[] C;
     private final double[] z;
     private final double[] D;
     private final Problem  prob;
 
-    public L2LrFunction( Problem prob, double Cp, double Cn ) {
+    public L2R_LrFunction( Problem prob, double Cp, double Cn ) {
         int i;
         int l = prob.l;
         int[] y = prob.y;
@@ -39,10 +39,10 @@ class L2LrFunction implements Function {
 
     private void XTv(double[] v, double[] XTv) {
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
         FeatureNode[][] x = prob.x;
 
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < w_size; i++)
             XTv[i] = 0;
 
         for (int i = 0; i < l; i++) {
@@ -58,7 +58,7 @@ class L2LrFunction implements Function {
         double f = 0;
         int[] y = prob.y;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
 
         Xv(w, z);
         for (i = 0; i < l; i++) {
@@ -69,7 +69,7 @@ class L2LrFunction implements Function {
                 f += C[i] * (-yz + Math.log(1 + Math.exp(yz)));
         }
         f = 2.0 * f;
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             f += w[i] * w[i];
         f /= 2.0;
 
@@ -80,7 +80,7 @@ class L2LrFunction implements Function {
         int i;
         int[] y = prob.y;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
 
         for (i = 0; i < l; i++) {
             z[i] = 1 / (1 + Math.exp(-y[i] * z[i]));
@@ -89,14 +89,14 @@ class L2LrFunction implements Function {
         }
         XTv(z, g);
 
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             g[i] = w[i] + g[i];
     }
 
     public void Hv(double[] s, double[] Hs) {
         int i;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
         double[] wa = new double[l];
 
         Xv(s, wa);
@@ -104,7 +104,7 @@ class L2LrFunction implements Function {
             wa[i] = C[i] * D[i] * wa[i];
 
         XTv(wa, Hs);
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + Hs[i];
         // delete[] wa;
     }

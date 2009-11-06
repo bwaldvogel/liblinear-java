@@ -1,6 +1,6 @@
 package liblinear;
 
-class L2LossSVMFunction implements Function {
+class L2R_L2_SvcFunction implements Function {
 
     private final Problem  prob;
     private final double[] C;
@@ -9,7 +9,7 @@ class L2LossSVMFunction implements Function {
 
     private int            sizeI;
 
-    public L2LossSVMFunction( Problem prob, double Cp, double Cn ) {
+    public L2R_L2_SvcFunction( Problem prob, double Cp, double Cn ) {
         int i;
         int l = prob.l;
         int[] y = prob.y;
@@ -33,7 +33,7 @@ class L2LossSVMFunction implements Function {
         double f = 0;
         int[] y = prob.y;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
 
         Xv(w, z);
         for (i = 0; i < l; i++) {
@@ -42,7 +42,7 @@ class L2LossSVMFunction implements Function {
             if (d > 0) f += C[i] * d * d;
         }
         f = 2 * f;
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             f += w[i] * w[i];
         f /= 2.0;
 
@@ -57,7 +57,7 @@ class L2LossSVMFunction implements Function {
         int i;
         int[] y = prob.y;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
 
         sizeI = 0;
         for (i = 0; i < l; i++) {
@@ -69,14 +69,14 @@ class L2LossSVMFunction implements Function {
         }
         subXTv(z, g);
 
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             g[i] = w[i] + 2 * g[i];
     }
 
     public void Hv(double[] s, double[] Hs) {
         int i;
         int l = prob.l;
-        int n = prob.n;
+        int w_size = get_nr_variable();
         double[] wa = new double[l];
 
         subXv(s, wa);
@@ -84,15 +84,15 @@ class L2LossSVMFunction implements Function {
             wa[i] = C[I[i]] * wa[i];
 
         subXTv(wa, Hs);
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + 2 * Hs[i];
     }
 
     private void subXTv(double[] v, double[] XTv) {
         int i;
-        int n = prob.n;
+        int w_size = get_nr_variable();
 
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             XTv[i] = 0;
 
         for (i = 0; i < sizeI; i++) {

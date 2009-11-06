@@ -2,7 +2,11 @@ package liblinear;
 
 import static liblinear.Linear.copyOf;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Arrays;
 
 
@@ -17,7 +21,7 @@ public final class Model implements Serializable {
 
     double                    bias;
 
-    /** label of each class (label[n]) */
+    /** label of each class */
     int[]                     label;
 
     int                       nr_class;
@@ -135,5 +139,33 @@ public final class Model implements Serializable {
             if (a[i] != a2[i]) return false;
 
         return true;
+    }
+
+    /**
+     * see {@link Linear#saveModel(java.io.File, Model)}
+     */
+    public void save(File file) throws IOException {
+        Linear.saveModel(file, this);
+    }
+
+    /**
+     * see {@link Linear#saveModel(Writer, Model)}
+     */
+    public void save(Writer writer) throws IOException {
+        Linear.saveModel(writer, this);
+    }
+
+    /**
+     * see {@link Linear#loadModel(File)}
+     */
+    public static Model load(File file) throws IOException {
+        return Linear.loadModel(file);
+    }
+
+    /**
+     * see {@link Linear#loadModel(Reader)}
+     */
+    public static Model load(Reader inputReader) throws IOException {
+        return Linear.loadModel(inputReader);
     }
 }

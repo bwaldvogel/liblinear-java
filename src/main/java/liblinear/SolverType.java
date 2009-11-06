@@ -1,18 +1,51 @@
 package liblinear;
 
 public enum SolverType {
-    /** L2-regularized logistic regression */
-    L2_LR,
 
-    /**	L2-loss support vector machines (dual) */
-    L2LOSS_SVM_DUAL,
+    /**
+     * L2-regularized logistic regression
+     *
+     * (fka L2_LR)
+     */
+    L2R_LR,
 
-    /** L2-loss support vector machines (primal) */
-    L2LOSS_SVM,
+    /**
+     * L2-regularized L2-loss support vector classification (dual)
+     *
+     * (fka L2LOSS_SVM_DUAL)
+     */
+    L2R_L2LOSS_SVC_DUAL,
 
-    /** L1-loss support vector machines (dual) */
-    L1LOSS_SVM_DUAL,
+    /**
+     * L2-regularized L2-loss support vector classification (primal)
+     *
+     * (fka L2LOSS_SVM)
+     */
+    L2R_L2LOSS_SVC,
 
-    /** multi-class support vector machines by Crammer and Singer */
-    MCSVM_CS;
+    /**
+     * L2-regularized L1-loss support vector classification (dual)
+     *
+     * (fka L1LOSS_SVM_DUAL)
+     */
+    L2R_L1LOSS_SVC_DUAL,
+
+    /**
+     * multi-class support vector classification by Crammer and Singer
+     */
+    MCSVM_CS,
+
+    /**
+     * L1-regularized L2-loss support vector classification
+     *
+     * @since 1.5
+     */
+    L1R_L2LOSS_SVC,
+
+    /**
+     * L1-regularized logistic regression
+     *
+     * @since 1.5
+     */
+    L1R_LR;
 }

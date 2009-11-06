@@ -47,7 +47,7 @@ public class Predict {
         Formatter out = new Formatter(writer);
 
         if (flag_predict_probability) {
-            if (model.solverType != SolverType.L2_LR) {
+            if (model.solverType != SolverType.L2R_LR) {
                 throw new IllegalArgumentException("probability output is only supported for logistic regression");
             }
 
@@ -98,9 +98,9 @@ public class Predict {
 
             if (flag_predict_probability) {
                 predict_label = Linear.predictProbability(model, nodes, prob_estimates);
-                printf(out, "%d ", predict_label);
+                printf(out, "%d", predict_label);
                 for (int j = 0; j < model.nr_class; j++)
-                    printf(out, "%g ", prob_estimates[j]);
+                    printf(out, " %g", prob_estimates[j]);
                 printf(out, "\n");
             } else {
                 predict_label = Linear.predict(model, nodes);
@@ -148,7 +148,7 @@ public class Predict {
                     break;
 
                 default:
-                    System.err.println("unknown option" + NL);
+                    System.err.println("unknown option: -" + argv[i - 1].charAt(1) + NL);
                     exit_with_help();
                     break;
             }

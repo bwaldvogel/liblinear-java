@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Formatter;
@@ -30,18 +32,18 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
-    static final Charset      FILE_CHARSET        = Charset.forName("ISO-8859-1");
+    static final Charset       FILE_CHARSET        = Charset.forName("ISO-8859-1");
 
-    static final Locale       DEFAULT_LOCALE      = Locale.ENGLISH;
+    static final Locale        DEFAULT_LOCALE      = Locale.ENGLISH;
 
-    /** set this to false if you don't want anything written to stdout */
-    private static boolean    DEBUG_OUTPUT        = true;
+    private static Object      OUTPUT_MUTEX        = new Object();
+    private static PrintStream DEBUG_OUTPUT        = System.out;
 
     /** platform-independent new-line string */
-    final static String       NL                  = System.getProperty("line.separator");
+    final static String        NL                  = System.getProperty("line.separator");
 
-    private static final long DEFAULT_RANDOM_SEED = 0L;
-    static Random             random              = new Random(DEFAULT_RANDOM_SEED);
+    private static final long  DEFAULT_RANDOM_SEED = 0L;
+    static Random              random              = new Random(DEFAULT_RANDOM_SEED);
 
     /**
      * @param target predicted classes
@@ -154,19 +156,19 @@ public class Linear {
     }
 
     static void info(String message) {
-        if (!DEBUG_OUTPUT) return;
-        System.out.print(message);
+        synchronized (OUTPUT_MUTEX) {
+            if (DEBUG_OUTPUT == null) return;
+            DEBUG_OUTPUT.print(message);
+            DEBUG_OUTPUT.flush();
+        }
     }
 
     static void info(String format, Object... args) {
-        if (!DEBUG_OUTPUT) return;
-        System.out.printf(format, args);
-    }
-
-
-    static void infoFlush() {
-        if (!DEBUG_OUTPUT) return;
-        System.out.flush();
+        synchronized (OUTPUT_MUTEX) {
+            if (DEBUG_OUTPUT == null) return;
+            DEBUG_OUTPUT.printf(format, args);
+            DEBUG_OUTPUT.flush();
+        }
     }
 
     /**
@@ -219,16 +221,23 @@ public class Linear {
      *
      * <p><b>Note: The inputReader is closed after reading or in case of an exception.</b></p>
      */
-    public static Model loadModel(BufferedReader inputReader) throws IOException {
+    public static Model loadModel(Reader inputReader) throws IOException {
         Model model = new Model();
 
         model.label = null;
 
         Pattern whitespace = Pattern.compile("\\s+");
 
+        BufferedReader reader = null;
+        if (inputReader instanceof BufferedReader) {
+            reader = (BufferedReader)inputReader;
+        } else {
+            reader = new BufferedReader(inputReader);
+        }
+
         try {
             String line = null;
-            while ((line = inputReader.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 String[] split = whitespace.split(line);
                 if (split[0].equals("solver_type")) {
                     SolverType solver = SolverType.valueOf(split[1]);
@@ -255,20 +264,20 @@ public class Linear {
                 }
             }
 
-            int n = model.nr_feature;
-            if (model.bias >= 0) n++;
+            int w_size = model.nr_feature;
+            if (model.bias >= 0) w_size++;
 
             int nr_w = model.nr_class;
             if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
 
-            model.w = new double[n * nr_w];
+            model.w = new double[w_size * nr_w];
             int[] buffer = new int[128];
 
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < w_size; i++) {
                 for (int j = 0; j < nr_w; j++) {
                     int b = 0;
                     while (true) {
-                        int ch = inputReader.read();
+                        int ch = reader.read();
                         if (ch == -1) {
                             throw new EOFException("unexpected EOF");
                         }
@@ -283,7 +292,7 @@ public class Linear {
             }
         }
         finally {
-            closeQuietly(inputReader);
+            closeQuietly(reader);
         }
 
         return model;
@@ -311,7 +320,7 @@ public class Linear {
     }
 
     public static int predictProbability(Model model, FeatureNode[] x, double[] prob_estimates) {
-        if (model.solverType == SolverType.L2_LR) {
+        if (model.solverType == SolverType.L2R_LR) {
             int nr_class = model.nr_class;
             int nr_w;
             if (nr_class == 2)
@@ -393,8 +402,8 @@ public class Linear {
      */
     public static void saveModel(Writer modelOutput, Model model) throws IOException {
         int nr_feature = model.nr_feature;
-        int n = nr_feature;
-        if (model.bias >= 0) n++;
+        int w_size = nr_feature;
+        if (model.bias >= 0) w_size++;
 
         int nr_w = model.nr_class;
         if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
@@ -414,7 +423,7 @@ public class Linear {
             printf(formatter, "bias %.16g\n", model.bias);
 
             printf(formatter, "w\n");
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < w_size; i++) {
                 for (int j = 0; j < nr_w; j++) {
                     double value = model.w[i * nr_w + j];
 
@@ -446,13 +455,39 @@ public class Linear {
         saveModel(modelOutput, model);
     }
 
-    private static void solve_linear_c_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
+    /**
+     * A coordinate descent algorithm for
+     * L1-loss and L2-loss SVM dual problems
+     *<pre>
+     *  min_\alpha  0.5(\alpha^T (Q + D)\alpha) - e^T \alpha,
+     *    s.t.      0 <= alpha_i <= upper_bound_i,
+     *
+     *  where Qij = yi yj xi^T xj and
+     *  D is a diagonal matrix
+     *
+     * In L1-SVM case:
+     *     upper_bound_i = Cp if y_i = 1
+     *      upper_bound_i = Cn if y_i = -1
+     *      D_ii = 0
+     * In L2-SVM case:
+     *      upper_bound_i = INF
+     *      D_ii = 1/(2*Cp) if y_i = 1
+     *      D_ii = 1/(2*Cn) if y_i = -1
+     *
+     * Given:
+     * x, y, Cp, Cn
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w
+     *</pre>
+     */
+    private static void solve_l2r_l1l1_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
         int l = prob.l;
-        int n = prob.n;
+        int w_size = prob.n;
         int i, s, iter = 0;
         double C, d, G;
         double[] QD = new double[l];
-        int max_iter = 20000;
+        int max_iter = 1000;
         int[] index = new int[l];
         double[] alpha = new double[l];
         byte[] y = new byte[l];
@@ -464,17 +499,17 @@ public class Linear {
         double PGmin_old = Double.NEGATIVE_INFINITY;
         double PGmax_new, PGmin_new;
 
-        // default solver_type: L2LOSS_SVM_DUAL
+        // default solver_type: L2R_L2LOSS_SVC_DUAL
         double diag_p = 0.5 / Cp, diag_n = 0.5 / Cn;
         double upper_bound_p = Double.POSITIVE_INFINITY, upper_bound_n = Double.POSITIVE_INFINITY;
-        if (solver_type == SolverType.L1LOSS_SVM_DUAL) {
+        if (solver_type == SolverType.L2R_L1LOSS_SVC_DUAL) {
             diag_p = 0;
             diag_n = 0;
             upper_bound_p = Cp;
             upper_bound_n = Cn;
         }
 
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
             alpha[i] = 0;
@@ -557,10 +592,7 @@ public class Linear {
             }
 
             iter++;
-            if (iter % 10 == 0) {
-                info(".");
-                infoFlush();
-            }
+            if (iter % 10 == 0) info(".");
 
             if (PGmax_new - PGmin_new <= eps) {
                 if (active_size == l)
@@ -568,7 +600,6 @@ public class Linear {
                 else {
                     active_size = l;
                     info("*");
-                    infoFlush();
                     PGmax_old = Double.POSITIVE_INFINITY;
                     PGmin_old = Double.NEGATIVE_INFINITY;
                     continue;
@@ -581,13 +612,13 @@ public class Linear {
         }
 
         info(NL + "optimization finished, #iter = %d" + NL, iter);
-        if (iter >= max_iter) info("Warning: reaching max number of iterations\n");
+        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\nUsing -s 2 may be faster (also see FAQ)\n\n");
 
         // calculate objective value
 
         double v = 0;
         int nSV = 0;
-        for (i = 0; i < n; i++)
+        for (i = 0; i < w_size; i++)
             v += w[i] * w[i];
         for (i = 0; i < l; i++) {
             if (y[i] == 1)
@@ -598,6 +629,499 @@ public class Linear {
         }
         info("Objective value = %f" + NL, v / 2);
         info("nSV = %d" + NL, nSV);
+    }
+
+    /**
+     * A coordinate descent algorithm for
+     * L1-regularized L2-loss support vector classification
+     *
+     *<pre>
+     *  min_w \sum |wj| + C \sum max(0, 1-yi w^T xi)^2,
+     *
+     * Given:
+     * x, y, Cp, Cn
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w
+     *</pre>
+     */
+    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
+        int l = prob_col.l;
+        int w_size = prob_col.n;
+        int j, s, iter = 0;
+        int max_iter = 1000;
+        int active_size = w_size;
+        int max_num_linesearch = 20;
+
+        double sigma = 0.01;
+        double d, G_loss, G, H;
+        double Gmax_old = Double.POSITIVE_INFINITY;
+        double Gmax_new;
+        double Gmax_init = 0; // eclipse moans this variable might not be initialized
+        double d_old, d_diff;
+        double loss_old = 0; // eclipse moans this variable might not be initialized
+        double loss_new;
+        double appxcond, cond;
+
+        int[] index = new int[w_size];
+        byte[] y = new byte[l];
+        double[] b = new double[l]; // b = 1-ywTx
+        double[] xj_sq = new double[w_size];
+
+        // To support weights for instances,
+        // replace C[y[i]] with C[i].
+        double[] C = new double[] {Cn, Cp};
+
+        for (j = 0; j < l; j++) {
+            b[j] = 1;
+            if (prob_col.y[j] > 0)
+                y[j] = 1;
+            else
+                y[j] = 0;
+        }
+        for (j = 0; j < w_size; j++) {
+            w[j] = 0;
+            index[j] = j;
+            xj_sq[j] = 0;
+            for (FeatureNode xi : prob_col.x[j]) {
+                int ind = xi.index;
+                double val = xi.value;
+                xi.value *= prob_col.y[ind]; // x->value stores yi*xij
+                xj_sq[j] += C[y[ind]] * val * val;
+            }
+        }
+
+        while (iter < max_iter) {
+            Gmax_new = 0;
+
+            for (j = 0; j < active_size; j++) {
+                int i = j + random.nextInt(active_size - j);
+                swap(index, i, j);
+            }
+
+            for (s = 0; s < active_size; s++) {
+                j = index[s];
+                G_loss = 0;
+                H = 0;
+
+                for (FeatureNode xi : prob_col.x[j]) {
+                    int ind = xi.index;
+                    if (b[ind] > 0) {
+                        double val = xi.value;
+                        double tmp = C[y[ind]] * val;
+                        G_loss -= tmp * b[ind];
+                        H += tmp * val;
+                    }
+                }
+                G_loss *= 2;
+
+                G = G_loss;
+                H *= 2;
+                H = Math.max(H, 1e-12);
+
+                double Gp = G + 1;
+                double Gn = G - 1;
+                double violation = 0;
+                if (w[j] == 0) {
+                    if (Gp < 0)
+                        violation = -Gp;
+                    else if (Gn > 0)
+                        violation = Gn;
+                    else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
+                        active_size--;
+                        swap(index, s, active_size);
+                        s--;
+                        continue;
+                    }
+                } else if (w[j] > 0)
+                    violation = Math.abs(Gp);
+                else
+                    violation = Math.abs(Gn);
+
+                Gmax_new = Math.max(Gmax_new, violation);
+
+                // obtain Newton direction d
+                if (Gp <= H * w[j])
+                    d = -Gp / H;
+                else if (Gn >= H * w[j])
+                    d = -Gn / H;
+                else
+                    d = -w[j];
+
+                if (Math.abs(d) < 1.0e-12) continue;
+
+                double delta = Math.abs(w[j] + d) - Math.abs(w[j]) + G * d;
+                d_old = 0;
+                int num_linesearch;
+                for (num_linesearch = 0; num_linesearch < max_num_linesearch; num_linesearch++) {
+                    d_diff = d_old - d;
+                    cond = Math.abs(w[j] + d) - Math.abs(w[j]) - sigma * delta;
+
+                    appxcond = xj_sq[j] * d * d + G_loss * d + cond;
+                    if (appxcond <= 0) {
+                        for (FeatureNode x : prob_col.x[j]) {
+                            b[x.index] += d_diff * x.value;
+                        }
+                        break;
+                    }
+
+                    if (num_linesearch == 0) {
+                        loss_old = 0;
+                        loss_new = 0;
+                        for (FeatureNode x : prob_col.x[j]) {
+                            int ind = x.index;
+                            if (b[ind] > 0) loss_old += C[y[ind]] * b[ind] * b[ind];
+                            double b_new = b[ind] + d_diff * x.value;
+                            b[ind] = b_new;
+                            if (b_new > 0) loss_new += C[y[ind]] * b_new * b_new;
+                        }
+                    } else {
+                        loss_new = 0;
+                        for (FeatureNode x : prob_col.x[j]) {
+                            int ind = x.index;
+                            double b_new = b[ind] + d_diff * x.value;
+                            b[ind] = b_new;
+                            if (b_new > 0) loss_new += C[y[ind]] * b_new * b_new;
+                        }
+                    }
+
+                    cond = cond + loss_new - loss_old;
+                    if (cond <= 0)
+                        break;
+                    else {
+                        d_old = d;
+                        d *= 0.5;
+                        delta *= 0.5;
+                    }
+                }
+
+                w[j] += d;
+
+                // recompute b[] if line search takes too many steps
+                if (num_linesearch >= max_num_linesearch) {
+                    info("#");
+                    for (int i = 0; i < l; i++)
+                        b[i] = 1;
+
+                    for (int i = 0; i < w_size; i++) {
+                        if (w[i] == 0) continue;
+                        for (FeatureNode x : prob_col.x[i]) {
+                            b[x.index] -= w[i] * x.value;
+                        }
+                    }
+                }
+            }
+
+            if (iter == 0) Gmax_init = Gmax_new;
+            iter++;
+            if (iter % 10 == 0) info(".");
+
+            if (Gmax_new <= eps * Gmax_init) {
+                if (active_size == w_size)
+                    break;
+                else {
+                    active_size = w_size;
+                    info("*");
+                    Gmax_old = Double.POSITIVE_INFINITY;
+                    continue;
+                }
+            }
+
+            Gmax_old = Gmax_new;
+        }
+
+        info("\noptimization finished, #iter = %d\n", iter);
+        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\n");
+
+        // calculate objective value
+
+        double v = 0;
+        int nnz = 0;
+        for (j = 0; j < w_size; j++) {
+            for (FeatureNode x : prob_col.x[j]) {
+                x.value *= prob_col.y[x.index]; // restore x->value
+            }
+            if (w[j] != 0) {
+                v += Math.abs(w[j]);
+                nnz++;
+            }
+        }
+        for (j = 0; j < l; j++)
+            if (b[j] > 0) v += C[y[j]] * b[j] * b[j];
+
+        info("Objective value = %f\n", v);
+        info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+    }
+
+    /**
+     * A coordinate descent algorithm for
+     * L1-regularized logistic regression problems
+     *
+     *<pre>
+     *  min_w \sum |wj| + C \sum log(1+exp(-yi w^T xi)),
+     *
+     * Given:
+     * x, y, Cp, Cn
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w
+     *</pre>
+     */
+    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
+        int l = prob_col.l;
+        int w_size = prob_col.n;
+        int j, s, iter = 0;
+        int max_iter = 1000;
+        int active_size = w_size;
+        int max_num_linesearch = 20;
+
+        double x_min = 0;
+        double sigma = 0.01;
+        double d, G, H;
+        double Gmax_old = Double.POSITIVE_INFINITY;
+        double Gmax_new;
+        double Gmax_init = 0; // eclipse moans this variable might not be initialized
+        double sum1, appxcond1;
+        double sum2, appxcond2;
+        double cond;
+
+        int[] index = new int[w_size];
+        byte[] y = new byte[l];
+        double[] exp_wTx = new double[l];
+        double[] exp_wTx_new = new double[l];
+        double[] xj_max = new double[w_size];
+        double[] C_sum = new double[w_size];
+        double[] xjneg_sum = new double[w_size];
+        double[] xjpos_sum = new double[w_size];
+
+        // To support weights for instances,
+        // replace C[y[i]] with C[i].
+        double[] C = new double[] {Cn, Cp};
+
+        for (j = 0; j < l; j++) {
+            exp_wTx[j] = 1;
+            if (prob_col.y[j] > 0)
+                y[j] = 1;
+            else
+                y[j] = 0;
+        }
+        for (j = 0; j < w_size; j++) {
+            w[j] = 0;
+            index[j] = j;
+            xj_max[j] = 0;
+            C_sum[j] = 0;
+            xjneg_sum[j] = 0;
+            xjpos_sum[j] = 0;
+            for (FeatureNode x : prob_col.x[j]) {
+                int ind = x.index;
+                double val = x.value;
+                x_min = Math.min(x_min, val);
+                xj_max[j] = Math.max(xj_max[j], val);
+                C_sum[j] += C[y[ind]];
+                if (y[ind] == 0)
+                    xjneg_sum[j] += C[y[ind]] * val;
+                else
+                    xjpos_sum[j] += C[y[ind]] * val;
+            }
+        }
+
+        while (iter < max_iter) {
+            Gmax_new = 0;
+
+            for (j = 0; j < active_size; j++) {
+                int i = j + random.nextInt(active_size) - j;
+                swap(index, i, j);
+            }
+
+            for (s = 0; s < active_size; s++) {
+                j = index[s];
+                sum1 = 0;
+                sum2 = 0;
+                H = 0;
+
+                for (FeatureNode x : prob_col.x[j]) {
+                    int ind = x.index;
+                    double exp_wTxind = exp_wTx[ind];
+                    double tmp1 = x.value / (1 + exp_wTxind);
+                    double tmp2 = C[y[ind]] * tmp1;
+                    double tmp3 = tmp2 * exp_wTxind;
+                    sum2 += tmp2;
+                    sum1 += tmp3;
+                    H += tmp1 * tmp3;
+                }
+
+                G = -sum2 + xjneg_sum[j];
+
+                double Gp = G + 1;
+                double Gn = G - 1;
+                double violation = 0;
+                if (w[j] == 0) {
+                    if (Gp < 0)
+                        violation = -Gp;
+                    else if (Gn > 0)
+                        violation = Gn;
+                    else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
+                        active_size--;
+                        swap(index, s, active_size);
+                        s--;
+                        continue;
+                    }
+                } else if (w[j] > 0)
+                    violation = Math.abs(Gp);
+                else
+                    violation = Math.abs(Gn);
+
+                Gmax_new = Math.max(Gmax_new, violation);
+
+                // obtain Newton direction d
+                if (Gp <= H * w[j])
+                    d = -Gp / H;
+                else if (Gn >= H * w[j])
+                    d = -Gn / H;
+                else
+                    d = -w[j];
+
+                if (Math.abs(d) < 1.0e-12) continue;
+
+                d = Math.min(Math.max(d, -10.0), 10.0);
+
+                double delta = Math.abs(w[j] + d) - Math.abs(w[j]) + G * d;
+                int num_linesearch;
+                for (num_linesearch = 0; num_linesearch < max_num_linesearch; num_linesearch++) {
+                    cond = Math.abs(w[j] + d) - Math.abs(w[j]) - sigma * delta;
+
+                    if (x_min >= 0) {
+                        double tmp = Math.exp(d * xj_max[j]);
+                        appxcond1 = Math.log(1 + sum1 * (tmp - 1) / xj_max[j] / C_sum[j]) * C_sum[j] + cond - d * xjpos_sum[j];
+                        appxcond2 = Math.log(1 + sum2 * (1 / tmp - 1) / xj_max[j] / C_sum[j]) * C_sum[j] + cond + d * xjneg_sum[j];
+                        if (Math.min(appxcond1, appxcond2) <= 0) {
+                            for (FeatureNode x : prob_col.x[j]) {
+                                exp_wTx[x.index] *= Math.exp(d * x.value);
+                            }
+                            break;
+                        }
+                    }
+
+                    cond += d * xjneg_sum[j];
+
+                    int i = 0;
+                    for (FeatureNode x : prob_col.x[j]) {
+                        int ind = x.index;
+                        double exp_dx = Math.exp(d * x.value);
+                        exp_wTx_new[i] = exp_wTx[ind] * exp_dx;
+                        cond += C[y[ind]] * Math.log((1 + exp_wTx_new[i]) / (exp_dx + exp_wTx_new[i]));
+                        i++;
+                    }
+
+                    if (cond <= 0) {
+                        i = 0;
+                        for (FeatureNode x : prob_col.x[j]) {
+                            int ind = x.index;
+                            exp_wTx[ind] = exp_wTx_new[i];
+                            i++;
+                        }
+                        break;
+                    } else {
+                        d *= 0.5;
+                        delta *= 0.5;
+                    }
+                }
+
+                w[j] += d;
+
+                // recompute exp_wTx[] if line search takes too many steps
+                if (num_linesearch >= max_num_linesearch) {
+                    info("#");
+                    for (int i = 0; i < l; i++)
+                        exp_wTx[i] = 0;
+
+                    for (int i = 0; i < w_size; i++) {
+                        if (w[i] == 0) continue;
+                        for (FeatureNode x : prob_col.x[i]) {
+                            exp_wTx[x.index] += w[i] * x.value;
+                        }
+                    }
+
+                    for (int i = 0; i < l; i++)
+                        exp_wTx[i] = Math.exp(exp_wTx[i]);
+                }
+            }
+
+            if (iter == 0) Gmax_init = Gmax_new;
+            iter++;
+            if (iter % 10 == 0) info(".");
+
+            if (Gmax_new <= eps * Gmax_init) {
+                if (active_size == w_size)
+                    break;
+                else {
+                    active_size = w_size;
+                    info("*");
+                    Gmax_old = Double.POSITIVE_INFINITY;
+                    continue;
+                }
+            }
+
+            Gmax_old = Gmax_new;
+        }
+
+        info("\noptimization finished, #iter = %d\n", iter);
+        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\n");
+
+        // calculate objective value
+
+        double v = 0;
+        int nnz = 0;
+        for (j = 0; j < w_size; j++)
+            if (w[j] != 0) {
+                v += Math.abs(w[j]);
+                nnz++;
+            }
+        for (j = 0; j < l; j++)
+            if (y[j] == 1)
+                v += C[y[j]] * Math.log(1 + 1 / exp_wTx[j]);
+            else
+                v += C[y[j]] * Math.log(1 + exp_wTx[j]);
+
+        info("Objective value = %f\n", v);
+        info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+    }
+
+    // transpose matrix X from row format to column format
+    static Problem transpose(Problem prob) {
+        int l = prob.l;
+        int n = prob.n;
+        int[] col_ptr = new int[n + 1];
+        Problem prob_col = new Problem();
+        prob_col.l = l;
+        prob_col.n = n;
+        prob_col.y = new int[l];
+        prob_col.x = new FeatureNode[n][];
+
+        for (int i = 0; i < l; i++)
+            prob_col.y[i] = prob.y[i];
+
+        for (int i = 0; i < l; i++) {
+            for (FeatureNode x : prob.x[i]) {
+                col_ptr[x.index]++;
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            prob_col.x[i] = new FeatureNode[col_ptr[i + 1]];
+            col_ptr[i] = 0; // reuse the array to count the nr of elements
+        }
+
+        for (int i = 0; i < l; i++) {
+            for (int j = 0; j < prob.x[i].length; j++) {
+                FeatureNode x = prob.x[i][j];
+                int index = x.index - 1;
+                prob_col.x[index][col_ptr[index]] = new FeatureNode(i, x.value);;
+                col_ptr[index]++;
+            }
+        }
+
+        return prob_col;
     }
 
     static void swap(double[] array, int idxA, int idxB) {
@@ -639,6 +1163,7 @@ public class Linear {
         int i, j;
         int l = prob.l;
         int n = prob.n;
+        int w_size = prob.n;
         Model model = new Model();
 
         if (prob.bias >= 0)
@@ -703,7 +1228,7 @@ public class Linear {
             solver.solve(model.w);
         } else {
             if (nr_class == 2) {
-                model.w = new double[n];
+                model.w = new double[w_size];
 
                 int e0 = start[0] + count[0];
                 k = 0;
@@ -714,8 +1239,8 @@ public class Linear {
 
                 train_one(sub_prob, param, model.w, weighted_C[0], weighted_C[1]);
             } else {
-                model.w = new double[n * nr_class];
-                double[] w = new double[n];
+                model.w = new double[w_size * nr_class];
+                double[] w = new double[w_size];
                 for (i = 0; i < nr_class; i++) {
                     int si = start[i];
                     int ei = si + count[i];
@@ -748,35 +1273,51 @@ public class Linear {
 
         Function fun_obj = null;
         switch (param.solverType) {
-            case L2_LR: {
-                fun_obj = new L2LrFunction(prob, Cp, Cn);
+            case L2R_LR: {
+                fun_obj = new L2R_LrFunction(prob, Cp, Cn);
                 Tron tron_obj = new Tron(fun_obj, eps * Math.min(pos, neg) / prob.l);
                 tron_obj.tron(w);
                 break;
             }
-            case L2LOSS_SVM: {
-                fun_obj = new L2LossSVMFunction(prob, Cp, Cn);
+            case L2R_L2LOSS_SVC: {
+                fun_obj = new L2R_L2_SvcFunction(prob, Cp, Cn);
                 Tron tron_obj = new Tron(fun_obj, eps * Math.min(pos, neg) / prob.l);
                 tron_obj.tron(w);
                 break;
             }
-            case L2LOSS_SVM_DUAL:
-                solve_linear_c_svc(prob, w, eps, Cp, Cn, SolverType.L2LOSS_SVM_DUAL);
+            case L2R_L2LOSS_SVC_DUAL:
+                solve_l2r_l1l1_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL);
                 break;
-            case L1LOSS_SVM_DUAL:
-                solve_linear_c_svc(prob, w, eps, Cp, Cn, SolverType.L1LOSS_SVM_DUAL);
+            case L2R_L1LOSS_SVC_DUAL:
+                solve_l2r_l1l1_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL);
                 break;
+            case L1R_L2LOSS_SVC: {
+                Problem prob_col = transpose(prob);
+                solve_l1r_l2_svc(prob_col, w, eps * Math.min(pos, neg) / prob.l, Cp, Cn);
+                break;
+            }
+            case L1R_LR: {
+                Problem prob_col = transpose(prob);
+                solve_l1r_lr(prob_col, w, eps * Math.min(pos, neg) / prob.l, Cp, Cn);
+                break;
+            }
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }
     }
 
     public static void disableDebugOutput() {
-        DEBUG_OUTPUT = false;
+        setDebugOutput(null);
     }
 
     public static void enableDebugOutput() {
-        DEBUG_OUTPUT = true;
+        setDebugOutput(System.out);
+    }
+
+    public static void setDebugOutput(PrintStream debugOutput) {
+        synchronized (OUTPUT_MUTEX) {
+            DEBUG_OUTPUT = debugOutput;
+        }
     }
 
     /**

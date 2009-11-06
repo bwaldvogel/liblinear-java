@@ -49,20 +49,27 @@ public class Train {
             + "options:" + NL//
             + "-s type : set type of solver (default 1)" + NL//
             + "   0 -- L2-regularized logistic regression" + NL//
-            + "   1 -- L2-loss support vector machines (dual)" + NL//
-            + "   2 -- L2-loss support vector machines (primal)" + NL//
-            + "   3 -- L1-loss support vector machines (dual)" + NL//
-            + "   4 -- multi-class support vector machines by Crammer and Singer" + NL//
+            + "   1 -- L2-regularized L2-loss support vector classification (dual)" + NL//
+            + "   2 -- L2-regularized L2-loss support vector classification (primal)" + NL//
+            + "   3 -- L2-regularized L1-loss support vector classification (dual)" + NL//
+            + "   4 -- multi-class support vector classification by Crammer and Singer" + NL//
+            + "   5 -- L1-regularized L2-loss support vector classification" + NL//
+            + "   6 -- L1-regularized logistic regression" + NL//
             + "-c cost : set the parameter C (default 1)" + NL//
             + "-e epsilon : set tolerance of termination criterion" + NL//
             + "   -s 0 and 2" + NL//
             + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2," + NL//
-            + "       where f is the primal function, (default 0.01)" + NL//
+            + "       where f is the primal function and pos/neg are # of" + NL//
+            + "       positive/negative data (default 0.01)" + NL//
             + "   -s 1, 3, and 4" + NL//
             + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)" + NL//
-            + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default 1)" + NL//
+            + "   -s 5 and 6" + NL//
+            + "       |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf," + NL//
+            + "       where f is the primal function (default 0.01)" + NL//
+            + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)" + NL//
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)" + NL//
             + "-v n: n-fold cross validation mode" + NL//
+            + "-q : quiet mode (no outputs)" + NL//
         );
         System.exit(1);
     }
@@ -84,9 +91,9 @@ public class Train {
         int i;
 
         // eps: see setting below
-        param = new Parameter(SolverType.L2LOSS_SVM_DUAL, 1, Double.POSITIVE_INFINITY);
+        param = new Parameter(SolverType.L2R_L2LOSS_SVC_DUAL, 1, Double.POSITIVE_INFINITY);
         // default values
-        bias = 1;
+        bias = -1;
         cross_validation = false;
 
         int nr_weight = 0;
@@ -133,6 +140,9 @@ public class Train {
                         exit_with_help();
                     }
                     break;
+                case 'q':
+                    Linear.disableDebugOutput();
+                    break;
                 default:
                     System.err.println("unknown option");
                     exit_with_help();
@@ -154,11 +164,13 @@ public class Train {
         }
 
         if (param.eps == Double.POSITIVE_INFINITY) {
-            if (param.solverType == SolverType.L2_LR || param.solverType == SolverType.L2LOSS_SVM) {
+            if (param.solverType == SolverType.L2R_LR || param.solverType == SolverType.L2R_L2LOSS_SVC) {
                 param.setEps(0.01);
-            } else if (param.solverType == SolverType.L2LOSS_SVM_DUAL || param.solverType == SolverType.L1LOSS_SVM_DUAL
+            } else if (param.solverType == SolverType.L2R_L2LOSS_SVC_DUAL || param.solverType == SolverType.L2R_L1LOSS_SVC_DUAL
                 || param.solverType == SolverType.MCSVM_CS) {
                 param.setEps(0.1);
+            } else if (param.solverType == SolverType.L1R_L2LOSS_SVC || param.solverType == SolverType.L1R_LR) {
+                param.setEps(0.01);
             }
         }
     }
@@ -169,8 +181,8 @@ public class Train {
      * @throws IOException obviously in case of any I/O exception ;)
      * @throws InvalidInputDataException if the input file is not correctly formatted
      */
-    void readProblem(String filename) throws IOException, InvalidInputDataException {
-        BufferedReader fp = new BufferedReader(new FileReader(filename));
+    public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
+        BufferedReader fp = new BufferedReader(new FileReader(file));
         List<Integer> vy = new ArrayList<Integer>();
         List<FeatureNode[]> vx = new ArrayList<FeatureNode[]>();
         int max_index = 0;
@@ -189,7 +201,7 @@ public class Train {
                 try {
                     vy.add(atoi(token));
                 } catch (NumberFormatException e) {
-                    throw new InvalidInputDataException("invalid label: " + token, filename, lineNr, e);
+                    throw new InvalidInputDataException("invalid label: " + token, file, lineNr, e);
                 }
 
                 int m = st.countTokens() / 2;
@@ -207,12 +219,12 @@ public class Train {
                     try {
                         index = atoi(token);
                     } catch (NumberFormatException e) {
-                        throw new InvalidInputDataException("invalid index: " + token, filename, lineNr, e);
+                        throw new InvalidInputDataException("invalid index: " + token, file, lineNr, e);
                     }
 
                     // assert that indices are valid and sorted
-                    if (index < 0) throw new InvalidInputDataException("invalid index: " + index, filename, lineNr);
-                    if (index <= indexBefore) throw new InvalidInputDataException("indices must be sorted in ascending order", filename, lineNr);
+                    if (index < 0) throw new InvalidInputDataException("invalid index: " + index, file, lineNr);
+                    if (index <= indexBefore) throw new InvalidInputDataException("indices must be sorted in ascending order", file, lineNr);
                     indexBefore = index;
 
                     token = st.nextToken();
@@ -220,7 +232,7 @@ public class Train {
                         double value = atof(token);
                         x[j] = new FeatureNode(index, value);
                     } catch (NumberFormatException e) {
-                        throw new InvalidInputDataException("invalid value: " + token, filename, lineNr);
+                        throw new InvalidInputDataException("invalid value: " + token, file, lineNr);
                     }
                 }
                 if (m > 0) {
@@ -230,14 +242,18 @@ public class Train {
                 vx.add(x);
             }
 
-            prob = constructProblem(vy, vx, max_index);
+            return constructProblem(vy, vx, max_index, bias);
         }
         finally {
             fp.close();
         }
     }
 
-    private Problem constructProblem(List<Integer> vy, List<FeatureNode[]> vx, int max_index) {
+    void readProblem(String filename) throws IOException, InvalidInputDataException {
+        prob = Train.readProblem(new File(filename), bias);
+    }
+
+    private static Problem constructProblem(List<Integer> vy, List<FeatureNode[]> vx, int max_index, double bias) {
         Problem prob = new Problem();
         prob.bias = bias;
         prob.l = vy.size();
