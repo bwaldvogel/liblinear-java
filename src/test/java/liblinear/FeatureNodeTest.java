@@ -7,8 +7,8 @@ import org.junit.Test;
 
 public class FeatureNodeTest {
 
-    @Test(expected = IllegalArgumentException.class)
     public void testConstructorIndexZero() {
+        // since 1.5 there's no more exception here
         new FeatureNode(0, 0);
     }
 

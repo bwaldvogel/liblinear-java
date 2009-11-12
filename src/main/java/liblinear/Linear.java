@@ -21,14 +21,14 @@ import java.util.regex.Pattern;
 
 
 /**
- * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.33</h2>
+ * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.5</h2>
  *
  * <p>The usage should be pretty similar to the C version of <tt>liblinear</tt>.</p>
  * <p>Please consider reading the <tt>README</tt> file of <tt>liblinear</tt>.</p>
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.33
+ * @version 1.5
  */
 public class Linear {
 

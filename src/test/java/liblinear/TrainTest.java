@@ -23,7 +23,8 @@ public class TrainTest {
             Parameter param = train.getParameter();
             assertThat(param.solverType).isEqualTo(solver);
             // check default eps
-            if (solver.ordinal() == 0 || solver.ordinal() == 2) {
+            if (solver.ordinal() == 0 || solver.ordinal() == 2 //
+                || solver.ordinal() == 5 || solver.ordinal() == 6) {
                 assertThat(param.eps).isEqualTo(0.01);
             } else {
                 assertThat(param.eps).isEqualTo(0.1);
