@@ -1,11 +1,7 @@
 package liblinear;
 
 // origin: tron.h
-public interface Function {
-
-    // double fun(double *w);
-    // void grad(double *w, double *g);
-    // void Hv(double *s, double *Hs);
+interface Function {
 
     double fun(double[] w);
 
