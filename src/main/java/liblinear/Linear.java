@@ -481,7 +481,7 @@ public class Linear {
      * solution will be put in w
      *</pre>
      */
-    private static void solve_l2r_l1l1_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
+    private static void solve_l2r_l1l2_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
         int l = prob.l;
         int w_size = prob.n;
         int i, s, iter = 0;
@@ -1286,10 +1286,10 @@ public class Linear {
                 break;
             }
             case L2R_L2LOSS_SVC_DUAL:
-                solve_l2r_l1l1_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL);
                 break;
             case L2R_L1LOSS_SVC_DUAL:
-                solve_l2r_l1l1_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL);
                 break;
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
