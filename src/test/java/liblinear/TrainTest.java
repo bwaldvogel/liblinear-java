@@ -6,13 +6,22 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.junit.Before;
 import org.junit.Test;
 
 
 public class TrainTest {
+
+    private Train train;
+
+    @Before
+    public void setUp() {
+        train = new Train();
+    }
 
     @Test
     public void testParseCommandLine() {
@@ -37,8 +46,7 @@ public class TrainTest {
     @Test
     public void testReadProblem() throws Exception {
 
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = tempFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
@@ -46,16 +54,8 @@ public class TrainTest {
         lines.add("1 3:1  5:1");
         lines.add("1 1:1  4:1  7:1");
         lines.add("2 4:1  5:1  7:1");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append(NL);
-        }
-        finally {
-            writer.close();
-        }
+        writeLines(file, lines);
 
-        Train train = new Train();
         train.readProblem(file.getAbsolutePath());
 
         Problem prob = train.getProblem();
@@ -83,14 +83,111 @@ public class TrainTest {
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadUnsortedProblem() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = tempFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1   7:1");
         lines.add("1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
 
+        writeLines(file, lines);
+
+        train.readProblem(file.getAbsolutePath());
+    }
+
+    @Test
+    public void testReadProblemValidWeights() throws Exception {
+        File file = tempFile();
+        File weightsFile = tempFile();
+
+        Collection<String> lines = new ArrayList<String>();
+        lines.add("1 1:1  3:1  4:1   6:1");
+        lines.add("2 2:1  3:1  5:1   7:1");
+        lines.add("3 2:1  3:1  5:1   7:1");
+        writeLines(file, lines);
+
+        lines.clear();
+        lines.add("1");
+        lines.add(" 2.0 ");
+        lines.add("0.5");
+        writeLines(weightsFile, lines);
+
+        train.readProblem(file.getAbsolutePath(), weightsFile.getAbsolutePath());
+    }
+
+    @Test
+    public void testReadProblemInvalidWeights() throws Exception {
+        File file = tempFile();
+        File weightsFile = tempFile();
+
+        Collection<String> lines = new ArrayList<String>();
+        lines.add("1 1:1  3:1  4:1   6:1");
+        lines.add("2 2:1  3:1  5:1   7:1");
+        writeLines(file, lines);
+
+        lines.clear();
+        lines.add("1");
+        lines.add("-2");
+        writeLines(weightsFile, lines);
+
+        try {
+            train.readProblem(file.getAbsolutePath(), weightsFile.getAbsolutePath());
+        } catch (InvalidInputDataException e) {
+            assertThat(e.getMessage()).contains("invalid weight: -2");
+        }
+    }
+
+    @Test
+    public void testReadProblemNotEnoughWeights() throws Exception {
+        File file = tempFile();
+        File weightsFile = tempFile();
+
+        Collection<String> lines = new ArrayList<String>();
+        lines.add("1 1:1  3:1  4:1   6:1");
+        lines.add("2 2:1  3:1  5:1   7:1");
+        writeLines(file, lines);
+
+        lines.clear();
+        lines.add("1");
+        writeLines(weightsFile, lines);
+
+        try {
+            train.readProblem(file.getAbsolutePath(), weightsFile.getAbsolutePath());
+        } catch (InvalidInputDataException e) {
+            assertThat(e.getMessage()).contains("invalid number of weights");
+        }
+    }
+
+    @Test
+    public void testReadProblemTooManyWeights() throws Exception {
+        File file = tempFile();
+        File weightsFile = tempFile();
+
+        Collection<String> lines = new ArrayList<String>();
+        lines.add("1 1:1  3:1  4:1   6:1");
+        lines.add("2 2:1  3:1  5:1   7:1");
+        writeLines(file, lines);
+
+        lines.clear();
+        lines.add("1");
+        lines.add("1");
+        lines.add("1");
+        writeLines(weightsFile, lines);
+
+        try {
+            train.readProblem(file.getAbsolutePath(), weightsFile.getAbsolutePath());
+        } catch (InvalidInputDataException e) {
+            assertThat(e.getMessage()).contains("too many weights");
+        }
+    }
+
+    private File tempFile() throws IOException {
+        File file = File.createTempFile("svm", "test");
+        file.deleteOnExit();
+        return file;
+    }
+
+    private void writeLines(File file, Collection<String> lines) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
@@ -99,31 +196,19 @@ public class TrainTest {
         finally {
             writer.close();
         }
-
-        Train train = new Train();
-        train.readProblem(file.getAbsolutePath());
     }
 
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadProblemWithInvalidIndex() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = tempFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1  -4:1");
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append(NL);
-        }
-        finally {
-            writer.close();
-        }
+        writeLines(file, lines);
 
-        Train train = new Train();
         try {
             train.readProblem(file.getAbsolutePath());
         } catch (InvalidInputDataException e) {
@@ -133,24 +218,15 @@ public class TrainTest {
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadWrongProblem() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = tempFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1   7:1");
         lines.add("1 3:1  5:a"); // here's the mistake: incomplete line
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append(NL);
-        }
-        finally {
-            writer.close();
-        }
+        writeLines(file, lines);
 
-        Train train = new Train();
         try {
             train.readProblem(file.getAbsolutePath());
         } catch (InvalidInputDataException e) {

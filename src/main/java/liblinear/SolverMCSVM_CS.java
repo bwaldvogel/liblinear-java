@@ -53,13 +53,15 @@ class SolverMCSVM_CS {
         this.eps = eps;
         this.max_iter = max_iter;
         this.prob = prob;
-        this.C = weighted_C;
         this.B = new double[nr_class];
         this.G = new double[nr_class];
+        this.C = new double[prob.l];
+        for (int i = 0; i < prob.l; i++)
+            C[i] = prob.W[i] * weighted_C[prob.y[i]];
     }
 
     private int GETI(int i) {
-        return prob.y[i];
+        return i;
     }
 
     private boolean be_shrunk(int i, int m, int yi, double alpha_i, double minG) {

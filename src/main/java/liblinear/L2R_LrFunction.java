@@ -20,9 +20,9 @@ class L2R_LrFunction implements Function {
 
         for (i = 0; i < l; i++) {
             if (y[i] == 1)
-                C[i] = Cp;
+                C[i] = prob.W[i] * Cp;
             else
-                C[i] = Cn;
+                C[i] = prob.W[i] * Cn;
         }
     }
 

@@ -52,6 +52,9 @@ public class Problem {
      */
     public double          bias;
 
+    /** instance weights */
+    public double          W[];
+
     /**
      * see {@link Train#readProblem(File, double)}
      */

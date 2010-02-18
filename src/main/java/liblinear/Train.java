@@ -23,6 +23,7 @@ public class Train {
     private boolean   cross_validation = false;
     private String    inputFilename;
     private String    modelFilename;
+    private String    weightFilename;
     private int       nr_fold;
     private Parameter param            = null;
     private Problem   prob             = null;
@@ -70,6 +71,7 @@ public class Train {
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)" + NL//
             + "-v n: n-fold cross validation mode" + NL//
             + "-q : quiet mode (no outputs)" + NL//
+            + "-W weight_file: set weight file" + NL//
         );
         System.exit(1);
     }
@@ -95,6 +97,7 @@ public class Train {
         // default values
         bias = -1;
         cross_validation = false;
+        weightFilename = null;
 
         int nr_weight = 0;
 
@@ -143,6 +146,9 @@ public class Train {
                 case 'q':
                     Linear.disableDebugOutput();
                     break;
+                case 'W':
+                    weightFilename = argv[i];
+                    break;
                 default:
                     System.err.println("unknown option");
                     exit_with_help();
@@ -176,20 +182,60 @@ public class Train {
     }
 
     /**
+     * reads a problem from LibSVM format and additionally reads instance weights
+     * @throws IOException obviously in case of any I/O exception ;)
+     * @throws InvalidInputDataException if the input file is not correctly formatted
+     */
+    public static Problem readProblem(File file, double bias, File weightFile) throws IOException, InvalidInputDataException {
+        Problem prob = readProblem(file, bias);
+        BufferedReader fp = new BufferedReader(new FileReader(weightFile));
+        try {
+            int lineNr = 0;
+            int i = 0;
+            while (true) {
+                String line = fp.readLine();
+                if (line == null) break;
+                lineNr++;
+
+                line = line.trim();
+
+                double weight;
+                try {
+                    weight = atof(line);
+                } catch (NumberFormatException e) {
+                    throw new InvalidInputDataException("invalid weight: " + line, file, lineNr, e);
+                }
+
+                if (weight < 0) throw new InvalidInputDataException("invalid weight: " + weight, file, lineNr);
+                if (i >= prob.l) throw new InvalidInputDataException("read too many weights", file, lineNr);
+                prob.W[i] = weight;
+                i++;
+            }
+
+            if (i != prob.l) {
+                throw new InvalidInputDataException("invalid number of weights: got " + i + " but require " + prob.l, file, lineNr);
+            }
+
+            return prob;
+        }
+        finally {
+            fp.close();
+        }
+    }
+
+    /**
      * reads a problem from LibSVM format
-     * @param filename the name of the svm file
      * @throws IOException obviously in case of any I/O exception ;)
      * @throws InvalidInputDataException if the input file is not correctly formatted
      */
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
         BufferedReader fp = new BufferedReader(new FileReader(file));
-        List<Integer> vy = new ArrayList<Integer>();
-        List<FeatureNode[]> vx = new ArrayList<FeatureNode[]>();
-        int max_index = 0;
-
-        int lineNr = 0;
-
         try {
+            List<Integer> vy = new ArrayList<Integer>();
+            List<FeatureNode[]> vx = new ArrayList<FeatureNode[]>();
+            int max_index = 0;
+            int lineNr = 0;
+
             while (true) {
                 String line = fp.readLine();
                 if (line == null) break;
@@ -253,17 +299,23 @@ public class Train {
         prob = Train.readProblem(new File(filename), bias);
     }
 
+    void readProblem(String filename, String weightFilename) throws IOException, InvalidInputDataException {
+        prob = Train.readProblem(new File(filename), bias, new File(weightFilename));
+    }
+
     private static Problem constructProblem(List<Integer> vy, List<FeatureNode[]> vx, int max_index, double bias) {
         Problem prob = new Problem();
         prob.bias = bias;
         prob.l = vy.size();
         prob.n = max_index;
+        prob.W = new double[prob.l];
         if (bias >= 0) {
             prob.n++;
         }
         prob.x = new FeatureNode[prob.l][];
         for (int i = 0; i < prob.l; i++) {
             prob.x[i] = vx.get(i);
+            prob.W[i] = 1;
 
             if (bias >= 0) {
                 assert prob.x[i][prob.x[i].length - 1] == null;
@@ -282,7 +334,7 @@ public class Train {
 
     private void run(String[] args) throws IOException, InvalidInputDataException {
         parse_command_line(args);
-        readProblem(inputFilename);
+        readProblem(inputFilename, weightFilename);
         if (cross_validation)
             do_cross_validation();
         else {

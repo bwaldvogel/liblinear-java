@@ -57,10 +57,12 @@ public class LinearTest {
         prob.n = random.nextInt(100) + 1;
         prob.x = new FeatureNode[prob.l][];
         prob.y = new int[prob.l];
+        prob.W = new double[prob.l];
 
         for (int i = 0; i < prob.l; i++) {
 
             prob.y[i] = random.nextInt(numClasses);
+            prob.W[i] = random.nextDouble();
 
             Set<Integer> randomNumbers = new TreeSet<Integer>();
             int num = random.nextInt(prob.n) + 1;
@@ -160,6 +162,47 @@ public class LinearTest {
     }
 
     @Test
+    public void testRemoveZeroWeights() throws Exception {
+        Problem prob = new Problem();
+        prob.l = 3;
+        prob.n = 4;
+        prob.x = new FeatureNode[3][];
+        prob.x[0] = new FeatureNode[2];
+        prob.x[1] = new FeatureNode[1];
+        prob.x[2] = new FeatureNode[1];
+
+        prob.x[0][0] = new FeatureNode(1, 1);
+        prob.x[0][1] = new FeatureNode(2, 1);
+
+        prob.x[1][0] = new FeatureNode(3, 1);
+        prob.x[2][0] = new FeatureNode(3, 1);
+
+        prob.y = new int[3];
+        prob.y[0] = 0;
+        prob.y[1] = 1;
+        prob.y[2] = 1;
+
+        prob.W = new double[3];
+        prob.W[0] = 0;
+        prob.W[1] = 1;
+        prob.W[2] = 1;
+
+        Problem prunedProblem = Linear.removeZeroWeight(prob);
+        assertThat(prunedProblem.l).isEqualTo(2);
+        assertThat(prunedProblem.x).hasSize(2);
+        assertThat(prunedProblem.x[0]).isSameAs(prob.x[1]);
+        assertThat(prunedProblem.x[1]).isSameAs(prob.x[2]);
+
+        assertThat(prunedProblem.y).hasSize(2);
+        assertThat(prunedProblem.y[0]).isEqualTo(prob.y[1]);
+        assertThat(prunedProblem.y[1]).isEqualTo(prob.y[2]);
+
+        assertThat(prunedProblem.W).hasSize(2);
+        assertThat(prunedProblem.W[0]).isEqualTo(prob.W[1]);
+        assertThat(prunedProblem.W[1]).isEqualTo(prob.W[2]);
+    }
+
+    @Test
     public void testSaveModelWithIOException() throws Exception {
         Model model = createRandomModel();
 
@@ -230,6 +273,12 @@ public class LinearTest {
         prob.y[2] = 1;
         prob.y[3] = 0;
 
+        prob.W = new double[4];
+        prob.W[0] = 1;
+        prob.W[1] = 1;
+        prob.W[2] = 1;
+        prob.W[3] = 1;
+
         Problem transposed = Linear.transpose(prob);
 
         assertThat(transposed.x[0].length).isEqualTo(1);
@@ -249,6 +298,7 @@ public class LinearTest {
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(4, 1));
 
         assertThat(transposed.y).isEqualTo(prob.y);
+        assertThat(transposed.W).isEqualTo(prob.W);
     }
 
     /**
@@ -328,6 +378,13 @@ public class LinearTest {
         prob.y[3] = 0;
         prob.y[4] = 1;
 
+        prob.W = new double[5];
+        prob.W[0] = 0;
+        prob.W[1] = 1;
+        prob.W[2] = 0.75;
+        prob.W[3] = 0.5;
+        prob.W[4] = 1.0;
+
         Problem transposed = Linear.transpose(prob);
 
         assertThat(transposed.x[0]).hasSize(3);
@@ -373,6 +430,7 @@ public class LinearTest {
         assertThat(transposed.x[9][1]).isEqualTo(new FeatureNode(5, 3));
 
         assertThat(transposed.y).isEqualTo(prob.y);
+        assertThat(transposed.W).isEqualTo(prob.W);
     }
 
     /**
@@ -402,6 +460,7 @@ public class LinearTest {
         prob.l = 3;
         prob.n = 4;
         prob.y = new int[3];
+        prob.W = new double[3];
         prob.x = new FeatureNode[4][];
         prob.x[0] = new FeatureNode[3];
         prob.x[1] = new FeatureNode[4];
@@ -471,6 +530,12 @@ public class LinearTest {
         prob.y[2] = 1;
         prob.y[3] = 0;
 
+        prob.W = new double[4];
+        prob.W[0] = 1;
+        prob.W[1] = 1;
+        prob.W[2] = 1;
+        prob.W[3] = 1;
+
         for (SolverType solver : SolverType.values()) {
             System.out.println("solver: " + solver);
 
@@ -497,6 +562,56 @@ public class LinearTest {
                     i++;
                 }
             }
+        }
+    }
+
+    /**
+     * create a very simple problem and check if the weighting influces the solution
+     */
+    @Test
+    public void testTrainWeighted() {
+        Problem prob = new Problem();
+        prob.bias = -1;
+        prob.l = 4;
+        prob.n = 2;
+        prob.x = new FeatureNode[4][];
+        prob.x[0] = new FeatureNode[1];
+        prob.x[1] = new FeatureNode[1];
+        prob.x[2] = new FeatureNode[1];
+        prob.x[3] = new FeatureNode[1];
+
+        prob.x[0][0] = new FeatureNode(1, 1);
+        prob.x[1][0] = new FeatureNode(1, 1);
+        prob.x[2][0] = new FeatureNode(2, 1);
+        prob.x[3][0] = new FeatureNode(2, 1);
+
+        prob.y = new int[4];
+        prob.y[0] = 0;
+        prob.y[1] = 1;
+        prob.y[2] = 0;
+        prob.y[3] = 1;
+
+        prob.W = new double[4];
+        prob.W[0] = 2;
+        prob.W[1] = 1;
+        prob.W[2] = 1;
+        prob.W[3] = 2;
+
+        for (SolverType solver : SolverType.values()) {
+
+            if (solver == SolverType.L1R_LR) {
+                continue;
+            }
+
+            System.out.println("solver: " + solver);
+
+            Parameter param = new Parameter(solver, 1, 0.1);
+            Model model = Linear.train(prob, param);
+
+            assertThat(Linear.predict(model, prob.x[0])).isEqualTo(0);
+            assertThat(Linear.predict(model, prob.x[1])).isEqualTo(0);
+            assertThat(Linear.predict(model, prob.x[2])).isEqualTo(1);
+            assertThat(Linear.predict(model, prob.x[3])).isEqualTo(1);
         }
     }
 

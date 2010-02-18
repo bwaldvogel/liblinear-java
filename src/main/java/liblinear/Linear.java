@@ -74,16 +74,19 @@ public class Linear {
             subprob.l = l - (end - begin);
             subprob.x = new FeatureNode[subprob.l][];
             subprob.y = new int[subprob.l];
+            subprob.W = new double[subprob.l];
 
             k = 0;
             for (j = 0; j < begin; j++) {
                 subprob.x[k] = prob.x[perm[j]];
                 subprob.y[k] = prob.y[perm[j]];
+                subprob.W[k] = prob.W[perm[j]];
                 ++k;
             }
             for (j = end; j < l; j++) {
                 subprob.x[k] = prob.x[perm[j]];
                 subprob.y[k] = prob.y[perm[j]];
+                subprob.W[k] = prob.W[perm[j]];
                 ++k;
             }
             Model submodel = train(subprob, param);
@@ -457,10 +460,10 @@ public class Linear {
 
     /*
      * this method corresponds to the following define in the C version:
-     * #define GETI(i) (y[i]+1)
+     * #define GETI(i) (i)
      */
     private static int GETI(byte[] y, int i) {
-        return y[i] + 1;
+        return i;
     }
 
     /**
@@ -508,13 +511,22 @@ public class Linear {
         double PGmax_new, PGmin_new;
 
         // default solver_type: L2R_L2LOSS_SVC_DUAL
-        double diag[] = new double[] {0.5 / Cn, 0, 0.5 / Cp};
-        double upper_bound[] = new double[] {Double.POSITIVE_INFINITY, 0, Double.POSITIVE_INFINITY};
+        double diag[] = new double[l];
+        double upper_bound[] = new double[l];
+        double C_[] = new double[l];
+        for (i = 0; i < l; i++) {
+            if (prob.y[i] > 0)
+                C_[i] = prob.W[i] * Cp;
+            else
+                C_[i] = prob.W[i] * Cn;
+            diag[i] = 0.5 / C_[i];
+            upper_bound[i] = Double.POSITIVE_INFINITY;
+        }
         if (solver_type == SolverType.L2R_L1LOSS_SVC_DUAL) {
-            diag[0] = 0;
-            diag[2] = 0;
-            upper_bound[0] = Cn;
-            upper_bound[2] = Cp;
+            for (i = 0; i < l; i++) {
+                diag[i] = 0;
+                upper_bound[i] = C_[i];
+            }
         }
 
         for (i = 0; i < w_size; i++)
@@ -667,14 +679,17 @@ public class Linear {
         double[] b = new double[l]; // b = 1-ywTx
         double[] xj_sq = new double[w_size];
 
-        double[] C = new double[] {Cn, 0, Cp};
+        double[] C = new double[l];
 
         for (j = 0; j < l; j++) {
             b[j] = 1;
-            if (prob_col.y[j] > 0)
+            if (prob_col.y[j] > 0) {
                 y[j] = 1;
-            else
+                C[j] = prob_col.W[j] * Cp;
+            } else {
                 y[j] = -1;
+                C[j] = prob_col.W[j] * Cn;
+            }
         }
         for (j = 0; j < w_size; j++) {
             w[j] = 0;
@@ -897,14 +912,17 @@ public class Linear {
         double[] xjneg_sum = new double[w_size];
         double[] xjpos_sum = new double[w_size];
 
-        double[] C = new double[] {Cn, 0, Cp};
+        double[] C = new double[l];
 
         for (j = 0; j < l; j++) {
             exp_wTx[j] = 1;
-            if (prob_col.y[j] > 0)
+            if (prob_col.y[j] > 0) {
                 y[j] = 1;
-            else
+                C[j] = prob_col.W[j] * Cp;
+            } else {
                 y[j] = -1;
+                C[j] = prob_col.W[j] * Cn;
+            }
         }
         for (j = 0; j < w_size; j++) {
             w[j] = 0;
@@ -1098,9 +1116,12 @@ public class Linear {
         prob_col.n = n;
         prob_col.y = new int[l];
         prob_col.x = new FeatureNode[n][];
+        prob_col.W = new double[l];
 
-        for (int i = 0; i < l; i++)
+        for (int i = 0; i < l; i++) {
             prob_col.y[i] = prob.y[i];
+            prob_col.W[i] = prob.W[i];
+        }
 
         for (int i = 0; i < l; i++) {
             for (FeatureNode x : prob.x[i]) {
@@ -1161,6 +1182,8 @@ public class Linear {
             }
         }
 
+        prob = removeZeroWeight(prob);
+
         int i, j;
         int l = prob.l;
         int n = prob.n;
@@ -1203,8 +1226,11 @@ public class Linear {
 
         // constructing the subproblem
         FeatureNode[][] x = new FeatureNode[l][];
-        for (i = 0; i < l; i++)
+        double W[] = new double[l];
+        for (i = 0; i < l; i++) {
             x[i] = prob.x[perm[i]];
+            W[i] = prob.W[perm[i]];
+        }
 
         int k;
         Problem sub_prob = new Problem();
@@ -1212,9 +1238,12 @@ public class Linear {
         sub_prob.n = n;
         sub_prob.x = new FeatureNode[sub_prob.l][];
         sub_prob.y = new int[sub_prob.l];
+        sub_prob.W = new double[sub_prob.l];
 
-        for (k = 0; k < sub_prob.l; k++)
+        for (k = 0; k < sub_prob.l; k++) {
             sub_prob.x[k] = x[k];
+            sub_prob.W[k] = W[k];
+        }
 
         // multi-class svm by Crammer and Singer
         if (param.solverType == SolverType.MCSVM_CS) {
@@ -1305,6 +1334,43 @@ public class Linear {
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }
+    }
+
+    /**
+     * Remove zero weighted data as libsvm and some liblinear solvers require C > 0.
+     */
+    static Problem removeZeroWeight(Problem prob) {
+
+        int l = 0;
+        for (int i = 0; i < prob.l; i++) {
+            if (prob.W[i] > 0) l++;
+        }
+
+        // this is a shortcut that is not (yet) available in the C++ version
+        if (l == prob.l) {
+            return prob;
+        }
+        //
+
+        Problem newprob = new Problem();
+        newprob.bias = prob.bias;
+        newprob.l = l;
+        newprob.n = prob.n;
+        newprob.x = new FeatureNode[l][];
+        newprob.y = new int[l];
+        newprob.W = new double[l];
+
+        int j = 0;
+        for (int i = 0; i < prob.l; i++) {
+            if (prob.W[i] > 0) {
+                newprob.x[j] = prob.x[i];
+                newprob.y[j] = prob.y[i];
+                newprob.W[j] = prob.W[i];
+                j++;
+            }
+        }
+
+        return newprob;
     }
 
     public static void disableDebugOutput() {
