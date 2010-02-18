@@ -46,21 +46,25 @@ class SolverMCSVM_CS {
     }
 
 
-    public SolverMCSVM_CS( Problem prob, int nr_class, double[] C, double eps, int max_iter ) {
+    public SolverMCSVM_CS( Problem prob, int nr_class, double[] weighted_C, double eps, int max_iter ) {
         this.w_size = prob.n;
         this.l = prob.l;
         this.nr_class = nr_class;
         this.eps = eps;
         this.max_iter = max_iter;
         this.prob = prob;
-        this.C = C;
+        this.C = weighted_C;
         this.B = new double[nr_class];
         this.G = new double[nr_class];
     }
 
-    private boolean be_shrunk(int m, int yi, double alpha_i, double minG) {
+    private int GETI(int i) {
+        return prob.y[i];
+    }
+
+    private boolean be_shrunk(int i, int m, int yi, double alpha_i, double minG) {
         double bound = 0;
-        if (m == yi) bound = C[yi];
+        if (m == yi) bound = C[GETI(i)];
         if (alpha_i == bound && G[m] < minG) return true;
         return false;
     }
@@ -139,16 +143,16 @@ class SolverMCSVM_CS {
                         if (G[m] > maxG) maxG = G[m];
                     }
                     if (y_index[i] < active_size_i[i]) {
-                        if (alpha_i.get(prob.y[i]) < C[prob.y[i]] && G[y_index[i]] < minG) {
+                        if (alpha_i.get(prob.y[i]) < C[GETI(i)] && G[y_index[i]] < minG) {
                             minG = G[y_index[i]];
                         }
                     }
 
                     for (m = 0; m < active_size_i[i]; m++) {
-                        if (be_shrunk(m, y_index[i], alpha_i.get(alpha_index_i.get(m)), minG)) {
+                        if (be_shrunk(i, m, y_index[i], alpha_i.get(alpha_index_i.get(m)), minG)) {
                             active_size_i[i]--;
                             while (active_size_i[i] > m) {
-                                if (!be_shrunk(active_size_i[i], y_index[i], alpha_i.get(alpha_index_i.get(active_size_i[i])), minG)) {
+                                if (!be_shrunk(i, active_size_i[i], y_index[i], alpha_i.get(alpha_index_i.get(active_size_i[i])), minG)) {
                                     swap(alpha_index_i, m, active_size_i[i]);
                                     swap(G, m, active_size_i[i]);
                                     if (y_index[i] == active_size_i[i])
@@ -176,7 +180,7 @@ class SolverMCSVM_CS {
                     for (m = 0; m < active_size_i[i]; m++)
                         B[m] = G[m] - Ai * alpha_i.get(alpha_index_i.get(m));
 
-                    solve_sub_problem(Ai, y_index[i], C[prob.y[i]], active_size_i[i], alpha_new);
+                    solve_sub_problem(Ai, y_index[i], C[GETI(i)], active_size_i[i], alpha_new);
                     int nz_d = 0;
                     for (m = 0; m < active_size_i[i]; m++) {
                         double d = alpha_new[m] - alpha_i.get(alpha_index_i.get(m));

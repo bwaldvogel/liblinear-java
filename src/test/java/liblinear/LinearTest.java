@@ -180,6 +180,28 @@ public class LinearTest {
         verify(out, times(1)).close();
     }
 
+    /**
+     * compared input/output values with the C version (1.51)
+     *
+     * <pre>
+     * IN:
+     * res prob.l = 4
+     * res prob.n = 4
+     * 0: (2,1) (4,1)
+     * 1: (1,1)
+     * 2: (3,1)
+     * 3: (2,2) (3,1) (4,1)
+     *
+     * TRANSPOSED:
+     *
+     * res prob.l = 4
+     * res prob.n = 4
+     * 0: (2,1)
+     * 1: (1,1) (4,2)
+     * 2: (3,1) (4,1)
+     * 3: (1,1) (4,1)
+     * </pre>
+     */
     @Test
     public void testTranspose() throws Exception {
         Problem prob = new Problem();
@@ -215,17 +237,50 @@ public class LinearTest {
         assertThat(transposed.x[2].length).isEqualTo(2);
         assertThat(transposed.x[3].length).isEqualTo(2);
 
-        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(1, 1));
-        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(0, 1));
-        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(3, 2));
-        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(2, 1));
-        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(3, 1));
-        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(0, 1));
-        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(3, 1));
+        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(2, 1));
+
+        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(1, 1));
+        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(4, 2));
+
+        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(3, 1));
+        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(4, 1));
+
+        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 1));
+        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(4, 1));
 
         assertThat(transposed.y).isEqualTo(prob.y);
     }
 
+    /**
+     *
+     * compared input/output values with the C version (1.51)
+     *
+     * <pre>
+     * IN:
+     * res prob.l = 5
+     * res prob.n = 10
+     * 0: (1,7) (3,3) (5,2)
+     * 1: (2,1) (4,5) (5,3) (7,4) (8,2)
+     * 2: (1,9) (3,1) (5,1) (10,7)
+     * 3: (1,2) (2,2) (3,9) (4,7) (5,8) (6,1) (7,5) (8,4)
+     * 4: (3,1) (10,3)
+     *
+     * TRANSPOSED:
+     *
+     * res prob.l = 5
+     * res prob.n = 10
+     * 0: (1,7) (3,9) (4,2)
+     * 1: (2,1) (4,2)
+     * 2: (1,3) (3,1) (4,9) (5,1)
+     * 3: (2,5) (4,7)
+     * 4: (1,2) (2,3) (3,1) (4,8)
+     * 5: (4,1)
+     * 6: (2,4) (4,5)
+     * 7: (2,2) (4,4)
+     * 8:
+     * 9: (3,7) (5,3)
+     * </pre>
+     */
     @Test
     public void testTranspose2() throws Exception {
         Problem prob = new Problem();
@@ -286,57 +341,59 @@ public class LinearTest {
         assertThat(transposed.x[8]).hasSize(0);
         assertThat(transposed.x[9]).hasSize(2);
 
-        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(0, 7));
-        assertThat(transposed.x[0][1]).isEqualTo(new FeatureNode(2, 9));
-        assertThat(transposed.x[0][2]).isEqualTo(new FeatureNode(3, 2));
+        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(1, 7));
+        assertThat(transposed.x[0][1]).isEqualTo(new FeatureNode(3, 9));
+        assertThat(transposed.x[0][2]).isEqualTo(new FeatureNode(4, 2));
 
-        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(1, 1));
-        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(3, 2));
+        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(2, 1));
+        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(4, 2));
 
-        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(0, 3));
-        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(2, 1));
-        assertThat(transposed.x[2][2]).isEqualTo(new FeatureNode(3, 9));
-        assertThat(transposed.x[2][3]).isEqualTo(new FeatureNode(4, 1));
+        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(1, 3));
+        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(3, 1));
+        assertThat(transposed.x[2][2]).isEqualTo(new FeatureNode(4, 9));
+        assertThat(transposed.x[2][3]).isEqualTo(new FeatureNode(5, 1));
 
-        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 5));
-        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(3, 7));
+        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(2, 5));
+        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(4, 7));
 
-        assertThat(transposed.x[4][0]).isEqualTo(new FeatureNode(0, 2));
-        assertThat(transposed.x[4][1]).isEqualTo(new FeatureNode(1, 3));
-        assertThat(transposed.x[4][2]).isEqualTo(new FeatureNode(2, 1));
-        assertThat(transposed.x[4][3]).isEqualTo(new FeatureNode(3, 8));
+        assertThat(transposed.x[4][0]).isEqualTo(new FeatureNode(1, 2));
+        assertThat(transposed.x[4][1]).isEqualTo(new FeatureNode(2, 3));
+        assertThat(transposed.x[4][2]).isEqualTo(new FeatureNode(3, 1));
+        assertThat(transposed.x[4][3]).isEqualTo(new FeatureNode(4, 8));
 
-        assertThat(transposed.x[5][0]).isEqualTo(new FeatureNode(3, 1));
+        assertThat(transposed.x[5][0]).isEqualTo(new FeatureNode(4, 1));
 
-        assertThat(transposed.x[6][0]).isEqualTo(new FeatureNode(1, 4));
-        assertThat(transposed.x[6][1]).isEqualTo(new FeatureNode(3, 5));
+        assertThat(transposed.x[6][0]).isEqualTo(new FeatureNode(2, 4));
+        assertThat(transposed.x[6][1]).isEqualTo(new FeatureNode(4, 5));
 
-        assertThat(transposed.x[7][0]).isEqualTo(new FeatureNode(1, 2));
-        assertThat(transposed.x[7][1]).isEqualTo(new FeatureNode(3, 4));
+        assertThat(transposed.x[7][0]).isEqualTo(new FeatureNode(2, 2));
+        assertThat(transposed.x[7][1]).isEqualTo(new FeatureNode(4, 4));
 
-        assertThat(transposed.x[9][0]).isEqualTo(new FeatureNode(2, 7));
-        assertThat(transposed.x[9][1]).isEqualTo(new FeatureNode(4, 3));
+        assertThat(transposed.x[9][0]).isEqualTo(new FeatureNode(3, 7));
+        assertThat(transposed.x[9][1]).isEqualTo(new FeatureNode(5, 3));
 
         assertThat(transposed.y).isEqualTo(prob.y);
     }
 
     /**
-     * compared input/output values with the C version (1.5)
-     * l: 3
-     * n: 4
+     * compared input/output values with the C version (1.51)
+     *
+     * IN:
+     * res prob.l = 3
+     * res prob.n = 4
      * 0: (1,2) (3,1) (4,3)
      * 1: (1,9) (2,7) (3,3) (4,3)
      * 2: (2,1)
-     * 3: (3,2)
      *
-     * transposed matrix:
+     * TRANSPOSED:
      *
-     * l: 3
-     * n: 4
-     * 0: (0,2) (1,9)
-     * 1: (1,7) (2,1)
-     * 2: (0,1) (1,3)
-     * 3: (0,3) (1,3)
+     * res prob.l = 3
+     *      * res prob.n = 4
+     * 0: (1,2) (2,9)
+     * 1: (2,7) (3,1)
+     * 2: (1,1) (2,3)
+     * 3: (1,3) (2,3)
+     *
      */
     @Test
     public void testTranspose3() throws Exception {
@@ -344,7 +401,7 @@ public class LinearTest {
         Problem prob = new Problem();
         prob.l = 3;
         prob.n = 4;
-        prob.y = new int[4];
+        prob.y = new int[3];
         prob.x = new FeatureNode[4][];
         prob.x[0] = new FeatureNode[3];
         prob.x[1] = new FeatureNode[4];
@@ -370,17 +427,17 @@ public class LinearTest {
         assertThat(transposed.x[2]).hasSize(2);
         assertThat(transposed.x[3]).hasSize(2);
 
-        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(0, 2));
-        assertThat(transposed.x[0][1]).isEqualTo(new FeatureNode(1, 9));
+        assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(1, 2));
+        assertThat(transposed.x[0][1]).isEqualTo(new FeatureNode(2, 9));
 
-        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(1, 7));
-        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(2, 1));
+        assertThat(transposed.x[1][0]).isEqualTo(new FeatureNode(2, 7));
+        assertThat(transposed.x[1][1]).isEqualTo(new FeatureNode(3, 1));
 
-        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(0, 1));
-        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(1, 3));
+        assertThat(transposed.x[2][0]).isEqualTo(new FeatureNode(1, 1));
+        assertThat(transposed.x[2][1]).isEqualTo(new FeatureNode(2, 3));
 
-        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(0, 3));
-        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(1, 3));
+        assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 3));
+        assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
     }
 
     /**

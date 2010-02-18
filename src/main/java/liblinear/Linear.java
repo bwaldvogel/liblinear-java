@@ -21,14 +21,14 @@ import java.util.regex.Pattern;
 
 
 /**
- * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.5</h2>
+ * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.51</h2>
  *
  * <p>The usage should be pretty similar to the C version of <tt>liblinear</tt>.</p>
  * <p>Please consider reading the <tt>README</tt> file of <tt>liblinear</tt>.</p>
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.5
+ * @version 1.51
  */
 public class Linear {
 
@@ -455,6 +455,14 @@ public class Linear {
         saveModel(modelOutput, model);
     }
 
+    /*
+     * this method corresponds to the following define in the C version:
+     * #define GETI(i) (y[i]+1)
+     */
+    private static int GETI(byte[] y, int i) {
+        return y[i] + 1;
+    }
+
     /**
      * A coordinate descent algorithm for
      * L1-loss and L2-loss SVM dual problems
@@ -500,13 +508,13 @@ public class Linear {
         double PGmax_new, PGmin_new;
 
         // default solver_type: L2R_L2LOSS_SVC_DUAL
-        double diag_p = 0.5 / Cp, diag_n = 0.5 / Cn;
-        double upper_bound_p = Double.POSITIVE_INFINITY, upper_bound_n = Double.POSITIVE_INFINITY;
+        double diag[] = new double[] {0.5 / Cn, 0, 0.5 / Cp};
+        double upper_bound[] = new double[] {Double.POSITIVE_INFINITY, 0, Double.POSITIVE_INFINITY};
         if (solver_type == SolverType.L2R_L1LOSS_SVC_DUAL) {
-            diag_p = 0;
-            diag_n = 0;
-            upper_bound_p = Cp;
-            upper_bound_n = Cn;
+            diag[0] = 0;
+            diag[2] = 0;
+            upper_bound[0] = Cn;
+            upper_bound[2] = Cp;
         }
 
         for (i = 0; i < w_size; i++)
@@ -515,11 +523,10 @@ public class Linear {
             alpha[i] = 0;
             if (prob.y[i] > 0) {
                 y[i] = +1;
-                QD[i] = diag_p;
             } else {
                 y[i] = -1;
-                QD[i] = diag_n;
             }
+            QD[i] = diag[GETI(y, i)];
 
             for (FeatureNode xi : prob.x[i]) {
                 QD[i] += xi.value * xi.value;
@@ -546,13 +553,8 @@ public class Linear {
                 }
                 G = G * yi - 1;
 
-                if (yi == 1) {
-                    C = upper_bound_p;
-                    G += alpha[i] * diag_p;
-                } else {
-                    C = upper_bound_n;
-                    G += alpha[i] * diag_n;
-                }
+                C = upper_bound[GETI(y, i)];
+                G += alpha[i] * diag[GETI(y, i)];
 
                 PG = 0;
                 if (alpha[i] == 0) {
@@ -621,10 +623,7 @@ public class Linear {
         for (i = 0; i < w_size; i++)
             v += w[i] * w[i];
         for (i = 0; i < l; i++) {
-            if (y[i] == 1)
-                v += alpha[i] * (alpha[i] * diag_p - 2);
-            else
-                v += alpha[i] * (alpha[i] * diag_n - 2);
+            v += alpha[i] * (alpha[i] * diag[GETI(y, i)] - 2);
             if (alpha[i] > 0) ++nSV;
         }
         info("Objective value = %f" + NL, v / 2);
@@ -668,26 +667,24 @@ public class Linear {
         double[] b = new double[l]; // b = 1-ywTx
         double[] xj_sq = new double[w_size];
 
-        // To support weights for instances,
-        // replace C[y[i]] with C[i].
-        double[] C = new double[] {Cn, Cp};
+        double[] C = new double[] {Cn, 0, Cp};
 
         for (j = 0; j < l; j++) {
             b[j] = 1;
             if (prob_col.y[j] > 0)
                 y[j] = 1;
             else
-                y[j] = 0;
+                y[j] = -1;
         }
         for (j = 0; j < w_size; j++) {
             w[j] = 0;
             index[j] = j;
             xj_sq[j] = 0;
             for (FeatureNode xi : prob_col.x[j]) {
-                int ind = xi.index;
+                int ind = xi.index - 1;
                 double val = xi.value;
-                xi.value *= prob_col.y[ind]; // x->value stores yi*xij
-                xj_sq[j] += C[y[ind]] * val * val;
+                xi.value *= y[ind]; // x->value stores yi*xij
+                xj_sq[j] += C[GETI(y, ind)] * val * val;
             }
         }
 
@@ -705,10 +702,10 @@ public class Linear {
                 H = 0;
 
                 for (FeatureNode xi : prob_col.x[j]) {
-                    int ind = xi.index;
+                    int ind = xi.index - 1;
                     if (b[ind] > 0) {
                         double val = xi.value;
-                        double tmp = C[y[ind]] * val;
+                        double tmp = C[GETI(y, ind)] * val;
                         G_loss -= tmp * b[ind];
                         H += tmp * val;
                     }
@@ -760,7 +757,7 @@ public class Linear {
                     appxcond = xj_sq[j] * d * d + G_loss * d + cond;
                     if (appxcond <= 0) {
                         for (FeatureNode x : prob_col.x[j]) {
-                            b[x.index] += d_diff * x.value;
+                            b[x.index - 1] += d_diff * x.value;
                         }
                         break;
                     }
@@ -769,19 +766,25 @@ public class Linear {
                         loss_old = 0;
                         loss_new = 0;
                         for (FeatureNode x : prob_col.x[j]) {
-                            int ind = x.index;
-                            if (b[ind] > 0) loss_old += C[y[ind]] * b[ind] * b[ind];
+                            int ind = x.index - 1;
+                            if (b[ind] > 0) {
+                                loss_old += C[GETI(y, ind)] * b[ind] * b[ind];
+                            }
                             double b_new = b[ind] + d_diff * x.value;
                             b[ind] = b_new;
-                            if (b_new > 0) loss_new += C[y[ind]] * b_new * b_new;
+                            if (b_new > 0) {
+                                loss_new += C[GETI(y, ind)] * b_new * b_new;
+                            }
                         }
                     } else {
                         loss_new = 0;
                         for (FeatureNode x : prob_col.x[j]) {
-                            int ind = x.index;
+                            int ind = x.index - 1;
                             double b_new = b[ind] + d_diff * x.value;
                             b[ind] = b_new;
-                            if (b_new > 0) loss_new += C[y[ind]] * b_new * b_new;
+                            if (b_new > 0) {
+                                loss_new += C[GETI(y, ind)] * b_new * b_new;
+                            }
                         }
                     }
 
@@ -806,7 +809,7 @@ public class Linear {
                     for (int i = 0; i < w_size; i++) {
                         if (w[i] == 0) continue;
                         for (FeatureNode x : prob_col.x[i]) {
-                            b[x.index] -= w[i] * x.value;
+                            b[x.index - 1] -= w[i] * x.value;
                         }
                     }
                 }
@@ -839,7 +842,7 @@ public class Linear {
         int nnz = 0;
         for (j = 0; j < w_size; j++) {
             for (FeatureNode x : prob_col.x[j]) {
-                x.value *= prob_col.y[x.index]; // restore x->value
+                x.value *= prob_col.y[x.index - 1]; // restore x->value
             }
             if (w[j] != 0) {
                 v += Math.abs(w[j]);
@@ -847,7 +850,7 @@ public class Linear {
             }
         }
         for (j = 0; j < l; j++)
-            if (b[j] > 0) v += C[y[j]] * b[j] * b[j];
+            if (b[j] > 0) v += C[GETI(y, j)] * b[j] * b[j];
 
         info("Objective value = %f\n", v);
         info("#nonzeros/#features = %d/%d\n", nnz, w_size);
@@ -894,16 +897,14 @@ public class Linear {
         double[] xjneg_sum = new double[w_size];
         double[] xjpos_sum = new double[w_size];
 
-        // To support weights for instances,
-        // replace C[y[i]] with C[i].
-        double[] C = new double[] {Cn, Cp};
+        double[] C = new double[] {Cn, 0, Cp};
 
         for (j = 0; j < l; j++) {
             exp_wTx[j] = 1;
             if (prob_col.y[j] > 0)
                 y[j] = 1;
             else
-                y[j] = 0;
+                y[j] = -1;
         }
         for (j = 0; j < w_size; j++) {
             w[j] = 0;
@@ -913,15 +914,15 @@ public class Linear {
             xjneg_sum[j] = 0;
             xjpos_sum[j] = 0;
             for (FeatureNode x : prob_col.x[j]) {
-                int ind = x.index;
+                int ind = x.index - 1;
                 double val = x.value;
                 x_min = Math.min(x_min, val);
                 xj_max[j] = Math.max(xj_max[j], val);
-                C_sum[j] += C[y[ind]];
-                if (y[ind] == 0)
-                    xjneg_sum[j] += C[y[ind]] * val;
+                C_sum[j] += C[GETI(y, ind)];
+                if (y[ind] == -1)
+                    xjneg_sum[j] += C[GETI(y, ind)] * val;
                 else
-                    xjpos_sum[j] += C[y[ind]] * val;
+                    xjpos_sum[j] += C[GETI(y, ind)] * val;
             }
         }
 
@@ -940,10 +941,10 @@ public class Linear {
                 H = 0;
 
                 for (FeatureNode x : prob_col.x[j]) {
-                    int ind = x.index;
+                    int ind = x.index - 1;
                     double exp_wTxind = exp_wTx[ind];
                     double tmp1 = x.value / (1 + exp_wTxind);
-                    double tmp2 = C[y[ind]] * tmp1;
+                    double tmp2 = C[GETI(y, ind)] * tmp1;
                     double tmp3 = tmp2 * exp_wTxind;
                     sum2 += tmp2;
                     sum1 += tmp3;
@@ -996,7 +997,7 @@ public class Linear {
                         appxcond2 = Math.log(1 + sum2 * (1 / tmp - 1) / xj_max[j] / C_sum[j]) * C_sum[j] + cond + d * xjneg_sum[j];
                         if (Math.min(appxcond1, appxcond2) <= 0) {
                             for (FeatureNode x : prob_col.x[j]) {
-                                exp_wTx[x.index] *= Math.exp(d * x.value);
+                                exp_wTx[x.index - 1] *= Math.exp(d * x.value);
                             }
                             break;
                         }
@@ -1006,17 +1007,17 @@ public class Linear {
 
                     int i = 0;
                     for (FeatureNode x : prob_col.x[j]) {
-                        int ind = x.index;
+                        int ind = x.index - 1;
                         double exp_dx = Math.exp(d * x.value);
                         exp_wTx_new[i] = exp_wTx[ind] * exp_dx;
-                        cond += C[y[ind]] * Math.log((1 + exp_wTx_new[i]) / (exp_dx + exp_wTx_new[i]));
+                        cond += C[GETI(y, ind)] * Math.log((1 + exp_wTx_new[i]) / (exp_dx + exp_wTx_new[i]));
                         i++;
                     }
 
                     if (cond <= 0) {
                         i = 0;
                         for (FeatureNode x : prob_col.x[j]) {
-                            int ind = x.index;
+                            int ind = x.index - 1;
                             exp_wTx[ind] = exp_wTx_new[i];
                             i++;
                         }
@@ -1038,7 +1039,7 @@ public class Linear {
                     for (int i = 0; i < w_size; i++) {
                         if (w[i] == 0) continue;
                         for (FeatureNode x : prob_col.x[i]) {
-                            exp_wTx[x.index] += w[i] * x.value;
+                            exp_wTx[x.index - 1] += w[i] * x.value;
                         }
                     }
 
@@ -1079,9 +1080,9 @@ public class Linear {
             }
         for (j = 0; j < l; j++)
             if (y[j] == 1)
-                v += C[y[j]] * Math.log(1 + 1 / exp_wTx[j]);
+                v += C[GETI(y, j)] * Math.log(1 + 1 / exp_wTx[j]);
             else
-                v += C[y[j]] * Math.log(1 + exp_wTx[j]);
+                v += C[GETI(y, j)] * Math.log(1 + exp_wTx[j]);
 
         info("Objective value = %f\n", v);
         info("#nonzeros/#features = %d/%d\n", nnz, w_size);
@@ -1116,7 +1117,7 @@ public class Linear {
             for (int j = 0; j < prob.x[i].length; j++) {
                 FeatureNode x = prob.x[i][j];
                 int index = x.index - 1;
-                prob_col.x[index][col_ptr[index]] = new FeatureNode(i, x.value);;
+                prob_col.x[index][col_ptr[index]] = new FeatureNode(i + 1, x.value);
                 col_ptr[index]++;
             }
         }
