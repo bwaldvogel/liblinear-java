@@ -1,6 +1,5 @@
 package liblinear;
 
-import static liblinear.Linear.NL;
 import static liblinear.Linear.info;
 import static org.netlib.blas.DAXPY.DAXPY;
 import static org.netlib.blas.DDOT.DDOT;
@@ -99,7 +98,7 @@ class Tron {
             else
                 delta = Math.max(delta, Math.min(alpha * snorm, sigma3 * delta));
 
-            info("iter %2d act %5.3e pre %5.3e delta %5.3e f %5.3e |g| %5.3e CG %3d" + NL, iter, actred, prered, delta, f, gnorm, cg_iter);
+            info("iter %2d act %5.3e pre %5.3e delta %5.3e f %5.3e |g| %5.3e CG %3d%n", iter, actred, prered, delta, f, gnorm, cg_iter);
 
             if (actred > eta0 * prered) {
                 iter++;
@@ -113,15 +112,15 @@ class Tron {
                 if (gnorm <= eps * gnorm1) break;
             }
             if (f < -1.0e+32) {
-                info("warning: f < -1.0e+32" + NL);
+                info("warning: f < -1.0e+32%n");
                 break;
             }
             if (Math.abs(actred) <= 0 && prered <= 0) {
-                info("warning: actred and prered <= 0" + NL);
+                info("warning: actred and prered <= 0%n");
                 break;
             }
             if (Math.abs(actred) <= 1.0e-12 * Math.abs(f) && Math.abs(prered) <= 1.0e-12 * Math.abs(f)) {
-                info("warning: actred and prered too small" + NL);
+                info("warning: actred and prered too small%n");
                 break;
             }
         }

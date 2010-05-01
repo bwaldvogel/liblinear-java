@@ -1,6 +1,5 @@
 package liblinear;
 
-import static liblinear.Linear.NL;
 import static liblinear.Linear.atof;
 import static liblinear.Linear.atoi;
 
@@ -40,36 +39,36 @@ public class Train {
         for (int i = 0; i < prob.l; i++)
             if (target[i] == prob.y[i]) ++total_correct;
 
-        System.out.printf("correct: %d" + NL, total_correct);
-        System.out.printf("Cross Validation Accuracy = %g%%\n", 100.0 * total_correct / prob.l);
+        System.out.printf("correct: %d%n", total_correct);
+        System.out.printf("Cross Validation Accuracy = %g%%%n", 100.0 * total_correct / prob.l);
     }
 
     private void exit_with_help() {
-        System.out.println("Usage: train [options] training_set_file [model_file]" + NL //
-            + "options:" + NL//
-            + "-s type : set type of solver (default 1)" + NL//
-            + "   0 -- L2-regularized logistic regression" + NL//
-            + "   1 -- L2-regularized L2-loss support vector classification (dual)" + NL//
-            + "   2 -- L2-regularized L2-loss support vector classification (primal)" + NL//
-            + "   3 -- L2-regularized L1-loss support vector classification (dual)" + NL//
-            + "   4 -- multi-class support vector classification by Crammer and Singer" + NL//
-            + "   5 -- L1-regularized L2-loss support vector classification" + NL//
-            + "   6 -- L1-regularized logistic regression" + NL//
-            + "-c cost : set the parameter C (default 1)" + NL//
-            + "-e epsilon : set tolerance of termination criterion" + NL//
-            + "   -s 0 and 2" + NL//
-            + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2," + NL//
-            + "       where f is the primal function and pos/neg are # of" + NL//
-            + "       positive/negative data (default 0.01)" + NL//
-            + "   -s 1, 3, and 4" + NL//
-            + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)" + NL//
-            + "   -s 5 and 6" + NL//
-            + "       |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf," + NL//
-            + "       where f is the primal function (default 0.01)" + NL//
-            + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)" + NL//
-            + "-wi weight: weights adjust the parameter C of different classes (see README for details)" + NL//
-            + "-v n: n-fold cross validation mode" + NL//
-            + "-q : quiet mode (no outputs)" + NL//
+        System.out.printf("Usage: train [options] training_set_file [model_file]%n"
+            + "options:%n" 
+            + "-s type : set type of solver (default 1)%n"  
+            + "   0 -- L2-regularized logistic regression%n" 
+            + "   1 -- L2-regularized L2-loss support vector classification (dual)%n"
+            + "   2 -- L2-regularized L2-loss support vector classification (primal)%n"
+            + "   3 -- L2-regularized L1-loss support vector classification (dual)%n" 
+            + "   4 -- multi-class support vector classification by Crammer and Singer%n"
+            + "   5 -- L1-regularized L2-loss support vector classification%n"
+            + "   6 -- L1-regularized logistic regression%n"
+            + "-c cost : set the parameter C (default 1)%n"
+            + "-e epsilon : set tolerance of termination criterion%n"
+            + "   -s 0 and 2%n"
+            + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
+            + "       where f is the primal function and pos/neg are # of%n"
+            + "       positive/negative data (default 0.01)%n"
+            + "   -s 1, 3, and 4%n"
+            + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
+            + "   -s 5 and 6%n"
+            + "       |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf,%n"
+            + "       where f is the primal function (default 0.01)%n"
+            + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
+            + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
+            + "-v n: n-fold cross validation mode%n"
+            + "-q : quiet mode (no outputs)%n"
         );
         System.exit(1);
     }
