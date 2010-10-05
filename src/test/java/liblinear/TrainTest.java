@@ -81,6 +81,37 @@ public class TrainTest {
         }
     }
 
+    @Test
+    public void testReadProblemEmptyLine() throws Exception {
+
+        File file = File.createTempFile("svm", "test");
+        file.deleteOnExit();
+
+        Collection<String> lines = new ArrayList<String>();
+        lines.add("1 1:1  3:1  4:1   6:1");
+        lines.add("2 ");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        try {
+            for (String line : lines)
+                writer.append(line).append(NL);
+        }
+        finally {
+            writer.close();
+        }
+
+        Train train = new Train();
+        Problem prob = train.readProblem(file, -1.0);
+        assertThat(prob.bias).isEqualTo(-1);
+        assertThat(prob.y).hasSize(lines.size());
+        assertThat(prob.y).isEqualTo(new int[] {1, 2});
+        assertThat(prob.n).isEqualTo(6);
+        assertThat(prob.l).isEqualTo(prob.y.length);
+        assertThat(prob.x).hasSize(prob.y.length);
+
+        assertThat(prob.x[0]).hasSize(4);
+        assertThat(prob.x[1]).hasSize(0);
+    }
+
     @Test(expected = InvalidInputDataException.class)
     public void testReadUnsortedProblem() throws Exception {
         File file = File.createTempFile("svm", "test");

@@ -267,8 +267,6 @@ public class Train {
             if (bias >= 0) {
                 assert prob.x[i][prob.x[i].length - 1] == null;
                 prob.x[i][prob.x[i].length - 1] = new FeatureNode(max_index + 1, bias);
-            } else {
-                assert prob.x[i][prob.x[i].length - 1] != null;
             }
         }
 
