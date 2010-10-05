@@ -81,6 +81,9 @@ public class TrainTest {
         }
     }
 
+    /**
+     * unit-test for Issue #1 (http://github.com/bwaldvogel/liblinear-java/issues#issue/1)
+     */
     @Test
     public void testReadProblemEmptyLine() throws Exception {
 
