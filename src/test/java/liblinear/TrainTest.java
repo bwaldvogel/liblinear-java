@@ -102,8 +102,7 @@ public class TrainTest {
             writer.close();
         }
 
-        Train train = new Train();
-        Problem prob = train.readProblem(file, -1.0);
+        Problem prob = Train.readProblem(file, -1.0);
         assertThat(prob.bias).isEqualTo(-1);
         assertThat(prob.y).hasSize(lines.size());
         assertThat(prob.y).isEqualTo(new int[] {1, 2});
