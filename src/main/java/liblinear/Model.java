@@ -75,6 +75,13 @@ public final class Model implements Serializable {
     }
 
     /**
+     * @return true for logistic regression solvers
+     */
+    public boolean isProbabilityModel() {
+        return (solverType == SolverType.L2R_LR || solverType == SolverType.L1R_LR);
+    }
+
+    /**
      * @see #getFeatureWeights()
      */
     public double getBias() {

@@ -46,7 +46,7 @@ public class Predict {
         Formatter out = new Formatter(writer);
 
         if (flag_predict_probability) {
-            if (model.solverType != SolverType.L2R_LR) {
+            if (!model.isProbabilityModel()) {
                 throw new IllegalArgumentException("probability output is only supported for logistic regression");
             }
 

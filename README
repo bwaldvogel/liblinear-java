@@ -21,6 +21,7 @@ Table of Contents
 - Building Windows Binaries
 - Additional Information
 - MATLAB/OCTAVE interface
+- PYTHON interface
 
 When to use LIBLINEAR but not LIBSVM
 ====================================
@@ -413,18 +414,24 @@ Library Usage
     This function returns a pointer to the model read from the file,
     or a null pointer if the model could not be loaded.
 
-- Function: void destroy_model(struct model *model_);
+- Function: void free_model_content(struct model *model_ptr);
 
-    This function frees the memory used by a model.
+    This function frees the memory used by the entries in a model structure.
+
+- Function: void free_and_destroy_model(struct model **model_ptr_ptr);
+
+    This function frees the memory used by a model and destroys the model
+    structure.
 
 - Function: void destroy_param(struct parameter *param);
 
     This function frees the memory used by a parameter set.
 
-- Variable: extern void (*liblinear_print_string) (const char *);
+- Function: void set_print_string_function(void (*print_func)(const char *));
 
-    Users can specify their output format by
-    liblinear_print_string = &your_print_function;
+    Users can specify their output format by a function. Use
+        set_print_string_function(NULL);
+    for default printing to stdout.
 
 Building Windows Binaries
 =========================
@@ -435,10 +442,10 @@ Visual C++, use the following steps:
 1. Open a dos command box and change to liblinear directory. If
 environment variables of VC++ have not been set, type
 
-"C:\Program Files\Microsoft Visual Studio 8\VC\bin\vcvars32.bat"
+"C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat"
 
-You may have to modify the above according which version of VC++ or
-where it is installed.
+You may have to modify the above command according which version of
+VC++ or where it is installed.
 
 2. Type
 
@@ -449,6 +456,11 @@ MATLAB/OCTAVE Interface
 =======================
 
 Please check the file README in the directory `matlab'.
+
+PYTHON Interface
+================
+
+Please check the file README in the directory `python'.
 
 Additional Information
 ======================
