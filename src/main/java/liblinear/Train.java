@@ -44,23 +44,24 @@ public class Train {
     }
 
     private void exit_with_help() {
-        System.out.printf("Usage: train [options] training_set_file [model_file]%n"
-            + "options:%n" 
-            + "-s type : set type of solver (default 1)%n"  
-            + "   0 -- L2-regularized logistic regression%n" 
+        System.out.printf("Usage: train [options] training_set_file [model_file]%n" //
+            + "options:%n"
+            + "-s type : set type of solver (default 1)%n"
+            + "   0 -- L2-regularized logistic regression (primal)%n"
             + "   1 -- L2-regularized L2-loss support vector classification (dual)%n"
             + "   2 -- L2-regularized L2-loss support vector classification (primal)%n"
-            + "   3 -- L2-regularized L1-loss support vector classification (dual)%n" 
+            + "   3 -- L2-regularized L1-loss support vector classification (dual)%n"
             + "   4 -- multi-class support vector classification by Crammer and Singer%n"
             + "   5 -- L1-regularized L2-loss support vector classification%n"
             + "   6 -- L1-regularized logistic regression%n"
+            + "   7 -- L2-regularized logistic regression (dual)%n"
             + "-c cost : set the parameter C (default 1)%n"
             + "-e epsilon : set tolerance of termination criterion%n"
             + "   -s 0 and 2%n"
             + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
             + "       where f is the primal function and pos/neg are # of%n"
             + "       positive/negative data (default 0.01)%n"
-            + "   -s 1, 3, and 4%n"
+            + "   -s 1, 3, 4 and 7%n"
             + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
             + "   -s 5 and 6%n"
             + "       |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf,%n"
@@ -68,8 +69,7 @@ public class Train {
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
-            + "-q : quiet mode (no outputs)%n"
-        );
+            + "-q : quiet mode (no outputs)%n");
         System.exit(1);
     }
 
@@ -135,7 +135,7 @@ public class Train {
                     cross_validation = true;
                     nr_fold = atoi(argv[i]);
                     if (nr_fold < 2) {
-                        System.err.print("n-fold cross validation: n must >= 2\n");
+                        System.err.println("n-fold cross validation: n must >= 2");
                         exit_with_help();
                     }
                     break;
@@ -166,7 +166,7 @@ public class Train {
             if (param.solverType == SolverType.L2R_LR || param.solverType == SolverType.L2R_L2LOSS_SVC) {
                 param.setEps(0.01);
             } else if (param.solverType == SolverType.L2R_L2LOSS_SVC_DUAL || param.solverType == SolverType.L2R_L1LOSS_SVC_DUAL
-                || param.solverType == SolverType.MCSVM_CS) {
+                || param.solverType == SolverType.MCSVM_CS || param.solverType == SolverType.L2R_LR_DUAL) {
                 param.setEps(0.1);
             } else if (param.solverType == SolverType.L1R_L2LOSS_SVC || param.solverType == SolverType.L1R_LR) {
                 param.setEps(0.01);
