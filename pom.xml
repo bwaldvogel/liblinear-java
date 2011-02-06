@@ -7,29 +7,13 @@
     <version>1.7.1-SNAPSHOT</version>
     <url>http://www.csie.ntu.edu.tw/~cjlin/liblinear/</url>
     <build>
+        <finalName>liblinear-${project.version}</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assembly</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <finalName>liblinear-${project.version}</finalName>
-                    <descriptors>
-                        <descriptor>assembly.xml</descriptor>
-                    </descriptors>
                 </configuration>
             </plugin>
         </plugins>
@@ -48,16 +32,6 @@
         <powermock.version>1.2.5</powermock.version>
     </properties>
     <dependencies>
-        <!--
-        this dependency needs to be installed manually (see the 'lib' folder)
-        -->
-        <dependency>
-            <groupId>org.netlib.jlapack</groupId>
-            <artifactId>blas</artifactId>
-            <version>0.8</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- dependencies for unit testing -->
         <dependency>
             <groupId>org.powermock.modules</groupId>

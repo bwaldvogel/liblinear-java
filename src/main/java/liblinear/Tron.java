@@ -1,10 +1,6 @@
 package liblinear;
 
 import static liblinear.Linear.info;
-import static org.netlib.blas.DAXPY.DAXPY;
-import static org.netlib.blas.DDOT.DDOT;
-import static org.netlib.blas.DNRM2.DNRM2;
-import static org.netlib.blas.DSCAL.DSCAL;
 
 
 class Tron {
@@ -41,7 +37,7 @@ class Tron {
         int i, cg_iter;
         double delta, snorm, one = 1.0;
         double alpha, f, fnew, prered, actred, gs;
-        int search = 1, iter = 1, inc = 1;
+        int search = 1, iter = 1;
         double[] s = new double[n];
         double[] r = new double[n];
         double[] w_new = new double[n];
@@ -52,7 +48,7 @@ class Tron {
 
         f = fun_obj.fun(w);
         fun_obj.grad(w, g);
-        delta = DNRM2(n, g, inc);
+        delta = euclideanNorm(g);
         // delta = dnrm2_(&n, g, &inc);
         double gnorm1 = delta;
         double gnorm = gnorm1;
@@ -66,18 +62,18 @@ class Tron {
 
             // memcpy(w_new, w, sizeof(double)*n);
             System.arraycopy(w, 0, w_new, 0, n);
-            DAXPY(n, one, s, inc, w_new, inc);
+            daxpy(one, s, w_new);
 
-            gs = DDOT(n, g, inc, s, inc);
+            gs = dot(g, s);
             // gs = ddot_(&n, g, &inc, s, &inc);
-            prered = -0.5 * (gs - DDOT(n, s, inc, r, inc));
+            prered = -0.5 * (gs - dot(s, r));
             fnew = fun_obj.fun(w_new);
 
             // Compute the actual reduction.
             actred = f - fnew;
 
             // On the first iteration, adjust the initial step bound.
-            snorm = DNRM2(n, s, inc);
+            snorm = euclideanNorm(s);
             // snorm = dnrm2_(&n, s, &inc);
             if (iter == 1) delta = Math.min(delta, snorm);
 
@@ -107,7 +103,7 @@ class Tron {
                 f = fnew;
                 fun_obj.grad(w, g);
 
-                gnorm = DNRM2(n, g, inc);
+                gnorm = euclideanNorm(g);
                 // gnorm = dnrm2_(&n, g, &inc);
                 if (gnorm <= eps * gnorm1) break;
             }
@@ -128,59 +124,58 @@ class Tron {
 
     // int TRON::trcg(double delta, double *g, double *s, double *r)
     int trcg(double delta, double[] g, double[] s, double[] r) {
-        int i, inc = 1;
         int n = fun_obj.get_nr_variable();
         double one = 1;
         double[] d = new double[n];
         double[] Hd = new double[n];
         double rTr, rnewTrnew, cgtol;
 
-        for (i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             s[i] = 0;
             r[i] = -g[i];
             d[i] = r[i];
         }
-        cgtol = 0.1 * DNRM2(n, g, inc);
+        cgtol = 0.1 * euclideanNorm(g);
 
         int cg_iter = 0;
         // rTr = ddot_(&n, r, &inc, r, &inc);
-        rTr = DDOT(n, r, inc, r, inc);
+        rTr = dot(r, r);
 
         while (true) {
-            if (DNRM2(n, r, inc) <= cgtol) break;
+            if (euclideanNorm(r) <= cgtol) break;
             cg_iter++;
             fun_obj.Hv(d, Hd);
 
-            double alpha = rTr / DDOT(n, d, inc, Hd, inc);
-            DAXPY(n, alpha, d, inc, s, inc);
+            double alpha = rTr / dot(d, Hd);
+            daxpy(alpha, d, s);
             // daxpy_(&n, &alpha, d, &inc, s, &inc);
             // if (dnrm2_(&n, s, &inc) > delta)
-            if (DNRM2(n, s, inc) > delta) {
+            if (euclideanNorm(s) > delta) {
                 info("cg reaches trust region boundary%n");
                 alpha = -alpha;
                 // daxpy_(&n, &alpha, d, &inc, s, &inc);
-                DAXPY(n, alpha, d, inc, s, inc);
+                daxpy(alpha, d, s);
 
-                double std = DDOT(n, s, inc, d, inc);
-                double sts = DDOT(n, s, inc, s, inc);
-                double dtd = DDOT(n, d, inc, d, inc);
+                double std = dot(s, d);
+                double sts = dot(s, s);
+                double dtd = dot(d, d);
                 double dsq = delta * delta;
                 double rad = Math.sqrt(std * std + dtd * (dsq - sts));
                 if (std >= 0)
                     alpha = (dsq - sts) / (std + rad);
                 else
                     alpha = (rad - std) / dtd;
-                DAXPY(n, alpha, d, inc, s, inc);
+                daxpy(alpha, d, s);
                 alpha = -alpha;
-                DAXPY(n, alpha, Hd, inc, r, inc);
+                daxpy(alpha, Hd, r);
                 break;
             }
             alpha = -alpha;
-            DAXPY(n, alpha, Hd, inc, r, inc);
-            rnewTrnew = DDOT(n, r, inc, r, inc);
+            daxpy(alpha, Hd, r);
+            rnewTrnew = dot(r, r);
             double beta = rnewTrnew / rTr;
-            DSCAL(n, beta, d, inc);
-            DAXPY(n, one, r, inc, d, inc);
+            scale(beta, d);
+            daxpy(one, r, d);
             rTr = rnewTrnew;
         }
 
@@ -192,5 +187,91 @@ class Tron {
         for (int i = 1; i < n; i++)
             if (Math.abs(x[i]) >= dmax) dmax = Math.abs(x[i]);
         return (dmax);
+    }
+
+
+    /**
+     * constant times a vector plus a vector
+     *
+     * <pre>
+     * vector2 += constant * vector1
+     * </pre>
+     *
+     * @since 1.7.1
+     */
+    private static void daxpy(double constant, double vector1[], double vector2[]) {
+        if (constant == 0) return;
+
+        assert vector1.length == vector2.length;
+        for (int i = 0; i < vector1.length; i++) {
+            vector2[i] += constant * vector1[i];
+        }
+    }
+
+    /**
+     * returns the dot product of two vectors
+     *
+     * @since 1.7.1
+     */
+    private static double dot(double vector1[], double vector2[]) {
+
+        double product = 0;
+        assert vector1.length == vector2.length;
+        for (int i = 0; i < vector1.length; i++) {
+            product += vector1[i] * vector2[i];
+        }
+        return product;
+
+    }
+
+    /**
+     * returns the euclidean norm of a vector
+     *
+     * @since 1.7.1
+     */
+    private static double euclideanNorm(double vector[]) {
+
+        int n = vector.length;
+
+        if (n < 1) {
+            return 0;
+        }
+
+        if (n == 1) {
+            return Math.abs(vector[0]);
+        }
+
+        // this algorithm is (often) more accurate than just summing up the squares and taking the square-root afterwards
+
+        double scale = 0; // scaling factor that is factored out
+        double sum = 1; // basic sum of squares from which scale has been factored out
+        for (int i = 0; i < n; i++) {
+            if (vector[i] != 0) {
+                double abs = Math.abs(vector[i]);
+                // try to get the best scaling factor
+                if (scale < abs) {
+                    double t = scale / abs;
+                    sum = 1 + sum * (t * t);
+                    scale = abs;
+                } else {
+                    double t = abs / scale;
+                    sum += t * t;
+                }
+            }
+        }
+
+        return scale * Math.sqrt(sum);
+    }
+
+    /**
+     * scales a vector by a constant
+     *
+     * @since 1.7.1
+     */
+    private static void scale(double constant, double vector[]) {
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] *= constant;
+        }
+
     }
 }
