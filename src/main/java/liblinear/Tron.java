@@ -182,14 +182,6 @@ class Tron {
         return (cg_iter);
     }
 
-    double norm_inf(int n, double[] x) {
-        double dmax = Math.abs(x[0]);
-        for (int i = 1; i < n; i++)
-            if (Math.abs(x[i]) >= dmax) dmax = Math.abs(x[i]);
-        return (dmax);
-    }
-
-
     /**
      * constant times a vector plus a vector
      *
