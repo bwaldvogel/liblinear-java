@@ -25,7 +25,6 @@ class Tron {
         this.max_iter = max_iter;
     }
 
-    // void tron(double *w)
     void tron(double[] w) {
         // Parameters for updating the iterates.
         double eta0 = 1e-4, eta1 = 0.25, eta2 = 0.75;
@@ -49,7 +48,6 @@ class Tron {
         f = fun_obj.fun(w);
         fun_obj.grad(w, g);
         delta = euclideanNorm(g);
-        // delta = dnrm2_(&n, g, &inc);
         double gnorm1 = delta;
         double gnorm = gnorm1;
 
@@ -60,12 +58,10 @@ class Tron {
         while (iter <= max_iter && search != 0) {
             cg_iter = trcg(delta, g, s, r);
 
-            // memcpy(w_new, w, sizeof(double)*n);
             System.arraycopy(w, 0, w_new, 0, n);
             daxpy(one, s, w_new);
 
             gs = dot(g, s);
-            // gs = ddot_(&n, g, &inc, s, &inc);
             prered = -0.5 * (gs - dot(s, r));
             fnew = fun_obj.fun(w_new);
 
@@ -74,7 +70,6 @@ class Tron {
 
             // On the first iteration, adjust the initial step bound.
             snorm = euclideanNorm(s);
-            // snorm = dnrm2_(&n, s, &inc);
             if (iter == 1) delta = Math.min(delta, snorm);
 
             // Compute prediction alpha*snorm of the step.
@@ -98,13 +93,11 @@ class Tron {
 
             if (actred > eta0 * prered) {
                 iter++;
-                // memcpy(w, w_new, sizeof(double)*n);
                 System.arraycopy(w_new, 0, w, 0, n);
                 f = fnew;
                 fun_obj.grad(w, g);
 
                 gnorm = euclideanNorm(g);
-                // gnorm = dnrm2_(&n, g, &inc);
                 if (gnorm <= eps * gnorm1) break;
             }
             if (f < -1.0e+32) {
@@ -122,7 +115,6 @@ class Tron {
         }
     }
 
-    // int TRON::trcg(double delta, double *g, double *s, double *r)
     private int trcg(double delta, double[] g, double[] s, double[] r) {
         int n = fun_obj.get_nr_variable();
         double one = 1;
@@ -138,7 +130,6 @@ class Tron {
         cgtol = 0.1 * euclideanNorm(g);
 
         int cg_iter = 0;
-        // rTr = ddot_(&n, r, &inc, r, &inc);
         rTr = dot(r, r);
 
         while (true) {
@@ -148,12 +139,9 @@ class Tron {
 
             double alpha = rTr / dot(d, Hd);
             daxpy(alpha, d, s);
-            // daxpy_(&n, &alpha, d, &inc, s, &inc);
-            // if (dnrm2_(&n, s, &inc) > delta)
             if (euclideanNorm(s) > delta) {
                 info("cg reaches trust region boundary%n");
                 alpha = -alpha;
-                // daxpy_(&n, &alpha, d, &inc, s, &inc);
                 daxpy(alpha, d, s);
 
                 double std = dot(s, d);
