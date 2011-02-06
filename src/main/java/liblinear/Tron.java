@@ -123,7 +123,7 @@ class Tron {
     }
 
     // int TRON::trcg(double delta, double *g, double *s, double *r)
-    int trcg(double delta, double[] g, double[] s, double[] r) {
+    private int trcg(double delta, double[] g, double[] s, double[] r) {
         int n = fun_obj.get_nr_variable();
         double one = 1;
         double[] d = new double[n];
