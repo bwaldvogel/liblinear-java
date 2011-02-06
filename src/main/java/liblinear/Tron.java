@@ -249,6 +249,7 @@ class Tron {
      * @since 1.7.1
      */
     private static void scale(double constant, double vector[]) {
+        if (constant == 1.0) return;
         for (int i = 0; i < vector.length; i++) {
             vector[i] *= constant;
         }
