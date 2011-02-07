@@ -13,7 +13,7 @@ import java.util.Arrays;
 /**
  * <p>Model stores the model obtained from the training procedure</p>
  *
- * <p>use {@link Linear#loadModel(String)} and {@link Linear#saveModel(String, Model)} to load/save it</p>
+ * <p>use {@link Linear#loadModel(File)} and {@link Linear#saveModel(File, Model)} to load/save it</p>
  */
 public final class Model implements Serializable {
 

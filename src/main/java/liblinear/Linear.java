@@ -217,7 +217,7 @@ public class Linear {
 
     /**
      * Loads the model from inputReader.
-     * It uses {@link Locale.ENGLISH} for number formatting.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      *
      * <p><b>Note: The inputReader is closed after reading or in case of an exception.</b></p>
      */
@@ -300,7 +300,7 @@ public class Linear {
 
     /**
      * Loads the model from the file with ISO-8859-1 charset.
-     * It uses {@link Locale.ENGLISH} for number formatting.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      */
     public static Model loadModel(File modelFile) throws IOException {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), FILE_CHARSET));
@@ -399,7 +399,7 @@ public class Linear {
 
     /**
      * Writes the model to the modelOutput.
-     * It uses {@link Locale.ENGLISH} for number formatting.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      *
      * <p><b>Note: The modelOutput is closed after reading or in case of an exception.</b></p>
      */
@@ -451,7 +451,7 @@ public class Linear {
 
     /**
      * Writes the model to the file with ISO-8859-1 charset.
-     * It uses {@link Locale.ENGLISH} for number formatting.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      */
     public static void saveModel(File modelFile, Model model) throws IOException {
         BufferedWriter modelOutput = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(modelFile), FILE_CHARSET));
