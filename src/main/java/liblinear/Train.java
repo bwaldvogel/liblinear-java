@@ -176,7 +176,7 @@ public class Train {
 
     /**
      * reads a problem from LibSVM format
-     * @param filename the name of the svm file
+     * @param file the SVM file
      * @throws IOException obviously in case of any I/O exception ;)
      * @throws InvalidInputDataException if the input file is not correctly formatted
      */
