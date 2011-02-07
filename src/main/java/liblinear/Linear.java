@@ -681,14 +681,16 @@ public class Linear {
         int max_inner_iter = 100; // for inner Newton
         double innereps = 1e-2;
         double innereps_min = Math.min(1e-8, eps);
-        double upper_bound[] = new double[] {Cn, 0, Cp};
+        double upper_bound[] = new double[l];
 
         for (i = 0; i < w_size; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
             if (prob.y[i] > 0) {
+                upper_bound[i] = prob.W[i] * Cp;
                 y[i] = +1;
             } else {
+                upper_bound[i] = prob.W[i] * Cn;
                 y[i] = -1;
             }
             alpha[2 * i] = Math.min(0.001 * upper_bound[GETI(y, i)], 1e-8);
