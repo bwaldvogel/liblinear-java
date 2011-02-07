@@ -24,6 +24,8 @@ import static liblinear.Linear.swap;
  * eps is the stopping tolerance
  *
  * solution will be put in w
+ *
+ * See Appendix of LIBLINEAR paper, Fan et al. (2008)
  * </pre>
  */
 class SolverMCSVM_CS {
@@ -225,8 +227,8 @@ class SolverMCSVM_CS {
                 start_from_all = false;
         }
 
-        info("\noptimization finished, #iter = %d\n", iter);
-        if (iter >= max_iter) info("Warning: reaching max number of iterations\n");
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
         double v = 0;
@@ -240,8 +242,8 @@ class SolverMCSVM_CS {
         }
         for (i = 0; i < l; i++)
             v -= alpha[i * nr_class + prob.y[i]];
-        info("Objective value = %f\n", v);
-        info("nSV = %d\n", nSV);
+        info("Objective value = %f%n", v);
+        info("nSV = %d%n", nSV);
 
     }
 

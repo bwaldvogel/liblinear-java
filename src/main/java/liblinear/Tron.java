@@ -156,7 +156,7 @@ class Tron {
             // daxpy_(&n, &alpha, d, &inc, s, &inc);
             // if (dnrm2_(&n, s, &inc) > delta)
             if (DNRM2(n, s, inc) > delta) {
-                info("cg reaches trust region boundary\n");
+                info("cg reaches trust region boundary%n");
                 alpha = -alpha;
                 // daxpy_(&n, &alpha, d, &inc, s, &inc);
                 DAXPY(n, alpha, d, inc, s, inc);

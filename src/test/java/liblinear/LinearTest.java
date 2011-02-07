@@ -16,6 +16,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.fest.assertions.Delta;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -503,7 +504,7 @@ public class LinearTest {
      * create a very simple problem and check if the clearly separated examples are recognized as such
      */
     @Test
-    public void testTrain() {
+    public void testTrainPredict() {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = 4;
@@ -557,6 +558,17 @@ public class LinearTest {
                 for (int value : prob.y) {
                     int prediction = Linear.predict(model, prob.x[i]);
                     assertThat(prediction).isEqualTo(value);
+                    if (model.isProbabilityModel()) {
+                        double[] estimates = new double[model.getNrClass()];
+                        int probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
+                        assertThat(probabilityPrediction).isEqualTo(prediction);
+                        assertThat(estimates[probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
+                        double estimationSum = 0;
+                        for (double estimate : estimates) {
+                            estimationSum += estimate;
+                        }
+                        assertThat(estimationSum).isEqualTo(1.0, Delta.delta(0.001));
+                    }
                     i++;
                 }
             }

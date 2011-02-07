@@ -3,7 +3,7 @@ package liblinear;
 public enum SolverType {
 
     /**
-     * L2-regularized logistic regression
+     * L2-regularized logistic regression (primal)
      *
      * (fka L2_LR)
      */
@@ -47,5 +47,12 @@ public enum SolverType {
      *
      * @since 1.5
      */
-    L1R_LR;
+    L1R_LR,
+
+    /**
+     * L2-regularized logistic regression (dual)
+     *
+     * @since 1.7
+     */
+    L2R_LR_DUAL;
 }

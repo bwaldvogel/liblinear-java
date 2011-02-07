@@ -4,7 +4,7 @@
     <groupId>liblinear</groupId>
     <artifactId>liblinear</artifactId>
     <name>liblinear</name>
-    <version>1.6-weights</version>
+    <version>1.7-weights</version>
     <url>http://www.csie.ntu.edu.tw/~cjlin/liblinear/</url>
     <build>
         <plugins>

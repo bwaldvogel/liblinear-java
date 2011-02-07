@@ -21,14 +21,14 @@ import java.util.regex.Pattern;
 
 
 /**
- * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.6</h2>
+ * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.7</h2>
  *
  * <p>The usage should be pretty similar to the C version of <tt>liblinear</tt>.</p>
  * <p>Please consider reading the <tt>README</tt> file of <tt>liblinear</tt>.</p>
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.6
+ * @version 1.7
  */
 public class Linear {
 
@@ -161,7 +161,7 @@ public class Linear {
     static void info(String message) {
         synchronized (OUTPUT_MUTEX) {
             if (DEBUG_OUTPUT == null) return;
-            DEBUG_OUTPUT.print(message);
+            DEBUG_OUTPUT.printf(message);
             DEBUG_OUTPUT.flush();
         }
     }
@@ -493,6 +493,8 @@ public class Linear {
      * eps is the stopping tolerance
      *
      * solution will be put in w
+     *
+     * See Algorithm 3 of Hsieh et al., ICML 2008
      *</pre>
      */
     private static void solve_l2r_l1l2_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
@@ -629,7 +631,7 @@ public class Linear {
         }
 
         info(NL + "optimization finished, #iter = %d" + NL, iter);
-        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\nUsing -s 2 may be faster (also see FAQ)\n\n");
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -647,6 +649,145 @@ public class Linear {
 
     /**
      * A coordinate descent algorithm for
+     * the dual of L2-regularized logistic regression problems
+     *<pre>
+     *  min_\alpha  0.5(\alpha^T Q \alpha) + \sum \alpha_i log (\alpha_i) + (upper_bound_i - alpha_i) log (upper_bound_i - alpha_i) ,
+     *     s.t.      0 <= alpha_i <= upper_bound_i,
+     *
+     *  where Qij = yi yj xi^T xj and
+     *  upper_bound_i = Cp if y_i = 1
+     *  upper_bound_i = Cn if y_i = -1
+     *
+     * Given:
+     * x, y, Cp, Cn
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w
+     *
+     * See Algorithm 5 of Yu et al., MLJ 2010
+     *</pre>
+     *
+     * @since 1.7
+     */
+    private static void solve_l2r_lr_dual(Problem prob, double w[], double eps, double Cp, double Cn) {
+        int l = prob.l;
+        int w_size = prob.n;
+        int i, s, iter = 0;
+        double xTx[] = new double[l];
+        int max_iter = 1000;
+        int index[] = new int[l];
+        double alpha[] = new double[2 * l]; // store alpha and C - alpha
+        byte y[] = new byte[l];
+        int max_inner_iter = 100; // for inner Newton
+        double innereps = 1e-2;
+        double innereps_min = Math.min(1e-8, eps);
+        double upper_bound[] = new double[] {Cn, 0, Cp};
+
+        for (i = 0; i < w_size; i++)
+            w[i] = 0;
+        for (i = 0; i < l; i++) {
+            if (prob.y[i] > 0) {
+                y[i] = +1;
+            } else {
+                y[i] = -1;
+            }
+            alpha[2 * i] = Math.min(0.001 * upper_bound[GETI(y, i)], 1e-8);
+            alpha[2 * i + 1] = upper_bound[GETI(y, i)] - alpha[2 * i];
+
+            xTx[i] = 0;
+            for (FeatureNode xi : prob.x[i]) {
+                xTx[i] += (xi.value) * (xi.value);
+                w[xi.index - 1] += y[i] * alpha[2 * i] * xi.value;
+            }
+            index[i] = i;
+        }
+
+        while (iter < max_iter) {
+            for (i = 0; i < l; i++) {
+                int j = i + random.nextInt(l - i);
+                swap(index, i, j);
+            }
+            int newton_iter = 0;
+            double Gmax = 0;
+            for (s = 0; s < l; s++) {
+                i = index[s];
+                byte yi = y[i];
+                double C = upper_bound[GETI(y, i)];
+                double ywTx = 0, xisq = xTx[i];
+                for (FeatureNode xi : prob.x[i]) {
+                    ywTx += w[xi.index - 1] * xi.value;
+                }
+                ywTx *= y[i];
+                double a = xisq, b = ywTx;
+
+                // Decide to minimize g_1(z) or g_2(z)
+                int ind1 = 2 * i, ind2 = 2 * i + 1, sign = 1;
+                if (0.5 * a * (alpha[ind2] - alpha[ind1]) + b < 0) {
+                    ind1 = 2 * i + 1;
+                    ind2 = 2 * i;
+                    sign = -1;
+                }
+
+                //  g_t(z) = z*log(z) + (C-z)*log(C-z) + 0.5a(z-alpha_old)^2 + sign*b(z-alpha_old)
+                double alpha_old = alpha[ind1];
+                double z = alpha_old;
+                if (C - z < 0.5 * C) z = 0.1 * z;
+                double gp = a * (z - alpha_old) + sign * b + Math.log(z / (C - z));
+                Gmax = Math.max(Gmax, Math.abs(gp));
+
+                // Newton method on the sub-problem
+                final double eta = 0.1; // xi in the paper
+                int inner_iter = 0;
+                while (inner_iter <= max_inner_iter) {
+                    if (Math.abs(gp) < innereps) break;
+                    double gpp = a + C / (C - z) / z;
+                    double tmpz = z - gp / gpp;
+                    if (tmpz <= 0)
+                        z *= eta;
+                    else
+                        // tmpz in (0, C)
+                        z = tmpz;
+                    gp = a * (z - alpha_old) + sign * b + Math.log(z / (C - z));
+                    newton_iter++;
+                    inner_iter++;
+                }
+
+                if (inner_iter > 0) // update w
+                {
+                    alpha[ind1] = z;
+                    alpha[ind2] = C - z;
+                    for (FeatureNode xi : prob.x[i]) {
+                        w[xi.index - 1] += sign * (z - alpha_old) * yi * xi.value;
+                    }
+                }
+            }
+
+            iter++;
+            if (iter % 10 == 0) info(".");
+
+            if (Gmax < eps) break;
+
+            if (newton_iter < l / 10) innereps = Math.max(innereps_min, 0.1 * innereps);
+
+        }
+
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 0 may be faster (also see FAQ)%n%n");
+
+        // calculate objective value
+
+        double v = 0;
+        for (i = 0; i < w_size; i++)
+            v += w[i] * w[i];
+        v *= 0.5;
+        for (i = 0; i < l; i++)
+            v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
+                * Math.log(upper_bound[GETI(y, i)]);
+        info("Objective value = %f%n", v);
+    }
+
+    /**
+     * A coordinate descent algorithm for
      * L1-regularized L2-loss support vector classification
      *
      *<pre>
@@ -657,7 +798,11 @@ public class Linear {
      * eps is the stopping tolerance
      *
      * solution will be put in w
+     *
+     * See Yuan et al. (2010) and appendix of LIBLINEAR paper, Fan et al. (2008)
      *</pre>
+     *
+     * @since 1.5
      */
     private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
         int l = prob_col.l;
@@ -851,8 +996,8 @@ public class Linear {
             Gmax_old = Gmax_new;
         }
 
-        info("\noptimization finished, #iter = %d\n", iter);
-        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\n");
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
 
@@ -870,8 +1015,8 @@ public class Linear {
         for (j = 0; j < l; j++)
             if (b[j] > 0) v += C[GETI(y, j)] * b[j] * b[j];
 
-        info("Objective value = %f\n", v);
-        info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+        info("Objective value = %f%n", v);
+        info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
     /**
@@ -886,7 +1031,11 @@ public class Linear {
      * eps is the stopping tolerance
      *
      * solution will be put in w
+     *
+     * See Yuan et al. (2010) and appendix of LIBLINEAR paper, Fan et al. (2008)
      *</pre>
+     *
+     * @since 1.5
      */
     private static void solve_l1r_lr(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
         int l = prob_col.l;
@@ -1087,8 +1236,8 @@ public class Linear {
             Gmax_old = Gmax_new;
         }
 
-        info("\noptimization finished, #iter = %d\n", iter);
-        if (iter >= max_iter) info("\nWARNING: reaching max number of iterations\n");
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
 
@@ -1105,8 +1254,8 @@ public class Linear {
             else
                 v += C[GETI(y, j)] * Math.log(1 + exp_wTx[j]);
 
-        info("Objective value = %f\n", v);
-        info("#nonzeros/#features = %d/%d\n", nnz, w_size);
+        info("Objective value = %f%n", v);
+        info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
     // transpose matrix X from row format to column format
@@ -1334,6 +1483,9 @@ public class Linear {
                 solve_l1r_lr(prob_col, w, eps * Math.min(pos, neg) / prob.l, Cp, Cn);
                 break;
             }
+            case L2R_LR_DUAL:
+                solve_l2r_lr_dual(prob, w, eps, Cp, Cn);
+                break;
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }
