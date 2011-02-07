@@ -1,6 +1,5 @@
 package liblinear;
 
-import static liblinear.Linear.NL;
 import static liblinear.Linear.atof;
 import static liblinear.Linear.atoi;
 import static liblinear.Linear.closeQuietly;
@@ -47,7 +46,7 @@ public class Predict {
         Formatter out = new Formatter(writer);
 
         if (flag_predict_probability) {
-            if (model.solverType != SolverType.L2R_LR) {
+            if (!model.isProbabilityModel()) {
                 throw new IllegalArgumentException("probability output is only supported for logistic regression");
             }
 
@@ -112,7 +111,7 @@ public class Predict {
             }
             ++total;
         }
-        System.out.printf("Accuracy = %g%% (%d/%d)" + NL, (double)correct / total * 100, correct, total);
+        System.out.printf("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
     }
 
     private static void exit_input_error(int line_num, Throwable cause) {
@@ -124,9 +123,9 @@ public class Predict {
     }
 
     private static void exit_with_help() {
-        System.out.println("Usage: predict [options] test_file model_file output_file" + NL //
-            + "options:" + NL //
-            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0)" + NL //
+        System.out.printf("Usage: predict [options] test_file model_file output_file%n"
+            + "options:%n"
+            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0)%n"
         );
         System.exit(1);
     }
@@ -148,7 +147,7 @@ public class Predict {
                     break;
 
                 default:
-                    System.err.println("unknown option: -" + argv[i - 1].charAt(1) + NL);
+                    System.err.printf("unknown option: -%d%n",argv[i - 1].charAt(1));
                     exit_with_help();
                     break;
             }

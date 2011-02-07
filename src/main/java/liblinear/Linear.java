@@ -21,14 +21,14 @@ import java.util.regex.Pattern;
 
 
 /**
- * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.51</h2>
+ * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a> 1.6</h2>
  *
  * <p>The usage should be pretty similar to the C version of <tt>liblinear</tt>.</p>
  * <p>Please consider reading the <tt>README</tt> file of <tt>liblinear</tt>.</p>
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.51
+ * @version 1.6
  */
 public class Linear {
 
@@ -322,33 +322,36 @@ public class Linear {
         return predictValues(model, x, dec_values);
     }
 
-    public static int predictProbability(Model model, FeatureNode[] x, double[] prob_estimates) {
-        if (model.solverType == SolverType.L2R_LR) {
-            int nr_class = model.nr_class;
-            int nr_w;
-            if (nr_class == 2)
-                nr_w = 1;
-            else
-                nr_w = nr_class;
+    /**
+     * @throws IllegalArgumentException if model is not probabilistic (see {@link Model#isProbabilityModel()})
+     */
+    public static int predictProbability(Model model, FeatureNode[] x, double[] prob_estimates) throws IllegalArgumentException {
+        if (!model.isProbabilityModel()) {
+            throw new IllegalArgumentException("probability output is only supported for logistic regression");
+        }
+        int nr_class = model.nr_class;
+        int nr_w;
+        if (nr_class == 2)
+            nr_w = 1;
+        else
+            nr_w = nr_class;
 
-            int label = predictValues(model, x, prob_estimates);
-            for (int i = 0; i < nr_w; i++)
-                prob_estimates[i] = 1 / (1 + Math.exp(-prob_estimates[i]));
+        int label = predictValues(model, x, prob_estimates);
+        for (int i = 0; i < nr_w; i++)
+            prob_estimates[i] = 1 / (1 + Math.exp(-prob_estimates[i]));
 
-            if (nr_class == 2) // for binary classification
-                prob_estimates[1] = 1. - prob_estimates[0];
-            else {
-                double sum = 0;
-                for (int i = 0; i < nr_class; i++)
-                    sum += prob_estimates[i];
+        if (nr_class == 2) // for binary classification
+            prob_estimates[1] = 1. - prob_estimates[0];
+        else {
+            double sum = 0;
+            for (int i = 0; i < nr_class; i++)
+                sum += prob_estimates[i];
 
-                for (int i = 0; i < nr_class; i++)
-                    prob_estimates[i] = prob_estimates[i] / sum;
-            }
+            for (int i = 0; i < nr_class; i++)
+                prob_estimates[i] = prob_estimates[i] / sum;
+        }
 
-            return label;
-        } else
-            return 0;
+        return label;
     }
 
     public static int predictValues(Model model, FeatureNode[] x, double[] dec_values) {

@@ -537,8 +537,6 @@ public class LinearTest {
         prob.W[3] = 1;
 
         for (SolverType solver : SolverType.values()) {
-            System.out.println("solver: " + solver);
-
             for (double C = 0.1; C <= 100.; C *= 1.2) {
 
                 // compared the behavior with the C version
