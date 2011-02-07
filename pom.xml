@@ -3,9 +3,33 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>liblinear</groupId>
     <artifactId>liblinear</artifactId>
+    <packaging>jar</packaging>
     <name>liblinear</name>
     <version>1.7.1-SNAPSHOT</version>
-    <url>http://www.csie.ntu.edu.tw/~cjlin/liblinear/</url>
+    <description>Java port of Liblinear</description>
+    <url>http://www.bwaldvogel.de/liblinear-java/</url>
+
+    <licenses>
+        <license>
+            <name>The BSD License</name>
+            <url>http://www.opensource.org/licenses/bsd-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>http://github.com/bwaldvogel/liblinear-java</url>
+        <connection>scm:git:http://github.com/bwaldvogel/liblinear-java.git</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>bwaldvogel</id>
+            <name>Benedikt Waldvogel</name>
+            <email>mail at bwaldvogel.de</email>
+        </developer>
+    </developers>
+
     <build>
         <finalName>liblinear-${project.version}</finalName>
         <plugins>
@@ -16,21 +40,39 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>powermock-repo</id>
-            <url>http://powermock.googlecode.com/svn/repo/</url>
-        </repository>
-        <repository>
-            <id>fest-assert</id>
-            <url>http://svn.codehaus.org/fest/m2/repo/</url>
-        </repository>
-    </repositories>
+
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <powermock.version>1.2.5</powermock.version>
     </properties>
+
     <dependencies>
         <!-- dependencies for unit testing -->
         <dependency>
