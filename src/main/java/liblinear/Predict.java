@@ -69,7 +69,9 @@ public class Predict {
 
             while (st.hasMoreTokens()) {
                 String[] split = COLON.split(st.nextToken(), 2);
-                if (split == null || split.length < 2) exit_input_error(total + 1);
+                if (split == null || split.length < 2) {
+                    throw new RuntimeException("Wrong input format at line " + (total + 1));
+                }
 
                 try {
                     int idx = atoi(split[0]);
@@ -81,7 +83,7 @@ public class Predict {
                         x.add(node);
                     }
                 } catch (NumberFormatException e) {
-                    exit_input_error(total + 1, e);
+                    throw new RuntimeException("Wrong input format at line " + (total + 1), e);
                 }
             }
 
@@ -96,6 +98,7 @@ public class Predict {
             int predict_label;
 
             if (flag_predict_probability) {
+                assert prob_estimates != null;
                 predict_label = Linear.predictProbability(model, nodes, prob_estimates);
                 printf(out, "%d", predict_label);
                 for (int j = 0; j < model.nr_class; j++)
@@ -112,14 +115,6 @@ public class Predict {
             ++total;
         }
         System.out.printf("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
-    }
-
-    private static void exit_input_error(int line_num, Throwable cause) {
-        throw new RuntimeException("Wrong input format at line " + line_num, cause);
-    }
-
-    private static void exit_input_error(int line_num) {
-        throw new RuntimeException("Wrong input format at line " + line_num);
     }
 
     private static void exit_with_help() {
@@ -147,7 +142,7 @@ public class Predict {
                     break;
 
                 default:
-                    System.err.printf("unknown option: -%d%n",argv[i - 1].charAt(1));
+                    System.err.printf("unknown option: -%d%n", argv[i - 1].charAt(1));
                     exit_with_help();
                     break;
             }
