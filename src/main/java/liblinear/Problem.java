@@ -5,11 +5,10 @@ import java.io.IOException;
 
 
 /**
- *  <p>Problem describes the problem</p>
+ * <p>Describes the problem</p>
  *
- *  <p><pre>
- *  For example, if we have the following training data:
- *
+ * For example, if we have the following training data:
+ * <pre>
  *  LABEL       ATTR1   ATTR2   ATTR3   ATTR4   ATTR5
  *  -----       -----   -----   -----   -----   -----
  *  1           0       0.1     0.2     0       0
@@ -30,7 +29,7 @@ import java.io.IOException;
  *       [ ] -&gt; (1,0.4) (6,1) (-1,?)
  *       [ ] -&gt; (2,0.1) (4,1.4) (5,0.5) (6,1) (-1,?)
  *       [ ] -&gt; (1,-0.1) (2,-0.2) (3,0.1) (4,1.1) (5,0.1) (6,1) (-1,?)
- * </pre></p>
+ * </pre>
  */
 public class Problem {
 
