@@ -1,6 +1,6 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
-import static liblinear.Linear.copyOf;
+import static de.bwaldvogel.liblinear.Linear.copyOf;
 
 import java.io.File;
 import java.io.IOException;

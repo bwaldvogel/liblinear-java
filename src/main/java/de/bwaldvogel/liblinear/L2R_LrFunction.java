@@ -1,4 +1,4 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
 class L2R_LrFunction implements Function {
 

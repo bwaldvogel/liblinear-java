@@ -1,4 +1,4 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
 
 final class ArraySorter {

@@ -1,7 +1,7 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
-import static liblinear.Linear.atof;
-import static liblinear.Linear.atoi;
+import static de.bwaldvogel.liblinear.Linear.atof;
+import static de.bwaldvogel.liblinear.Linear.atoi;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,4 +1,4 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

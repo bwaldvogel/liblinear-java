@@ -1,6 +1,6 @@
-package liblinear;
+package de.bwaldvogel.liblinear;
 
-import static liblinear.Linear.info;
+import static de.bwaldvogel.liblinear.Linear.info;
 
 
 class Tron {
