@@ -24,8 +24,9 @@
     </parent>
 
     <scm>
-        <url>http://github.com/bwaldvogel/liblinear-java</url>
-        <connection>scm:git:http://github.com/bwaldvogel/liblinear-java.git</connection>
+        <connection>scm:git:git@github.com:bwaldvogel/liblinear-java.git</connection>
+        <developerConnection>scm:git:git@github.com:bwaldvogel/liblinear-java.git</developerConnection>
+        <url>git@github.com:bwaldvogel/liblinear-java.git</url>
     </scm>
 
     <developers>
