@@ -17,6 +17,12 @@
         </license>
     </licenses>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>6</version>
+    </parent>
+
     <scm>
         <url>http://github.com/bwaldvogel/liblinear-java</url>
         <connection>scm:git:http://github.com/bwaldvogel/liblinear-java.git</connection>
