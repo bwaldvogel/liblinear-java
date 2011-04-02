@@ -177,7 +177,7 @@ class Tron {
      * vector2 += constant * vector1
      * </pre>
      *
-     * @since 1.7.1
+     * @since 1.8
      */
     private static void daxpy(double constant, double vector1[], double vector2[]) {
         if (constant == 0) return;
@@ -191,7 +191,7 @@ class Tron {
     /**
      * returns the dot product of two vectors
      *
-     * @since 1.7.1
+     * @since 1.8
      */
     private static double dot(double vector1[], double vector2[]) {
 
@@ -207,7 +207,7 @@ class Tron {
     /**
      * returns the euclidean norm of a vector
      *
-     * @since 1.7.1
+     * @since 1.8
      */
     private static double euclideanNorm(double vector[]) {
 
@@ -246,7 +246,7 @@ class Tron {
     /**
      * scales a vector by a constant
      *
-     * @since 1.7.1
+     * @since 1.8
      */
     private static void scale(double constant, double vector[]) {
         if (constant == 1.0) return;

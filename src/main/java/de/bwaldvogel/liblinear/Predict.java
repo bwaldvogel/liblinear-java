@@ -17,6 +17,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
@@ -63,9 +64,14 @@ public class Predict {
         String line = null;
         while ((line = reader.readLine()) != null) {
             List<FeatureNode> x = new ArrayList<FeatureNode>();
-            StringTokenizer st = new StringTokenizer(line, " \t");
-            String label = st.nextToken();
-            int target_label = atoi(label);
+            StringTokenizer st = new StringTokenizer(line, " \t\n");
+            int target_label;
+            try {
+                String label = st.nextToken();
+                target_label = atoi(label);
+            } catch (NoSuchElementException e) {
+                throw new RuntimeException("Wrong input format at line " + (total + 1), e);
+            }
 
             while (st.hasMoreTokens()) {
                 String[] split = COLON.split(st.nextToken(), 2);
@@ -118,10 +124,8 @@ public class Predict {
     }
 
     private static void exit_with_help() {
-        System.out.printf("Usage: predict [options] test_file model_file output_file%n"
-            + "options:%n"
-            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0)%n"
-        );
+        System.out.printf("Usage: predict [options] test_file model_file output_file%n" + "options:%n"
+            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0)%n");
         System.exit(1);
     }
 

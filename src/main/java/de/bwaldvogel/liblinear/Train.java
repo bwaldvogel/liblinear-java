@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 
@@ -64,7 +65,7 @@ public class Train {
             + "   -s 1, 3, 4 and 7%n"
             + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
             + "   -s 5 and 6%n"
-            + "       |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf,%n"
+            + "       |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,%n"
             + "       where f is the primal function (default 0.01)%n"
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
@@ -195,7 +196,12 @@ public class Train {
                 lineNr++;
 
                 StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
-                String token = st.nextToken();
+                String token;
+                try {
+                    token = st.nextToken();
+                } catch (NoSuchElementException e) {
+                    throw new InvalidInputDataException("empty line", file, lineNr, e);
+                }
 
                 try {
                     vy.add(atoi(token));

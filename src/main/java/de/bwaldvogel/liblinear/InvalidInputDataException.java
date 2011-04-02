@@ -21,13 +21,13 @@ public class InvalidInputDataException extends Exception {
         this(message, new File(filename), line);
     }
 
-    public InvalidInputDataException( String message, File file, int lineNr, NumberFormatException cause ) {
+    public InvalidInputDataException( String message, File file, int lineNr, Exception cause ) {
         super(message, cause);
         _file = file;
         _line = lineNr;
     }
 
-    public InvalidInputDataException( String message, String filename, int lineNr, NumberFormatException cause ) {
+    public InvalidInputDataException( String message, String filename, int lineNr, Exception cause ) {
         this(message, new File(filename), lineNr, cause);
     }
 
