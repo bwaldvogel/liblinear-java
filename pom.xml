@@ -77,19 +77,19 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <powermock.version>1.2.5</powermock.version>
+        <powermock.version>1.4.8</powermock.version>
     </properties>
 
     <dependencies>
         <!-- dependencies for unit testing -->
         <dependency>
-            <groupId>org.powermock.modules</groupId>
+            <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.powermock.api</groupId>
+            <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
