@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.8-SNAPSHOT
+ * @version 1.8
  */
 public class Linear {
 
