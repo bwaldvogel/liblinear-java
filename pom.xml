@@ -72,6 +72,13 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <configuration>
+                    <keyname>D2250F35</keyname>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
