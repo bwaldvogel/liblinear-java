@@ -1,11 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.bwaldvogel</groupId>
     <artifactId>liblinear</artifactId>
     <packaging>jar</packaging>
     <name>liblinear</name>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.8</version>
     <description>Java port of Liblinear</description>
     <url>http://www.bwaldvogel.de/liblinear-java/</url>
 
