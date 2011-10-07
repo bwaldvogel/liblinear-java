@@ -66,16 +66,16 @@ public class TrainTest {
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x).hasSize(prob.y.length);
 
-        for (FeatureNode[] nodes : prob.x) {
+        for (Feature[] nodes : prob.x) {
 
             assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
-            for (FeatureNode node : nodes) {
+            for (Feature node : nodes) {
                 // bias term
                 if (prob.bias >= 0 && nodes[nodes.length - 1] == node) {
-                    assertThat(node.index).isEqualTo(prob.n);
-                    assertThat(node.value).isEqualTo(prob.bias);
+                    assertThat(node.getIndex()).isEqualTo(prob.n);
+                    assertThat(node.getValue()).isEqualTo(prob.bias);
                 } else {
-                    assertThat(node.index).isLessThan(prob.n);
+                    assertThat(node.getIndex()).isLessThan(prob.n);
                 }
             }
         }

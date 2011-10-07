@@ -18,12 +18,12 @@ public class FeatureNodeTest {
     }
 
     public void testConstructorHappy() {
-        FeatureNode fn = new FeatureNode(25, 27.39);
-        assertThat(fn.index).isEqualTo(25);
-        assertThat(fn.value).isEqualTo(27.39);
+        Feature fn = new FeatureNode(25, 27.39);
+        assertThat(fn.getIndex()).isEqualTo(25);
+        assertThat(fn.getValue()).isEqualTo(27.39);
 
         fn = new FeatureNode(1, -0.22222);
-        assertThat(fn.index).isEqualTo(1);
-        assertThat(fn.value).isEqualTo(-0.22222);
+        assertThat(fn.getIndex()).isEqualTo(1);
+        assertThat(fn.getValue()).isEqualTo(-0.22222);
     }
 }

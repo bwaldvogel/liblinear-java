@@ -31,8 +31,8 @@ class L2R_LrFunction implements Function {
 
         for (int i = 0; i < prob.l; i++) {
             Xv[i] = 0;
-            for (FeatureNode s : prob.x[i]) {
-                Xv[i] += v[s.index - 1] * s.value;
+            for (Feature s : prob.x[i]) {
+                Xv[i] += v[s.getIndex() - 1] * s.getValue();
             }
         }
     }
@@ -40,14 +40,14 @@ class L2R_LrFunction implements Function {
     private void XTv(double[] v, double[] XTv) {
         int l = prob.l;
         int w_size = get_nr_variable();
-        FeatureNode[][] x = prob.x;
+        Feature[][] x = prob.x;
 
         for (int i = 0; i < w_size; i++)
             XTv[i] = 0;
 
         for (int i = 0; i < l; i++) {
-            for (FeatureNode s : x[i]) {
-                XTv[s.index - 1] += v[i] * s.value;
+            for (Feature s : x[i]) {
+                XTv[s.getIndex() - 1] += v[i] * s.getValue();
             }
         }
     }

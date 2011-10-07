@@ -184,7 +184,7 @@ public class Train {
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
         BufferedReader fp = new BufferedReader(new FileReader(file));
         List<Integer> vy = new ArrayList<Integer>();
-        List<FeatureNode[]> vx = new ArrayList<FeatureNode[]>();
+        List<Feature[]> vx = new ArrayList<Feature[]>();
         int max_index = 0;
 
         int lineNr = 0;
@@ -210,11 +210,11 @@ public class Train {
                 }
 
                 int m = st.countTokens() / 2;
-                FeatureNode[] x;
+                Feature[] x;
                 if (bias >= 0) {
-                    x = new FeatureNode[m + 1];
+                    x = new Feature[m + 1];
                 } else {
-                    x = new FeatureNode[m];
+                    x = new Feature[m];
                 }
                 int indexBefore = 0;
                 for (int j = 0; j < m; j++) {
@@ -241,7 +241,7 @@ public class Train {
                     }
                 }
                 if (m > 0) {
-                    max_index = Math.max(max_index, x[m - 1].index);
+                    max_index = Math.max(max_index, x[m - 1].getIndex());
                 }
 
                 vx.add(x);
@@ -258,7 +258,7 @@ public class Train {
         prob = Train.readProblem(new File(filename), bias);
     }
 
-    private static Problem constructProblem(List<Integer> vy, List<FeatureNode[]> vx, int max_index, double bias) {
+    private static Problem constructProblem(List<Integer> vy, List<Feature[]> vx, int max_index, double bias) {
         Problem prob = new Problem();
         prob.bias = bias;
         prob.l = vy.size();
@@ -266,7 +266,7 @@ public class Train {
         if (bias >= 0) {
             prob.n++;
         }
-        prob.x = new FeatureNode[prob.l][];
+        prob.x = new Feature[prob.l][];
         for (int i = 0; i < prob.l; i++) {
             prob.x[i] = vx.get(i);
 

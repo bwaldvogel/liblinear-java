@@ -63,7 +63,7 @@ public class Predict {
 
         String line = null;
         while ((line = reader.readLine()) != null) {
-            List<FeatureNode> x = new ArrayList<FeatureNode>();
+            List<Feature> x = new ArrayList<Feature>();
             StringTokenizer st = new StringTokenizer(line, " \t\n");
             int target_label;
             try {
@@ -85,7 +85,7 @@ public class Predict {
 
                     // feature indices larger than those in training are not used
                     if (idx <= nr_feature) {
-                        FeatureNode node = new FeatureNode(idx, val);
+                        Feature node = new FeatureNode(idx, val);
                         x.add(node);
                     }
                 } catch (NumberFormatException e) {
@@ -94,11 +94,11 @@ public class Predict {
             }
 
             if (model.bias >= 0) {
-                FeatureNode node = new FeatureNode(n, model.bias);
+                Feature node = new FeatureNode(n, model.bias);
                 x.add(node);
             }
 
-            FeatureNode[] nodes = new FeatureNode[x.size()];
+            Feature[] nodes = new Feature[x.size()];
             nodes = x.toArray(nodes);
 
             int predict_label;
