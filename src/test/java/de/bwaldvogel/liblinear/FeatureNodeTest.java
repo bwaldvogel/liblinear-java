@@ -7,6 +7,7 @@ import org.junit.Test;
 
 public class FeatureNodeTest {
 
+    @Test
     public void testConstructorIndexZero() {
         // since 1.5 there's no more exception here
         new FeatureNode(0, 0);
@@ -17,6 +18,7 @@ public class FeatureNodeTest {
         new FeatureNode(-1, 0);
     }
 
+    @Test
     public void testConstructorHappy() {
         Feature fn = new FeatureNode(25, 27.39);
         assertThat(fn.getIndex()).isEqualTo(25);
