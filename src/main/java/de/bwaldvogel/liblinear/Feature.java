@@ -1,6 +1,8 @@
 package de.bwaldvogel.liblinear;
 
-
+/**
+ * @since 1.9
+ */
 public interface Feature {
 
     int getIndex();
