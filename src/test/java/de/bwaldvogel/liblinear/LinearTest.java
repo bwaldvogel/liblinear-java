@@ -24,7 +24,7 @@ import org.powermock.api.mockito.PowerMockito;
 
 public class LinearTest {
 
-    private static Random random = new Random(0);
+    private static Random random = new Random(12345);
 
     @BeforeClass
     public static void disableDebugOutput() {
@@ -79,6 +79,133 @@ public class LinearTest {
         return prob;
     }
 
+    /**
+     * create a very simple problem and check if the clearly separated examples are recognized as such
+     */
+    @Test
+    public void testTrainPredict() {
+        Problem prob = new Problem();
+        prob.bias = -1;
+        prob.l = 4;
+        prob.n = 4;
+        prob.x = new FeatureNode[4][];
+        prob.x[0] = new FeatureNode[2];
+        prob.x[1] = new FeatureNode[1];
+        prob.x[2] = new FeatureNode[1];
+        prob.x[3] = new FeatureNode[3];
+
+        prob.x[0][0] = new FeatureNode(1, 1);
+        prob.x[0][1] = new FeatureNode(2, 1);
+
+        prob.x[1][0] = new FeatureNode(3, 1);
+        prob.x[2][0] = new FeatureNode(3, 1);
+
+        prob.x[3][0] = new FeatureNode(1, 2);
+        prob.x[3][1] = new FeatureNode(2, 1);
+        prob.x[3][2] = new FeatureNode(4, 1);
+
+        prob.y = new int[4];
+        prob.y[0] = 0;
+        prob.y[1] = 1;
+        prob.y[2] = 1;
+        prob.y[3] = 0;
+
+        for (SolverType solver : SolverType.values()) {
+            for (double C = 0.1; C <= 100.; C *= 1.2) {
+
+                // compared the behavior with the C version
+                if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
+                if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
+
+                Parameter param = new Parameter(solver, C, 0.1);
+                Model model = Linear.train(prob, param);
+
+                double[] featureWeights = model.getFeatureWeights();
+                if (solver == SolverType.MCSVM_CS) {
+                    assertThat(featureWeights.length).isEqualTo(8);
+                } else {
+                    assertThat(featureWeights.length).isEqualTo(4);
+                }
+
+                int i = 0;
+                for (int value : prob.y) {
+                    int prediction = Linear.predict(model, prob.x[i]);
+                    assertThat(prediction).isEqualTo(value);
+                    if (model.isProbabilityModel()) {
+                        double[] estimates = new double[model.getNrClass()];
+                        int probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
+                        assertThat(probabilityPrediction).isEqualTo(prediction);
+                        assertThat(estimates[probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
+                        double estimationSum = 0;
+                        for (double estimate : estimates) {
+                            estimationSum += estimate;
+                        }
+                        assertThat(estimationSum).isEqualTo(1.0, Delta.delta(0.001));
+                    }
+                    i++;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testCrossValidation() throws Exception {
+
+        int numClasses = random.nextInt(10) + 1;
+
+        Problem prob = createRandomProblem(numClasses);
+
+        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.01);
+        int nr_fold = 10;
+        int[] target = new int[prob.l];
+        Linear.crossValidation(prob, param, nr_fold, target);
+
+        for (int clazz : target) {
+            assertThat(clazz).isGreaterThanOrEqualTo(0).isLessThan(numClasses);
+        }
+    }
+
+    @Test
+    public void testLoadSaveModel() throws Exception {
+
+        Model model = null;
+        for (SolverType solverType : SolverType.values()) {
+            model = createRandomModel();
+            model.solverType = solverType;
+
+            File tempFile = File.createTempFile("liblinear", "modeltest");
+            tempFile.deleteOnExit();
+            Linear.saveModel(tempFile, model);
+
+            Model loadedModel = Linear.loadModel(tempFile);
+            assertThat(loadedModel).isEqualTo(model);
+        }
+    }
+
+    @Test
+    public void testTrainUnsortedProblem() {
+        Problem prob = new Problem();
+        prob.bias = -1;
+        prob.l = 1;
+        prob.n = 2;
+        prob.x = new FeatureNode[4][];
+        prob.x[0] = new FeatureNode[2];
+
+        prob.x[0][0] = new FeatureNode(2, 1);
+        prob.x[0][1] = new FeatureNode(1, 1);
+
+        prob.y = new int[4];
+        prob.y[0] = 0;
+
+        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.1);
+        try {
+            Linear.train(prob, param);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage()).contains("nodes").contains("sorted").contains("ascending").contains("order");
+        }
+    }
+
     @Test
     public void testRealloc() {
 
@@ -124,40 +251,6 @@ public class LinearTest {
     @Test(expected = NumberFormatException.class)
     public void testAtofInvalidData() {
         Linear.atof("0.5t");
-    }
-
-    @Test
-    public void testLoadSaveModel() throws Exception {
-
-        Model model = null;
-        for (SolverType solverType : SolverType.values()) {
-            model = createRandomModel();
-            model.solverType = solverType;
-
-            File tempFile = File.createTempFile("liblinear", "modeltest");
-            tempFile.deleteOnExit();
-            Linear.saveModel(tempFile, model);
-
-            Model loadedModel = Linear.loadModel(tempFile);
-            assertThat(loadedModel).isEqualTo(model);
-        }
-    }
-
-    @Test
-    public void testCrossValidation() throws Exception {
-
-        int numClasses = random.nextInt(10) + 1;
-
-        Problem prob = createRandomProblem(numClasses);
-
-        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.01);
-        int nr_fold = 10;
-        int[] target = new int[prob.l];
-        Linear.crossValidation(prob, param, nr_fold, target);
-
-        for (int clazz : target) {
-            assertThat(clazz).isGreaterThanOrEqualTo(0).isLessThan(numClasses);
-        }
     }
 
     @Test
@@ -439,98 +532,5 @@ public class LinearTest {
 
         assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 3));
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
-    }
-
-    /**
-     * create a very simple problem and check if the clearly separated examples are recognized as such
-     */
-    @Test
-    public void testTrainPredict() {
-        Problem prob = new Problem();
-        prob.bias = -1;
-        prob.l = 4;
-        prob.n = 4;
-        prob.x = new FeatureNode[4][];
-        prob.x[0] = new FeatureNode[2];
-        prob.x[1] = new FeatureNode[1];
-        prob.x[2] = new FeatureNode[1];
-        prob.x[3] = new FeatureNode[3];
-
-        prob.x[0][0] = new FeatureNode(1, 1);
-        prob.x[0][1] = new FeatureNode(2, 1);
-
-        prob.x[1][0] = new FeatureNode(3, 1);
-        prob.x[2][0] = new FeatureNode(3, 1);
-
-        prob.x[3][0] = new FeatureNode(1, 2);
-        prob.x[3][1] = new FeatureNode(2, 1);
-        prob.x[3][2] = new FeatureNode(4, 1);
-
-        prob.y = new int[4];
-        prob.y[0] = 0;
-        prob.y[1] = 1;
-        prob.y[2] = 1;
-        prob.y[3] = 0;
-
-        for (SolverType solver : SolverType.values()) {
-            for (double C = 0.1; C <= 100.; C *= 1.2) {
-
-                // compared the behavior with the C version
-                if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
-                if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
-
-                Parameter param = new Parameter(solver, C, 0.1);
-                Model model = Linear.train(prob, param);
-
-                double[] featureWeights = model.getFeatureWeights();
-                if (solver == SolverType.MCSVM_CS) {
-                    assertThat(featureWeights.length).isEqualTo(8);
-                } else {
-                    assertThat(featureWeights.length).isEqualTo(4);
-                }
-
-                int i = 0;
-                for (int value : prob.y) {
-                    int prediction = Linear.predict(model, prob.x[i]);
-                    assertThat(prediction).isEqualTo(value);
-                    if (model.isProbabilityModel()) {
-                        double[] estimates = new double[model.getNrClass()];
-                        int probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
-                        assertThat(probabilityPrediction).isEqualTo(prediction);
-                        assertThat(estimates[probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
-                        double estimationSum = 0;
-                        for (double estimate : estimates) {
-                            estimationSum += estimate;
-                        }
-                        assertThat(estimationSum).isEqualTo(1.0, Delta.delta(0.001));
-                    }
-                    i++;
-                }
-            }
-        }
-    }
-
-    @Test
-    public void testTrainUnsortedProblem() {
-        Problem prob = new Problem();
-        prob.bias = -1;
-        prob.l = 1;
-        prob.n = 2;
-        prob.x = new FeatureNode[4][];
-        prob.x[0] = new FeatureNode[2];
-
-        prob.x[0][0] = new FeatureNode(2, 1);
-        prob.x[0][1] = new FeatureNode(1, 1);
-
-        prob.y = new int[4];
-        prob.y[0] = 0;
-
-        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.1);
-        try {
-            Linear.train(prob, param);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage()).contains("nodes").contains("sorted").contains("ascending").contains("order");
-        }
     }
 }
