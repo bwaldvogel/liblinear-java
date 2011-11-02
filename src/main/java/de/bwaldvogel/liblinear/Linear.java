@@ -1386,7 +1386,6 @@ public class Linear {
             }
         }
 
-        int i, j;
         int l = prob.l;
         int n = prob.n;
         int w_size = prob.n;
@@ -1409,16 +1408,17 @@ public class Linear {
 
         model.nr_class = nr_class;
         model.label = new int[nr_class];
-        for (i = 0; i < nr_class; i++)
+        for (int i = 0; i < nr_class; i++)
             model.label[i] = label[i];
 
         // calculate weighted C
         double[] weighted_C = new double[nr_class];
-        for (i = 0; i < nr_class; i++) {
+        for (int i = 0; i < nr_class; i++) {
             weighted_C[i] = param.C;
         }
 
-        for (i = 0; i < param.getNumWeights(); i++) {
+        for (int i = 0; i < param.getNumWeights(); i++) {
+            int j;
             for (j = 0; j < nr_class; j++)
                 if (param.weightLabel[i] == label[j]) break;
             if (j == nr_class) throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
@@ -1428,24 +1428,23 @@ public class Linear {
 
         // constructing the subproblem
         Feature[][] x = new Feature[l][];
-        for (i = 0; i < l; i++)
+        for (int i = 0; i < l; i++)
             x[i] = prob.x[perm[i]];
 
-        int k;
         Problem sub_prob = new Problem();
         sub_prob.l = l;
         sub_prob.n = n;
         sub_prob.x = new Feature[sub_prob.l][];
         sub_prob.y = new int[sub_prob.l];
 
-        for (k = 0; k < sub_prob.l; k++)
+        for (int k = 0; k < sub_prob.l; k++)
             sub_prob.x[k] = x[k];
 
         // multi-class svm by Crammer and Singer
         if (param.solverType == SolverType.MCSVM_CS) {
             model.w = new double[n * nr_class];
-            for (i = 0; i < nr_class; i++) {
-                for (j = start[i]; j < start[i] + count[i]; j++) {
+            for (int i = 0; i < nr_class; i++) {
+                for (int j = start[i]; j < start[i] + count[i]; j++) {
                     sub_prob.y[j] = i;
                 }
             }
@@ -1457,7 +1456,7 @@ public class Linear {
                 model.w = new double[w_size];
 
                 int e0 = start[0] + count[0];
-                k = 0;
+                int k = 0;
                 for (; k < e0; k++)
                     sub_prob.y[k] = +1;
                 for (; k < sub_prob.l; k++)
@@ -1467,11 +1466,11 @@ public class Linear {
             } else {
                 model.w = new double[w_size * nr_class];
                 double[] w = new double[w_size];
-                for (i = 0; i < nr_class; i++) {
+                for (int i = 0; i < nr_class; i++) {
                     int si = start[i];
                     int ei = si + count[i];
 
-                    k = 0;
+                    int k = 0;
                     for (; k < si; k++)
                         sub_prob.y[k] = -1;
                     for (; k < ei; k++)
@@ -1481,7 +1480,7 @@ public class Linear {
 
                     train_one(sub_prob, param, w, weighted_C[i], param.C);
 
-                    for (j = 0; j < n; j++)
+                    for (int j = 0; j < n; j++)
                         model.w[j * nr_class + i] = w[j];
                 }
             }
