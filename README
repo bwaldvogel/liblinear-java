@@ -1,3 +1,34 @@
+This is the Java version of LIBLINEAR.
+The project site of the original (C++) version is located at
+           http://www.csie.ntu.edu.tw/~cjlin/liblinear/
+
+Please be aware that the code would be written differently at various places,
+if it would be a pure Java project (Java coding style, less use of statics, smaller classes and methods etc.).
+
+However, I tried to stick as close as possible to the original C++ source code
+for the following reasons:
+
+    - Maintainability:
+        Patches for the original C++ version can be often applied easily
+
+    - Probability of translation errors:
+        Sticking to the original source code makes it less likely to introduce
+        new bugs that are caused by porting to Java.
+
+    - Code Reviews:
+        Should be more easy since it can be compared to the original version.
+
+
+Below follow the contents of the original README file.
+Please note that the README refers to the C++ version.
+However, as already stated above, the Java version is almost identical to use.
+The two most important methods that you might be interested in are:
+        - Linear.train(...)
+               and
+        - Linear.predict(...)
+
+-------------------------------------------------------------------------------
+
 LIBLINEAR is a simple package for solving large-scale regularized
 linear classification. It currently supports L2-regularized logistic
 regression/L2-loss support vector classification/L1-loss support vector
