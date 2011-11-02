@@ -1440,6 +1440,11 @@ public class Linear {
         for (int k = 0; k < sub_prob.l; k++)
             sub_prob.x[k] = x[k];
 
+        // verify the size and throw an exception early if the problem is too large
+        if (n >= Integer.MAX_VALUE / nr_class || n * nr_class < 0) {
+            throw new IllegalArgumentException("'number of classes' * 'number of instances' is too large: " + nr_class + "*" + n);
+        }
+
         // multi-class svm by Crammer and Singer
         if (param.solverType == SolverType.MCSVM_CS) {
             model.w = new double[n * nr_class];

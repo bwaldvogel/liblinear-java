@@ -207,6 +207,29 @@ public class LinearTest {
     }
 
     @Test
+    public void testTrainTooLargeProblem() {
+        Problem prob = new Problem();
+        prob.l = 1000;
+        prob.n = 20000000;
+        prob.x = new FeatureNode[prob.l][];
+        prob.y = new int[prob.l];
+        for (int i = 0; i < prob.l; i++) {
+            prob.x[i] = new FeatureNode[] {};
+            prob.y[i] = i;
+        }
+
+        for (SolverType solverType : SolverType.values()) {
+            Parameter param = new Parameter(solverType, 10, 0.1);
+            try {
+                Linear.train(prob, param);
+                fail("IllegalArgumentException expected");
+            } catch (IllegalArgumentException e) {
+                assertThat(e.getMessage()).contains("number of classes").contains("too large");
+            }
+        }
+    }
+
+    @Test
     public void testRealloc() {
 
         int[] f = new int[] {1, 2, 3};
