@@ -35,6 +35,21 @@ public class TrainTest {
     }
 
     @Test
+    // https://github.com/bwaldvogel/liblinear-java/issues/4
+    public void testParseWeights() throws Exception {
+        Train train = new Train();
+        train.parse_command_line(new String[] {"-v", "10", "-c", "10", "-w1", "1.234", "model-filename"});
+        Parameter parameter = train.getParameter();
+        assertThat(parameter.weightLabel).isEqualTo(new int[] {1});
+        assertThat(parameter.weight).isEqualTo(new double[] {1.234});
+
+        train.parse_command_line(new String[] {"-w1", "1.234", "-w2", "0.12", "-w3", "7", "model-filename"});
+        parameter = train.getParameter();
+        assertThat(parameter.weightLabel).isEqualTo(new int[] {1, 2, 3});
+        assertThat(parameter.weight).isEqualTo(new double[] {1.234, 0.12, 7});
+    }
+
+    @Test
     public void testReadProblem() throws Exception {
 
         File file = File.createTempFile("svm", "test");

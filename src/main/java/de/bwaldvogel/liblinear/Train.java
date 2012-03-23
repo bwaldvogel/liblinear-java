@@ -117,20 +117,10 @@ public class Train {
                     break;
                 case 'w':
                     ++nr_weight;
-                    {
-                        int[] old = param.weightLabel;
-                        param.weightLabel = new int[nr_weight];
-                        System.arraycopy(old, 0, param.weightLabel, 0, nr_weight - 1);
-                    }
-
-                    {
-                        double[] old = param.weight;
-                        param.weight = new double[nr_weight];
-                        System.arraycopy(old, 0, param.weight, 0, nr_weight - 1);
-                    }
-
-                    param.weightLabel[nr_weight - 1] = atoi(argv[i - 1].substring(2));
-                    param.weight[nr_weight - 1] = atof(argv[i]);
+                    int weightLabel = atoi(argv[i - 1].substring(2));
+                    double weight = atof(argv[i]);
+                    param.weightLabel = addToArray(param.weightLabel, weightLabel);
+                    param.weight = addToArray(param.weight, weight);
                     break;
                 case 'v':
                     cross_validation = true;
@@ -256,6 +246,26 @@ public class Train {
 
     void readProblem(String filename) throws IOException, InvalidInputDataException {
         prob = Train.readProblem(new File(filename), bias);
+    }
+
+    private static int[] addToArray(int[] array, int newElement) {
+        int length = array != null ? array.length : 0;
+        int[] newArray = new int[length + 1];
+        if (array != null && length > 0) {
+            System.arraycopy(array, 0, newArray, 0, length);
+        }
+        newArray[length] = newElement;
+        return newArray;
+    }
+
+    private static double[] addToArray(double[] array, double newElement) {
+        int length = array != null ? array.length : 0;
+        double[] newArray = new double[length + 1];
+        if (array != null && length > 0) {
+            System.arraycopy(array, 0, newArray, 0, length);
+        }
+        newArray[length] = newElement;
+        return newArray;
     }
 
     private static Problem constructProblem(List<Integer> vy, List<Feature[]> vx, int max_index, double bias) {
