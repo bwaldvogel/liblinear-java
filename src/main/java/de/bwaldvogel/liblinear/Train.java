@@ -96,8 +96,6 @@ public class Train {
         bias = -1;
         cross_validation = false;
 
-        int nr_weight = 0;
-
         // parse options
         for (i = 0; i < argv.length; i++) {
             if (argv[i].charAt(0) != '-') break;
@@ -116,7 +114,6 @@ public class Train {
                     bias = atof(argv[i]);
                     break;
                 case 'w':
-                    ++nr_weight;
                     int weightLabel = atoi(argv[i - 1].substring(2));
                     double weight = atof(argv[i]);
                     param.weightLabel = addToArray(param.weightLabel, weightLabel);
