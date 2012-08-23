@@ -1611,6 +1611,9 @@ public class Linear {
         if (prob == null) throw new IllegalArgumentException("problem must not be null");
         if (param == null) throw new IllegalArgumentException("parameter must not be null");
 
+        if (prob.n == 0) throw new IllegalArgumentException("problem has zero features");
+        if (prob.l == 0) throw new IllegalArgumentException("problem has zero instances");
+
         for (Feature[] nodes : prob.x) {
             int indexBefore = 0;
             for (Feature n : nodes) {

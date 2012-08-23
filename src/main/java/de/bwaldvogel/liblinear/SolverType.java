@@ -61,25 +61,25 @@ public enum SolverType {
     L2R_LR_DUAL(7, true, false),
 
     /**
-     * L2-regularized L2-loss support vector regression (primal)
-     *
-     * @since 1.91
-     */
-    L2R_L1LOSS_SVR_DUAL(11, false, true),
-
-    /**
      * L2-regularized L2-loss support vector regression (dual)
      *
      * @since 1.91
      */
-    L2R_L2LOSS_SVR(12, false, true),
+    L2R_L2LOSS_SVR(11, false, true),
 
     /**
      * L2-regularized L1-loss support vector regression (dual)
      *
      * @since 1.91
      */
-    L2R_L2LOSS_SVR_DUAL(13, false, true),
+    L2R_L2LOSS_SVR_DUAL(12, false, true),
+
+    /**
+     * L2-regularized L2-loss support vector regression (primal)
+     *
+     * @since 1.91
+     */
+    L2R_L1LOSS_SVR_DUAL(13, false, true),
 
     ;
 
