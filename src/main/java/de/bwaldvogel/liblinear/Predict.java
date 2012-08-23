@@ -34,6 +34,8 @@ public class Predict {
     static void doPredict(BufferedReader reader, Writer writer, Model model) throws IOException {
         int correct = 0;
         int total = 0;
+        double error = 0;
+        double sump = 0, sumt = 0, sumpp = 0, sumtt = 0, sumpt = 0;
 
         int nr_class = model.getNrClass();
         double[] prob_estimates = null;
@@ -65,10 +67,10 @@ public class Predict {
         while ((line = reader.readLine()) != null) {
             List<Feature> x = new ArrayList<Feature>();
             StringTokenizer st = new StringTokenizer(line, " \t\n");
-            int target_label;
+            double target_label;
             try {
                 String label = st.nextToken();
-                target_label = atoi(label);
+                target_label = atof(label);
             } catch (NoSuchElementException e) {
                 throw new RuntimeException("Wrong input format at line " + (total + 1), e);
             }
@@ -101,31 +103,46 @@ public class Predict {
             Feature[] nodes = new Feature[x.size()];
             nodes = x.toArray(nodes);
 
-            int predict_label;
+            double predict_label;
 
             if (flag_predict_probability) {
                 assert prob_estimates != null;
                 predict_label = Linear.predictProbability(model, nodes, prob_estimates);
-                printf(out, "%d", predict_label);
+                printf(out, "%g", predict_label);
                 for (int j = 0; j < model.nr_class; j++)
                     printf(out, " %g", prob_estimates[j]);
                 printf(out, "\n");
             } else {
                 predict_label = Linear.predict(model, nodes);
-                printf(out, "%d\n", predict_label);
+                printf(out, "%g\n", predict_label);
             }
 
             if (predict_label == target_label) {
                 ++correct;
             }
+
+            error += (predict_label - target_label) * (predict_label - target_label);
+            sump += predict_label;
+            sumt += target_label;
+            sumpp += predict_label * predict_label;
+            sumtt += target_label * target_label;
+            sumpt += predict_label * target_label;
             ++total;
         }
-        System.out.printf("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
+
+        if (model.solverType.isSupportVectorRegression()) //
+        {
+            System.out.printf("Mean squared error = %g (regression)%n", error / total);
+            System.out.printf("Squared correlation coefficient = %g (regression)%n", //
+                ((total * sumpt - sump * sumt) * (total * sumpt - sump * sumt)) / ((total * sumpp - sump * sump) * (total * sumtt - sumt * sumt)));
+        } else {
+            System.out.printf("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
+        }
     }
 
     private static void exit_with_help() {
         System.out.printf("Usage: predict [options] test_file model_file output_file%n" + "options:%n"
-            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0)%n");
+            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0); currently for logistic regression only%n");
         System.exit(1);
     }
 

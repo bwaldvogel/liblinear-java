@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.9-SNAPSHOT
+ * @version 1.91-SNAPSHOT
  */
 public class Linear {
 
@@ -48,7 +48,7 @@ public class Linear {
     /**
      * @param target predicted classes
      */
-    public static void crossValidation(Problem prob, Parameter param, int nr_fold, int[] target) {
+    public static void crossValidation(Problem prob, Parameter param, int nr_fold, double[] target) {
         int i;
         int[] fold_start = new int[nr_fold + 1];
         int l = prob.l;
@@ -73,7 +73,7 @@ public class Linear {
             subprob.n = prob.n;
             subprob.l = l - (end - begin);
             subprob.x = new Feature[subprob.l][];
-            subprob.y = new int[subprob.l];
+            subprob.y = new double[subprob.l];
 
             k = 0;
             for (j = 0; j < begin; j++) {
@@ -119,7 +119,7 @@ public class Linear {
         int i;
 
         for (i = 0; i < l; i++) {
-            int this_label = prob.y[i];
+            int this_label = (int)prob.y[i];
             int j;
             for (j = 0; j < nr_class; j++) {
                 if (this_label == label[j]) {
@@ -314,7 +314,7 @@ public class Linear {
         } catch (Throwable t) {}
     }
 
-    public static int predict(Model model, Feature[] x) {
+    public static double predict(Model model, Feature[] x) {
         double[] dec_values = new double[model.nr_class];
         return predictValues(model, x, dec_values);
     }
@@ -322,7 +322,7 @@ public class Linear {
     /**
      * @throws IllegalArgumentException if model is not probabilistic (see {@link Model#isProbabilityModel()})
      */
-    public static int predictProbability(Model model, Feature[] x, double[] prob_estimates) throws IllegalArgumentException {
+    public static double predictProbability(Model model, Feature[] x, double[] prob_estimates) throws IllegalArgumentException {
         if (!model.isProbabilityModel()) {
             throw new IllegalArgumentException("probability output is only supported for logistic regression");
         }
@@ -333,7 +333,7 @@ public class Linear {
         else
             nr_w = nr_class;
 
-        int label = predictValues(model, x, prob_estimates);
+        double label = predictValues(model, x, prob_estimates);
         for (int i = 0; i < nr_w; i++)
             prob_estimates[i] = 1 / (1 + Math.exp(-prob_estimates[i]));
 
@@ -351,7 +351,7 @@ public class Linear {
         return label;
     }
 
-    public static int predictValues(Model model, Feature[] x, double[] dec_values) {
+    public static double predictValues(Model model, Feature[] x, double[] dec_values) {
         int n;
         if (model.bias >= 0)
             n = model.nr_feature + 1;
@@ -379,9 +379,12 @@ public class Linear {
             }
         }
 
-        if (model.nr_class == 2)
-            return (dec_values[0] > 0) ? model.label[0] : model.label[1];
-        else {
+        if (model.nr_class == 2) {
+            if (model.solverType.isSupportVectorRegression())
+                return dec_values[0];
+            else
+                return (dec_values[0] > 0) ? model.label[0] : model.label[1];
+        } else {
             int dec_max_idx = 0;
             for (int i = 1; i < model.nr_class; i++) {
                 if (dec_values[i] > dec_values[dec_max_idx]) dec_max_idx = i;
@@ -389,7 +392,6 @@ public class Linear {
             return model.label[dec_max_idx];
         }
     }
-
 
     static void printf(Formatter formatter, String format, Object... args) throws IOException {
         formatter.format(format, args);
@@ -416,11 +418,13 @@ public class Linear {
             printf(formatter, "solver_type %s\n", model.solverType.name());
             printf(formatter, "nr_class %d\n", model.nr_class);
 
-            printf(formatter, "label");
-            for (int i = 0; i < model.nr_class; i++) {
-                printf(formatter, " %d", model.label[i]);
+            if (model.label != null) {
+                printf(formatter, "label");
+                for (int i = 0; i < model.nr_class; i++) {
+                    printf(formatter, " %d", model.label[i]);
+                }
+                printf(formatter, "\n");
             }
-            printf(formatter, "\n");
 
             printf(formatter, "nr_feature %d\n", nr_feature);
             printf(formatter, "bias %.16g\n", model.bias);
@@ -471,7 +475,7 @@ public class Linear {
      * L1-loss and L2-loss SVM dual problems
      *<pre>
      *  min_\alpha  0.5(\alpha^T (Q + D)\alpha) - e^T \alpha,
-     *    s.t.      0 <= alpha_i <= upper_bound_i,
+     *    s.t.      0 <= \alpha_i <= upper_bound_i,
      *
      *  where Qij = yi yj xi^T xj and
      *  D is a diagonal matrix
@@ -522,19 +526,28 @@ public class Linear {
             upper_bound[2] = Cp;
         }
 
-        for (i = 0; i < w_size; i++)
-            w[i] = 0;
         for (i = 0; i < l; i++) {
-            alpha[i] = 0;
             if (prob.y[i] > 0) {
                 y[i] = +1;
             } else {
                 y[i] = -1;
             }
+        }
+
+        // Initial alpha can be set here. Note that
+        // 0 <= alpha[i] <= upper_bound[GETI(i)]
+        for (i = 0; i < l; i++)
+            alpha[i] = 0;
+
+        for (i = 0; i < w_size; i++)
+            w[i] = 0;
+        for (i = 0; i < l; i++) {
             QD[i] = diag[GETI(y, i)];
 
             for (Feature xi : prob.x[i]) {
-                QD[i] += xi.getValue() * xi.getValue();
+                double val = xi.getValue();
+                QD[i] += val * val;
+                w[xi.getIndex() - 1] += y[i] * alpha[i] * val;
             }
             index[i] = i;
         }
@@ -635,12 +648,206 @@ public class Linear {
         info("nSV = %d" + NL, nSV);
     }
 
+    // To support weights for instances, use GETI(i) (i)
+    private static int GETI_SVR(int i) {
+        return 0;
+    }
+
+    /**
+     * A coordinate descent algorithm for
+     * L1-loss and L2-loss epsilon-SVR dual problem
+     *
+     *  min_\beta  0.5\beta^T (Q + diag(lambda)) \beta - p \sum_{i=1}^l|\beta_i| + \sum_{i=1}^l yi\beta_i,
+     *    s.t.      -upper_bound_i <= \beta_i <= upper_bound_i,
+     *
+     *  where Qij = xi^T xj and
+     *  D is a diagonal matrix
+     *
+     * In L1-SVM case:
+     *         upper_bound_i = C
+     *         lambda_i = 0
+     * In L2-SVM case:
+     *         upper_bound_i = INF
+     *         lambda_i = 1/(2*C)
+     *
+     * Given:
+     * x, y, p, C
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w
+     *
+     * See Algorithm 4 of Ho and Lin, 2012
+     */
+    private static void solve_l2r_l1l2_svr(Problem prob, double[] w, Parameter param) {
+        int l = prob.l;
+        double C = param.C;
+        double p = param.p;
+        int w_size = prob.n;
+        double eps = param.eps;
+        int i, s, iter = 0;
+        int max_iter = 1000;
+        int active_size = l;
+        int[] index = new int[l];
+
+        double d, G, H;
+        double Gmax_old = Double.POSITIVE_INFINITY;
+        double Gmax_new, Gnorm1_new;
+        double Gnorm1_init = 0; // initialize to 0 to get rid of Eclipse warning/error
+        double[] beta = new double[l];
+        double[] QD = new double[l];
+        double[] y = prob.y;
+
+        // L2R_L2LOSS_SVR_DUAL
+        double[] lambda = new double[] {0.5 / C};
+        double[] upper_bound = new double[] {Double.POSITIVE_INFINITY};
+
+        if (param.solverType == SolverType.L2R_L1LOSS_SVR_DUAL) {
+            lambda[0] = 0;
+            upper_bound[0] = C;
+        }
+
+        // Initial beta can be set here. Note that
+        // -upper_bound <= beta[i] <= upper_bound
+        for (i = 0; i < l; i++)
+            beta[i] = 0;
+
+        for (i = 0; i < w_size; i++)
+            w[i] = 0;
+        for (i = 0; i < l; i++) {
+            QD[i] = 0;
+            for (Feature xi : prob.x[i]) {
+                double val = xi.getValue();
+                QD[i] += val * val;
+                w[xi.getIndex() - 1] += beta[i] * val;
+            }
+
+            index[i] = i;
+        }
+
+
+        while (iter < max_iter) {
+            Gmax_new = 0;
+            Gnorm1_new = 0;
+
+            for (i = 0; i < active_size; i++) {
+                int j = i + random.nextInt(active_size - i);
+                swap(index, i, j);
+            }
+
+            for (s = 0; s < active_size; s++) {
+                i = index[s];
+                G = -y[i] + lambda[GETI_SVR(i)] * beta[i];
+                H = QD[i] + lambda[GETI_SVR(i)];
+
+                for (Feature xi : prob.x[i]) {
+                    int ind = xi.getIndex() - 1;
+                    double val = xi.getValue();
+                    G += val * w[ind];
+                }
+
+                double Gp = G + p;
+                double Gn = G - p;
+                double violation = 0;
+                if (beta[i] == 0) {
+                    if (Gp < 0)
+                        violation = -Gp;
+                    else if (Gn > 0)
+                        violation = Gn;
+                    else if (Gp > Gmax_old && Gn < -Gmax_old) {
+                        active_size--;
+                        swap(index, s, active_size);
+                        s--;
+                        continue;
+                    }
+                } else if (beta[i] >= upper_bound[GETI_SVR(i)]) {
+                    if (Gp > 0)
+                        violation = Gp;
+                    else if (Gp < -Gmax_old) {
+                        active_size--;
+                        swap(index, s, active_size);
+                        s--;
+                        continue;
+                    }
+                } else if (beta[i] <= -upper_bound[GETI_SVR(i)]) {
+                    if (Gn < 0)
+                        violation = -Gn;
+                    else if (Gn > Gmax_old) {
+                        active_size--;
+                        swap(index, s, active_size);
+                        s--;
+                        continue;
+                    }
+                } else if (beta[i] > 0)
+                    violation = Math.abs(Gp);
+                else
+                    violation = Math.abs(Gn);
+
+                Gmax_new = Math.max(Gmax_new, violation);
+                Gnorm1_new += violation;
+
+                // obtain Newton direction d
+                if (Gp < H * beta[i])
+                    d = -Gp / H;
+                else if (Gn > H * beta[i])
+                    d = -Gn / H;
+                else
+                    d = -beta[i];
+
+                if (Math.abs(d) < 1.0e-12) continue;
+
+                double beta_old = beta[i];
+                beta[i] = Math.min(Math.max(beta[i] + d, -upper_bound[GETI_SVR(i)]), upper_bound[GETI_SVR(i)]);
+                d = beta[i] - beta_old;
+
+                if (d != 0) {
+                    for (Feature xi : prob.x[i]) {
+                        w[xi.getIndex() - 1] += d * xi.getValue();
+                    }
+                }
+            }
+
+            if (iter == 0) Gnorm1_init = Gnorm1_new;
+            iter++;
+            if (iter % 10 == 0) info(".");
+
+            if (Gnorm1_new <= eps * Gnorm1_init) {
+                if (active_size == l)
+                    break;
+                else {
+                    active_size = l;
+                    info("*");
+                    Gmax_old = Double.POSITIVE_INFINITY;
+                    continue;
+                }
+            }
+
+            Gmax_old = Gmax_new;
+        }
+
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
+
+        // calculate objective value
+        double v = 0;
+        int nSV = 0;
+        for (i = 0; i < w_size; i++)
+            v += w[i] * w[i];
+        v = 0.5 * v;
+        for (i = 0; i < l; i++) {
+            v += p * Math.abs(beta[i]) - y[i] * beta[i] + 0.5 * lambda[GETI_SVR(i)] * beta[i] * beta[i];
+            if (beta[i] != 0) nSV++;
+        }
+
+        info("Objective value = %f%n", v);
+        info("nSV = %d%n", nSV);
+    }
+
     /**
      * A coordinate descent algorithm for
      * the dual of L2-regularized logistic regression problems
      *<pre>
-     *  min_\alpha  0.5(\alpha^T Q \alpha) + \sum \alpha_i log (\alpha_i) + (upper_bound_i - alpha_i) log (upper_bound_i - alpha_i) ,
-     *     s.t.      0 <= alpha_i <= upper_bound_i,
+     *  min_\alpha  0.5(\alpha^T Q \alpha) + \sum \alpha_i log (\alpha_i) + (upper_bound_i - \alpha_i) log (upper_bound_i - \alpha_i) ,
+     *     s.t.      0 <= \alpha_i <= upper_bound_i,
      *
      *  where Qij = yi yj xi^T xj and
      *  upper_bound_i = Cp if y_i = 1
@@ -671,21 +878,30 @@ public class Linear {
         double innereps_min = Math.min(1e-8, eps);
         double upper_bound[] = new double[] {Cn, 0, Cp};
 
-        for (i = 0; i < w_size; i++)
-            w[i] = 0;
         for (i = 0; i < l; i++) {
             if (prob.y[i] > 0) {
                 y[i] = +1;
             } else {
                 y[i] = -1;
             }
+        }
+
+        // Initial alpha can be set here. Note that
+        // 0 < alpha[i] < upper_bound[GETI(i)]
+        // alpha[2*i] + alpha[2*i+1] = upper_bound[GETI(i)]
+        for (i = 0; i < l; i++) {
             alpha[2 * i] = Math.min(0.001 * upper_bound[GETI(y, i)], 1e-8);
             alpha[2 * i + 1] = upper_bound[GETI(y, i)] - alpha[2 * i];
+        }
 
+        for (i = 0; i < w_size; i++)
+            w[i] = 0;
+        for (i = 0; i < l; i++) {
             xTx[i] = 0;
             for (Feature xi : prob.x[i]) {
-                xTx[i] += (xi.getValue()) * (xi.getValue());
-                w[xi.getIndex() - 1] += y[i] * alpha[2 * i] * xi.getValue();
+                double val = xi.getValue();
+                xTx[i] += val * val;
+                w[xi.getIndex() - 1] += y[i] * alpha[2 * i] * val;
             }
             index[i] = i;
         }
@@ -819,6 +1035,10 @@ public class Linear {
 
         double[] C = new double[] {Cn, 0, Cp};
 
+        // Initial w can be set here.
+        for (j = 0; j < w_size; j++)
+            w[j] = 0;
+
         for (j = 0; j < l; j++) {
             b[j] = 1;
             if (prob_col.y[j] > 0)
@@ -827,13 +1047,14 @@ public class Linear {
                 y[j] = -1;
         }
         for (j = 0; j < w_size; j++) {
-            w[j] = 0;
             index[j] = j;
             xj_sq[j] = 0;
             for (Feature xi : prob_col.x[j]) {
                 int ind = xi.getIndex() - 1;
-                double val = xi.getValue();
                 xi.setValue(xi.getValue() * y[ind]); // x->value stores yi*xij
+                double val = xi.getValue();
+                b[ind] -= w[j] * val;
+
                 xj_sq[j] += C[GETI(y, ind)] * val * val;
             }
         }
@@ -890,9 +1111,9 @@ public class Linear {
                 Gnorm1_new += violation;
 
                 // obtain Newton direction d
-                if (Gp <= H * w[j])
+                if (Gp < H * w[j])
                     d = -Gp / H;
-                else if (Gn >= H * w[j])
+                else if (Gn > H * w[j])
                     d = -Gn / H;
                 else
                     d = -w[j];
@@ -1041,7 +1262,7 @@ public class Linear {
         double nu = 1e-12;
         double inner_eps = 1;
         double sigma = 0.01;
-        double w_norm = 0, w_norm_new;
+        double w_norm, w_norm_new;
         double z, G, H;
         double Gnorm1_init = 0; // eclipse moans this variable might not be initialized
         double Gmax_old = Double.POSITIVE_INFINITY;
@@ -1064,26 +1285,39 @@ public class Linear {
 
         double[] C = {Cn, 0, Cp};
 
+        // Initial w can be set here.
+        for (j = 0; j < w_size; j++)
+            w[j] = 0;
+
         for (j = 0; j < l; j++) {
             if (prob_col.y[j] > 0)
                 y[j] = 1;
             else
                 y[j] = -1;
 
-            // assume initial w is 0
-            exp_wTx[j] = 1;
-            tau[j] = C[GETI(y, j)] * 0.5;
-            D[j] = C[GETI(y, j)] * 0.25;
+            exp_wTx[j] = 0;
         }
+
+        w_norm = 0;
         for (j = 0; j < w_size; j++) {
-            w[j] = 0;
+            w_norm += Math.abs(w[j]);
             wpd[j] = w[j];
             index[j] = j;
             xjneg_sum[j] = 0;
             for (Feature x : prob_col.x[j]) {
                 int ind = x.getIndex() - 1;
-                if (y[ind] == -1) xjneg_sum[j] += C[GETI(y, ind)] * x.getValue();
+                double val = x.getValue();
+                exp_wTx[ind] += w[j] * val;
+                if (y[ind] == -1) {
+                    xjneg_sum[j] += C[GETI(y, ind)] * val;
+                }
             }
+        }
+        for (j = 0; j < l; j++) {
+            exp_wTx[j] = Math.exp(exp_wTx[j]);
+            double tau_tmp = 1 / (1 + exp_wTx[j]);
+            tau[j] = C[GETI(y, j)] * tau_tmp;
+            D[j] = C[GETI(y, j)] * exp_wTx[j] * tau_tmp * tau_tmp;
         }
 
         while (newton_iter < max_newton_iter) {
@@ -1183,9 +1417,9 @@ public class Linear {
                     QP_Gnorm1_new += violation;
 
                     // obtain solution of one-variable problem
-                    if (Gp <= H * wpd[j])
+                    if (Gp < H * wpd[j])
                         z = -Gp / H;
-                    else if (Gn >= H * wpd[j])
+                    else if (Gn > H * wpd[j])
                         z = -Gn / H;
                     else
                         z = -wpd[j];
@@ -1218,7 +1452,7 @@ public class Linear {
                 QP_Gmax_old = QP_Gmax_new;
             }
 
-            if (iter >= max_iter) info("WARNING: reaching max number of inner iterations\n");
+            if (iter >= max_iter) info("WARNING: reaching max number of inner iterations%n");
 
             delta = 0;
             w_norm_new = 0;
@@ -1321,7 +1555,7 @@ public class Linear {
         Problem prob_col = new Problem();
         prob_col.l = l;
         prob_col.n = n;
-        prob_col.y = new int[l];
+        prob_col.y = new double[l];
         prob_col.x = new Feature[n][];
 
         for (int i = 0; i < l; i++)
@@ -1368,6 +1602,7 @@ public class Linear {
         array.set(idxB, temp);
     }
 
+
     /**
      * @throws IllegalArgumentException if the feature nodes of prob are not sorted in ascending order
      */
@@ -1395,123 +1630,158 @@ public class Linear {
             model.nr_feature = n - 1;
         else
             model.nr_feature = n;
+
         model.solverType = param.solverType;
         model.bias = prob.bias;
 
-        int[] perm = new int[l];
-        // group training data of the same class
-        GroupClassesReturn rv = groupClasses(prob, perm);
-        int nr_class = rv.nr_class;
-        int[] label = rv.label;
-        int[] start = rv.start;
-        int[] count = rv.count;
+        if (param.solverType == SolverType.L2R_L2LOSS_SVR || //
+            param.solverType == SolverType.L2R_L1LOSS_SVR_DUAL || //
+            param.solverType == SolverType.L2R_L2LOSS_SVR_DUAL) {
+            model.w = new double[w_size];
+            model.nr_class = 2;
+            model.label = null;
 
-        model.nr_class = nr_class;
-        model.label = new int[nr_class];
-        for (int i = 0; i < nr_class; i++)
-            model.label[i] = label[i];
+            checkProblemSize(n, model.nr_class);
 
-        // calculate weighted C
-        double[] weighted_C = new double[nr_class];
-        for (int i = 0; i < nr_class; i++) {
-            weighted_C[i] = param.C;
-        }
+            train_one(prob, param, model.w, 0, 0);
+        } else {
+            int[] perm = new int[l];
 
-        for (int i = 0; i < param.getNumWeights(); i++) {
-            int j;
-            for (j = 0; j < nr_class; j++)
-                if (param.weightLabel[i] == label[j]) break;
-            if (j == nr_class) throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
+            // group training data of the same class
+            GroupClassesReturn rv = groupClasses(prob, perm);
+            int nr_class = rv.nr_class;
+            int[] label = rv.label;
+            int[] start = rv.start;
+            int[] count = rv.count;
 
-            weighted_C[j] *= param.weight[i];
-        }
+            checkProblemSize(n, nr_class);
 
-        // constructing the subproblem
-        Feature[][] x = new Feature[l][];
-        for (int i = 0; i < l; i++)
-            x[i] = prob.x[perm[i]];
+            model.nr_class = nr_class;
+            model.label = new int[nr_class];
+            for (int i = 0; i < nr_class; i++)
+                model.label[i] = label[i];
 
-        Problem sub_prob = new Problem();
-        sub_prob.l = l;
-        sub_prob.n = n;
-        sub_prob.x = new Feature[sub_prob.l][];
-        sub_prob.y = new int[sub_prob.l];
+            // calculate weighted C
+            double[] weighted_C = new double[nr_class];
+            for (int i = 0; i < nr_class; i++)
+                weighted_C[i] = param.C;
+            for (int i = 0; i < param.getNumWeights(); i++) {
+                int j;
+                for (j = 0; j < nr_class; j++)
+                    if (param.weightLabel[i] == label[j]) break;
 
-        for (int k = 0; k < sub_prob.l; k++)
-            sub_prob.x[k] = x[k];
-
-        // verify the size and throw an exception early if the problem is too large
-        if (n >= Integer.MAX_VALUE / nr_class || n * nr_class < 0) {
-            throw new IllegalArgumentException("'number of classes' * 'number of instances' is too large: " + nr_class + "*" + n);
-        }
-
-        // multi-class svm by Crammer and Singer
-        if (param.solverType == SolverType.MCSVM_CS) {
-            model.w = new double[n * nr_class];
-            for (int i = 0; i < nr_class; i++) {
-                for (int j = start[i]; j < start[i] + count[i]; j++) {
-                    sub_prob.y[j] = i;
-                }
+                if (j == nr_class) throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
+                weighted_C[j] *= param.weight[i];
             }
 
-            SolverMCSVM_CS solver = new SolverMCSVM_CS(sub_prob, nr_class, weighted_C, param.eps);
-            solver.solve(model.w);
-        } else {
-            if (nr_class == 2) {
-                model.w = new double[w_size];
+            // constructing the subproblem
+            Feature[][] x = new Feature[l][];
+            for (int i = 0; i < l; i++)
+                x[i] = prob.x[perm[i]];
 
-                int e0 = start[0] + count[0];
-                int k = 0;
-                for (; k < e0; k++)
-                    sub_prob.y[k] = +1;
-                for (; k < sub_prob.l; k++)
-                    sub_prob.y[k] = -1;
+            Problem sub_prob = new Problem();
+            sub_prob.l = l;
+            sub_prob.n = n;
+            sub_prob.x = new Feature[sub_prob.l][];
+            sub_prob.y = new double[sub_prob.l];
 
-                train_one(sub_prob, param, model.w, weighted_C[0], weighted_C[1]);
-            } else {
-                model.w = new double[w_size * nr_class];
-                double[] w = new double[w_size];
+            for (int k = 0; k < sub_prob.l; k++)
+                sub_prob.x[k] = x[k];
+
+            // multi-class svm by Crammer and Singer
+            if (param.solverType == SolverType.MCSVM_CS) {
+                model.w = new double[n * nr_class];
                 for (int i = 0; i < nr_class; i++) {
-                    int si = start[i];
-                    int ei = si + count[i];
+                    for (int j = start[i]; j < start[i] + count[i]; j++) {
+                        sub_prob.y[j] = i;
+                    }
+                }
 
+                SolverMCSVM_CS solver = new SolverMCSVM_CS(sub_prob, nr_class, weighted_C, param.eps);
+                solver.solve(model.w);
+            } else {
+                if (nr_class == 2) {
+                    model.w = new double[w_size];
+
+                    int e0 = start[0] + count[0];
                     int k = 0;
-                    for (; k < si; k++)
-                        sub_prob.y[k] = -1;
-                    for (; k < ei; k++)
+                    for (; k < e0; k++)
                         sub_prob.y[k] = +1;
                     for (; k < sub_prob.l; k++)
                         sub_prob.y[k] = -1;
 
-                    train_one(sub_prob, param, w, weighted_C[i], param.C);
+                    train_one(sub_prob, param, model.w, weighted_C[0], weighted_C[1]);
+                } else {
+                    model.w = new double[w_size * nr_class];
+                    double[] w = new double[w_size];
+                    for (int i = 0; i < nr_class; i++) {
+                        int si = start[i];
+                        int ei = si + count[i];
 
-                    for (int j = 0; j < n; j++)
-                        model.w[j * nr_class + i] = w[j];
+                        int k = 0;
+                        for (; k < si; k++)
+                            sub_prob.y[k] = -1;
+                        for (; k < ei; k++)
+                            sub_prob.y[k] = +1;
+                        for (; k < sub_prob.l; k++)
+                            sub_prob.y[k] = -1;
+
+                        train_one(sub_prob, param, w, weighted_C[i], param.C);
+
+                        for (int j = 0; j < n; j++)
+                            model.w[j * nr_class + i] = w[j];
+                    }
                 }
             }
-
         }
         return model;
+    }
+
+    /**
+     * verify the size and throw an exception early if the problem is too large
+     */
+    private static void checkProblemSize(int n, int nr_class) {
+        if (n >= Integer.MAX_VALUE / nr_class || n * nr_class < 0) {
+            throw new IllegalArgumentException("'number of classes' * 'number of instances' is too large: " + nr_class + "*" + n);
+        }
     }
 
     private static void train_one(Problem prob, Parameter param, double[] w, double Cp, double Cn) {
         double eps = param.eps;
         int pos = 0;
         for (int i = 0; i < prob.l; i++)
-            if (prob.y[i] == +1) pos++;
+            if (prob.y[i] > 0) {
+                pos++;
+            }
         int neg = prob.l - pos;
+
+        double primal_solver_tol = eps * Math.max(Math.min(pos, neg), 1) / prob.l;
 
         Function fun_obj = null;
         switch (param.solverType) {
             case L2R_LR: {
-                fun_obj = new L2R_LrFunction(prob, Cp, Cn);
-                Tron tron_obj = new Tron(fun_obj, eps * Math.min(pos, neg) / prob.l);
+                double[] C = new double[prob.l];
+                for (int i = 0; i < prob.l; i++) {
+                    if (prob.y[i] > 0)
+                        C[i] = Cp;
+                    else
+                        C[i] = Cn;
+                }
+                fun_obj = new L2R_LrFunction(prob, C);
+                Tron tron_obj = new Tron(fun_obj, primal_solver_tol);
                 tron_obj.tron(w);
                 break;
             }
             case L2R_L2LOSS_SVC: {
-                fun_obj = new L2R_L2_SvcFunction(prob, Cp, Cn);
-                Tron tron_obj = new Tron(fun_obj, eps * Math.min(pos, neg) / prob.l);
+                double[] C = new double[prob.l];
+                for (int i = 0; i < prob.l; i++) {
+                    if (prob.y[i] > 0)
+                        C[i] = Cp;
+                    else
+                        C[i] = Cn;
+                }
+                fun_obj = new L2R_L2_SvcFunction(prob, C);
+                Tron tron_obj = new Tron(fun_obj, primal_solver_tol);
                 tron_obj.tron(w);
                 break;
             }
@@ -1523,17 +1793,32 @@ public class Linear {
                 break;
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_l2_svc(prob_col, w, eps * Math.min(pos, neg) / prob.l, Cp, Cn);
+                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn);
                 break;
             }
             case L1R_LR: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_lr(prob_col, w, eps * Math.min(pos, neg) / prob.l, Cp, Cn);
+                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn);
                 break;
             }
             case L2R_LR_DUAL:
                 solve_l2r_lr_dual(prob, w, eps, Cp, Cn);
                 break;
+            case L2R_L2LOSS_SVR: {
+                double[] C = new double[prob.l];
+                for (int i = 0; i < prob.l; i++)
+                    C[i] = param.C;
+
+                fun_obj = new L2R_L2_SvrFunction(prob, C, param.p);
+                Tron tron_obj = new Tron(fun_obj, param.eps);
+                tron_obj.tron(w);
+                break;
+            }
+            case L2R_L1LOSS_SVR_DUAL:
+            case L2R_L2LOSS_SVR_DUAL:
+                solve_l2r_l1l2_svr(prob, w, param);
+                break;
+
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }

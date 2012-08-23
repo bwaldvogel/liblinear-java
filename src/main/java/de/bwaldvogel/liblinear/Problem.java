@@ -40,7 +40,7 @@ public class Problem {
     public int         n;
 
     /** an array containing the target values */
-    public int[]       y;
+    public double[]    y;
 
     /** array of sparse feature nodes */
     public Feature[][] x;

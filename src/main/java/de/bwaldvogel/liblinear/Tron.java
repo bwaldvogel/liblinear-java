@@ -2,7 +2,9 @@ package de.bwaldvogel.liblinear;
 
 import static de.bwaldvogel.liblinear.Linear.info;
 
-
+/**
+ * Trust Region Newton Method optimization
+ */
 class Tron {
 
     private final Function fun_obj;
@@ -101,15 +103,15 @@ class Tron {
                 if (gnorm <= eps * gnorm1) break;
             }
             if (f < -1.0e+32) {
-                info("warning: f < -1.0e+32%n");
+                info("WARNING: f < -1.0e+32%n");
                 break;
             }
             if (Math.abs(actred) <= 0 && prered <= 0) {
-                info("warning: actred and prered <= 0%n");
+                info("WARNING: actred and prered <= 0%n");
                 break;
             }
             if (Math.abs(actred) <= 1.0e-12 * Math.abs(f) && Math.abs(prered) <= 1.0e-12 * Math.abs(f)) {
-                info("warning: actred and prered too small%n");
+                info("WARNING: actred and prered too small%n");
                 break;
             }
         }

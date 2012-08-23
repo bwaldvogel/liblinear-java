@@ -16,10 +16,17 @@ public final class Parameter {
 
     int[]      weightLabel = null;
 
-    public Parameter( SolverType solverType, double C, double eps ) {
+    double     p;
+
+    public Parameter( SolverType solver, double C, double eps ) {
+        this(solver, C, eps, 0.1);
+    }
+
+    public Parameter( SolverType solverType, double C, double eps, double p ) {
         setSolverType(solverType);
         setC(C);
         setEps(eps);
+        setP(p);
     }
 
     /**
@@ -96,5 +103,18 @@ public final class Parameter {
 
     public SolverType getSolverType() {
         return solverType;
+    }
+
+
+    /**
+     * set the epsilon in loss function of epsilon-SVR (default 0.1)
+     */
+    public void setP(double p) {
+        if (p < 0) throw new IllegalArgumentException("p must not be less than 0");
+        this.p = p;
+    }
+
+    public double getP() {
+        return p;
     }
 }

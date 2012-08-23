@@ -19,18 +19,23 @@ public class TrainTest {
         Train train = new Train();
 
         for (SolverType solver : SolverType.values()) {
-            train.parse_command_line(new String[] {"-B", "5.3", "-s", "" + solver.ordinal(), "model-filename"});
+            train.parse_command_line(new String[] {"-B", "5.3", "-s", "" + solver.getId(), "-p", "0.01", "model-filename"});
             Parameter param = train.getParameter();
             assertThat(param.solverType).isEqualTo(solver);
             // check default eps
-            if (solver.ordinal() == 0 || solver.ordinal() == 2 //
-                || solver.ordinal() == 5 || solver.ordinal() == 6) {
+            if (solver.getId() == 0 || solver.getId() == 2 //
+                || solver.getId() == 5 || solver.getId() == 6) {
                 assertThat(param.eps).isEqualTo(0.01);
+            } else if (solver.getId() == 7) {
+                assertThat(param.eps).isEqualTo(0.1);
+            } else if (solver.getId() == 11) {
+                assertThat(param.eps).isEqualTo(0.001);
             } else {
                 assertThat(param.eps).isEqualTo(0.1);
             }
             // check if bias is set
             assertThat(train.getBias()).isEqualTo(5.3);
+            assertThat(param.p).isEqualTo(0.01);
         }
     }
 
@@ -76,7 +81,7 @@ public class TrainTest {
         Problem prob = train.getProblem();
         assertThat(prob.bias).isEqualTo(1);
         assertThat(prob.y).hasSize(lines.size());
-        assertThat(prob.y).isEqualTo(new int[] {1, 2, 1, 1, 2});
+        assertThat(prob.y).isEqualTo(new double[] {1, 2, 1, 1, 2});
         assertThat(prob.n).isEqualTo(8);
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x).hasSize(prob.y.length);
@@ -120,7 +125,7 @@ public class TrainTest {
         Problem prob = Train.readProblem(file, -1.0);
         assertThat(prob.bias).isEqualTo(-1);
         assertThat(prob.y).hasSize(lines.size());
-        assertThat(prob.y).isEqualTo(new int[] {1, 2});
+        assertThat(prob.y).isEqualTo(new double[] {1, 2});
         assertThat(prob.n).isEqualTo(6);
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x).hasSize(prob.y.length);

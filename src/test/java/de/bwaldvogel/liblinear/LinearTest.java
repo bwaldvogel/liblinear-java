@@ -57,7 +57,7 @@ public class LinearTest {
         prob.l = random.nextInt(100) + 1;
         prob.n = random.nextInt(100) + 1;
         prob.x = new FeatureNode[prob.l][];
-        prob.y = new int[prob.l];
+        prob.y = new double[prob.l];
 
         for (int i = 0; i < prob.l; i++) {
 
@@ -104,7 +104,7 @@ public class LinearTest {
         prob.x[3][1] = new FeatureNode(2, 1);
         prob.x[3][2] = new FeatureNode(4, 1);
 
-        prob.y = new int[4];
+        prob.y = new double[4];
         prob.y[0] = 0;
         prob.y[1] = 1;
         prob.y[2] = 1;
@@ -117,7 +117,11 @@ public class LinearTest {
                 if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
                 if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
 
-                Parameter param = new Parameter(solver, C, 0.1);
+                if (solver.isSupportVectorRegression()) {
+                    continue;
+                }
+
+                Parameter param = new Parameter(solver, C, 0.1, 0.1);
                 Model model = Linear.train(prob, param);
 
                 double[] featureWeights = model.getFeatureWeights();
@@ -128,14 +132,14 @@ public class LinearTest {
                 }
 
                 int i = 0;
-                for (int value : prob.y) {
-                    int prediction = Linear.predict(model, prob.x[i]);
-                    assertThat(prediction).isEqualTo(value);
+                for (double value : prob.y) {
+                    double prediction = Linear.predict(model, prob.x[i]);
+                    assertThat(prediction).as("prediction with solver " + solver).isEqualTo(value);
                     if (model.isProbabilityModel()) {
                         double[] estimates = new double[model.getNrClass()];
-                        int probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
+                        double probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
                         assertThat(probabilityPrediction).isEqualTo(prediction);
-                        assertThat(estimates[probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
+                        assertThat(estimates[(int)probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
                         double estimationSum = 0;
                         for (double estimate : estimates) {
                             estimationSum += estimate;
@@ -157,10 +161,10 @@ public class LinearTest {
 
         Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.01);
         int nr_fold = 10;
-        int[] target = new int[prob.l];
+        double[] target = new double[prob.l];
         Linear.crossValidation(prob, param, nr_fold, target);
 
-        for (int clazz : target) {
+        for (double clazz : target) {
             assertThat(clazz).isGreaterThanOrEqualTo(0).isLessThan(numClasses);
         }
     }
@@ -194,7 +198,7 @@ public class LinearTest {
         prob.x[0][0] = new FeatureNode(2, 1);
         prob.x[0][1] = new FeatureNode(1, 1);
 
-        prob.y = new int[4];
+        prob.y = new double[4];
         prob.y[0] = 0;
 
         Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.1);
@@ -212,13 +216,14 @@ public class LinearTest {
         prob.l = 1000;
         prob.n = 20000000;
         prob.x = new FeatureNode[prob.l][];
-        prob.y = new int[prob.l];
+        prob.y = new double[prob.l];
         for (int i = 0; i < prob.l; i++) {
             prob.x[i] = new FeatureNode[] {};
             prob.y[i] = i;
         }
 
         for (SolverType solverType : SolverType.values()) {
+            if (solverType.isSupportVectorRegression()) continue;
             Parameter param = new Parameter(solverType, 10, 0.1);
             try {
                 Linear.train(prob, param);
@@ -341,7 +346,7 @@ public class LinearTest {
         prob.x[3][1] = new FeatureNode(3, 1);
         prob.x[3][2] = new FeatureNode(4, 1);
 
-        prob.y = new int[4];
+        prob.y = new double[4];
         prob.y[0] = 0;
         prob.y[1] = 1;
         prob.y[2] = 1;
@@ -438,7 +443,7 @@ public class LinearTest {
         prob.x[4][0] = new FeatureNode(3, 1);
         prob.x[4][1] = new FeatureNode(10, 3);
 
-        prob.y = new int[5];
+        prob.y = new double[5];
         prob.y[0] = 0;
         prob.y[1] = 1;
         prob.y[2] = 1;
@@ -518,7 +523,7 @@ public class LinearTest {
         Problem prob = new Problem();
         prob.l = 3;
         prob.n = 4;
-        prob.y = new int[3];
+        prob.y = new double[3];
         prob.x = new FeatureNode[4][];
         prob.x[0] = new FeatureNode[3];
         prob.x[1] = new FeatureNode[4];

@@ -7,23 +7,14 @@ class L2R_LrFunction implements Function {
     private final double[] D;
     private final Problem  prob;
 
-    public L2R_LrFunction( Problem prob, double Cp, double Cn ) {
-        int i;
+    public L2R_LrFunction( Problem prob, double[] C ) {
         int l = prob.l;
-        int[] y = prob.y;
 
         this.prob = prob;
 
         z = new double[l];
         D = new double[l];
-        C = new double[l];
-
-        for (i = 0; i < l; i++) {
-            if (y[i] == 1)
-                C[i] = Cp;
-            else
-                C[i] = Cn;
-        }
+        this.C = C;
     }
 
 
@@ -56,11 +47,15 @@ class L2R_LrFunction implements Function {
     public double fun(double[] w) {
         int i;
         double f = 0;
-        int[] y = prob.y;
+        double[] y = prob.y;
         int l = prob.l;
         int w_size = get_nr_variable();
 
         Xv(w, z);
+
+        for (i = 0; i < w_size; i++)
+            f += w[i] * w[i];
+        f /= 2.0;
         for (i = 0; i < l; i++) {
             double yz = y[i] * z[i];
             if (yz >= 0)
@@ -68,17 +63,13 @@ class L2R_LrFunction implements Function {
             else
                 f += C[i] * (-yz + Math.log(1 + Math.exp(yz)));
         }
-        f = 2.0 * f;
-        for (i = 0; i < w_size; i++)
-            f += w[i] * w[i];
-        f /= 2.0;
 
         return (f);
     }
 
     public void grad(double[] w, double[] g) {
         int i;
-        int[] y = prob.y;
+        double[] y = prob.y;
         int l = prob.l;
         int w_size = get_nr_variable();
 

@@ -28,7 +28,10 @@ public class Train {
     private Problem   prob             = null;
 
     private void do_cross_validation() {
-        int[] target = new int[prob.l];
+
+        double total_error = 0;
+        double sumv = 0, sumy = 0, sumvv = 0, sumyy = 0, sumvy = 0;
+        double[] target = new double[prob.l];
 
         long start, stop;
         start = System.currentTimeMillis();
@@ -36,37 +39,59 @@ public class Train {
         stop = System.currentTimeMillis();
         System.out.println("time: " + (stop - start) + " ms");
 
-        int total_correct = 0;
-        for (int i = 0; i < prob.l; i++)
-            if (target[i] == prob.y[i]) ++total_correct;
+        if (param.solverType.isSupportVectorRegression()) {
+            for (int i = 0; i < prob.l; i++) {
+                double y = prob.y[i];
+                double v = target[i];
+                total_error += (v - y) * (v - y);
+                sumv += v;
+                sumy += y;
+                sumvv += v * v;
+                sumyy += y * y;
+                sumvy += v * y;
+            }
+            System.out.printf("Cross Validation Mean squared error = %g%n", total_error / prob.l);
+            System.out.printf("Cross Validation Squared correlation coefficient = %g%n", //
+                ((prob.l * sumvy - sumv * sumy) * (prob.l * sumvy - sumv * sumy)) / ((prob.l * sumvv - sumv * sumv) * (prob.l * sumyy - sumy * sumy)));
+        } else {
+            int total_correct = 0;
+            for (int i = 0; i < prob.l; i++)
+                if (target[i] == prob.y[i]) ++total_correct;
 
-        System.out.printf("correct: %d%n", total_correct);
-        System.out.printf("Cross Validation Accuracy = %g%%%n", 100.0 * total_correct / prob.l);
+            System.out.printf("correct: %d%n", total_correct);
+            System.out.printf("Cross Validation Accuracy = %g%%%n", 100.0 * total_correct / prob.l);
+        }
     }
 
     private void exit_with_help() {
         System.out.printf("Usage: train [options] training_set_file [model_file]%n" //
             + "options:%n"
             + "-s type : set type of solver (default 1)%n"
-            + "   0 -- L2-regularized logistic regression (primal)%n"
-            + "   1 -- L2-regularized L2-loss support vector classification (dual)%n"
-            + "   2 -- L2-regularized L2-loss support vector classification (primal)%n"
-            + "   3 -- L2-regularized L1-loss support vector classification (dual)%n"
-            + "   4 -- multi-class support vector classification by Crammer and Singer%n"
-            + "   5 -- L1-regularized L2-loss support vector classification%n"
-            + "   6 -- L1-regularized logistic regression%n"
-            + "   7 -- L2-regularized logistic regression (dual)%n"
+            + "    0 -- L2-regularized logistic regression (primal)%n"
+            + "    1 -- L2-regularized L2-loss support vector classification (dual)%n"
+            + "    2 -- L2-regularized L2-loss support vector classification (primal)%n"
+            + "    3 -- L2-regularized L1-loss support vector classification (dual)%n"
+            + "    4 -- multi-class support vector classification by Crammer and Singer%n"
+            + "    5 -- L1-regularized L2-loss support vector classification%n"
+            + "    6 -- L1-regularized logistic regression%n"
+            + "    7 -- L2-regularized logistic regression (dual)%n"
+            + "   11 -- L2-regularized L2-loss epsilon support vector regression (primal)%n"
+            + "   12 -- L2-regularized L2-loss epsilon support vector regression (dual)%n"
+            + "   13 -- L2-regularized L1-loss epsilon support vector regression (dual)%n"
             + "-c cost : set the parameter C (default 1)%n"
+            + "-p epsilon : set the epsilon in loss function of epsilon-SVR (default 0.1)%n"
             + "-e epsilon : set tolerance of termination criterion%n"
-            + "   -s 0 and 2%n"
-            + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
+            + "   -s 0 and 2%n" + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
             + "       where f is the primal function and pos/neg are # of%n"
-            + "       positive/negative data (default 0.01)%n"
-            + "   -s 1, 3, 4 and 7%n"
-            + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
+            + "       positive/negative data (default 0.01)%n" + "   -s 11%n"
+            + "       |f'(w)|_2 <= eps*|f'(w0)|_2 (default 0.001)%n"
+            + "   -s 1, 3, 4 and 7%n" + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
             + "   -s 5 and 6%n"
             + "       |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,%n"
             + "       where f is the primal function (default 0.01)%n"
+            + "   -s 12 and 13\n"
+            + "       |f'(alpha)|_1 <= eps |f'(alpha0)|,\n"
+            + "       where f is the dual function (default 0.1)\n"
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
@@ -91,7 +116,7 @@ public class Train {
         int i;
 
         // eps: see setting below
-        param = new Parameter(SolverType.L2R_L2LOSS_SVC_DUAL, 1, Double.POSITIVE_INFINITY);
+        param = new Parameter(SolverType.L2R_L2LOSS_SVC_DUAL, 1, Double.POSITIVE_INFINITY, 0.1);
         // default values
         bias = -1;
         cross_validation = false;
@@ -102,10 +127,13 @@ public class Train {
             if (++i >= argv.length) exit_with_help();
             switch (argv[i - 1].charAt(1)) {
                 case 's':
-                    param.solverType = SolverType.values()[atoi(argv[i])];
+                    param.solverType = SolverType.getById(atoi(argv[i]));
                     break;
                 case 'c':
                     param.setC(atof(argv[i]));
+                    break;
+                case 'p':
+                    param.setP(atof(argv[i]));
                     break;
                 case 'e':
                     param.setEps(atof(argv[i]));
@@ -151,13 +179,30 @@ public class Train {
         }
 
         if (param.eps == Double.POSITIVE_INFINITY) {
-            if (param.solverType == SolverType.L2R_LR || param.solverType == SolverType.L2R_L2LOSS_SVC) {
-                param.setEps(0.01);
-            } else if (param.solverType == SolverType.L2R_L2LOSS_SVC_DUAL || param.solverType == SolverType.L2R_L1LOSS_SVC_DUAL
-                || param.solverType == SolverType.MCSVM_CS || param.solverType == SolverType.L2R_LR_DUAL) {
-                param.setEps(0.1);
-            } else if (param.solverType == SolverType.L1R_L2LOSS_SVC || param.solverType == SolverType.L1R_LR) {
-                param.setEps(0.01);
+            switch (param.solverType) {
+                case L2R_LR:
+                case L2R_L2LOSS_SVC:
+                    param.setEps(0.01);
+                    break;
+                case L2R_L2LOSS_SVR:
+                    param.setEps(0.001);
+                    break;
+                case L2R_L2LOSS_SVC_DUAL:
+                case L2R_L1LOSS_SVC_DUAL:
+                case MCSVM_CS:
+                case L2R_LR_DUAL:
+                    param.setEps(0.1);
+                    break;
+                case L1R_L2LOSS_SVC:
+                case L1R_LR:
+                    param.setEps(0.01);
+                    break;
+                case L2R_L1LOSS_SVR_DUAL:
+                case L2R_L2LOSS_SVR_DUAL:
+                    param.setEps(0.1);
+                    break;
+                default:
+                    throw new IllegalStateException("unknown solver type: " + param.solverType);
             }
         }
     }
@@ -170,7 +215,7 @@ public class Train {
      */
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
         BufferedReader fp = new BufferedReader(new FileReader(file));
-        List<Integer> vy = new ArrayList<Integer>();
+        List<Double> vy = new ArrayList<Double>();
         List<Feature[]> vx = new ArrayList<Feature[]>();
         int max_index = 0;
 
@@ -191,7 +236,7 @@ public class Train {
                 }
 
                 try {
-                    vy.add(atoi(token));
+                    vy.add(atof(token));
                 } catch (NumberFormatException e) {
                     throw new InvalidInputDataException("invalid label: " + token, file, lineNr, e);
                 }
@@ -265,7 +310,7 @@ public class Train {
         return newArray;
     }
 
-    private static Problem constructProblem(List<Integer> vy, List<Feature[]> vx, int max_index, double bias) {
+    private static Problem constructProblem(List<Double> vy, List<Feature[]> vx, int max_index, double bias) {
         Problem prob = new Problem();
         prob.bias = bias;
         prob.l = vy.size();
@@ -283,9 +328,9 @@ public class Train {
             }
         }
 
-        prob.y = new int[prob.l];
+        prob.y = new double[prob.l];
         for (int i = 0; i < prob.l; i++)
-            prob.y[i] = vy.get(i);
+            prob.y[i] = vy.get(i).doubleValue();
 
         return prob;
     }

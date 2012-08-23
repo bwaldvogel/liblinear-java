@@ -61,7 +61,7 @@ class SolverMCSVM_CS {
     }
 
     private int GETI(int i) {
-        return prob.y[i];
+        return (int)prob.y[i];
     }
 
     private boolean be_shrunk(int i, int m, int yi, double alpha_i, double minG) {
@@ -86,9 +86,15 @@ class SolverMCSVM_CS {
         int[] active_size_i = new int[l];
         double eps_shrink = Math.max(10.0 * eps, 1.0); // stopping tolerance for shrinking
         boolean start_from_all = true;
-        // initial
+
+        // Initial alpha can be set here. Note that
+        // sum_m alpha[i*nr_class+m] = 0, for all i=1,...,l-1
+        // alpha[i*nr_class+m] <= C[GETI(i)] if prob->y[i] == m
+        // alpha[i*nr_class+m] <= 0 if prob->y[i] != m
+        // If initial alpha isn't zero, uncomment the for loop below to initialize w
         for (i = 0; i < l * nr_class; i++)
             alpha[i] = 0;
+
         for (i = 0; i < w_size * nr_class; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
@@ -96,10 +102,15 @@ class SolverMCSVM_CS {
                 alpha_index[i * nr_class + m] = m;
             QD[i] = 0;
             for (Feature xi : prob.x[i]) {
-                QD[i] += xi.getValue() * xi.getValue();
+                double val = xi.getValue();
+                QD[i] += val * val;
+
+                // Uncomment the for loop if initial alpha isn't zero
+                // for(m=0; m<nr_class; m++)
+                //  w[(xi->index-1)*nr_class+m] += alpha[i*nr_class+m]*val;
             }
             active_size_i[i] = nr_class;
-            y_index[i] = prob.y[i];
+            y_index[i] = (int)prob.y[i];
             index[i] = i;
         }
 
@@ -145,7 +156,7 @@ class SolverMCSVM_CS {
                         if (G[m] > maxG) maxG = G[m];
                     }
                     if (y_index[i] < active_size_i[i]) {
-                        if (alpha_i.get(prob.y[i]) < C[GETI(i)] && G[y_index[i]] < minG) {
+                        if (alpha_i.get((int)prob.y[i]) < C[GETI(i)] && G[y_index[i]] < minG) {
                             minG = G[y_index[i]];
                         }
                     }
@@ -239,7 +250,7 @@ class SolverMCSVM_CS {
             if (Math.abs(alpha[i]) > 0) nSV++;
         }
         for (i = 0; i < l; i++)
-            v -= alpha[i * nr_class + prob.y[i]];
+            v -= alpha[i * nr_class + (int)prob.y[i]];
         info("Objective value = %f%n", v);
         info("nSV = %d%n", nSV);
 
@@ -260,8 +271,8 @@ class SolverMCSVM_CS {
         double beta = D[0] - A_i * C_yi;
         for (r = 1; r < active_i && beta < r * D[r]; r++)
             beta += D[r];
-
         beta /= r;
+
         for (r = 0; r < active_i; r++) {
             if (r == yi)
                 alpha_new[r] = Math.min(C_yi, (beta - B[r]) / A_i);
