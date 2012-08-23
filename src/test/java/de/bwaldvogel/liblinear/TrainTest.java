@@ -1,6 +1,5 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.NL;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.BufferedWriter;
@@ -69,7 +68,7 @@ public class TrainTest {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
-                writer.append(line).append(NL);
+                writer.append(line).append("\n");
         }
         finally {
             writer.close();
@@ -116,7 +115,7 @@ public class TrainTest {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
-                writer.append(line).append(NL);
+                writer.append(line).append("\n");
         }
         finally {
             writer.close();
@@ -147,7 +146,7 @@ public class TrainTest {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
-                writer.append(line).append(NL);
+                writer.append(line).append("\n");
         }
         finally {
             writer.close();
@@ -170,7 +169,7 @@ public class TrainTest {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
-                writer.append(line).append(NL);
+                writer.append(line).append("\n");
         }
         finally {
             writer.close();
@@ -197,7 +196,7 @@ public class TrainTest {
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
             for (String line : lines)
-                writer.append(line).append(NL);
+                writer.append(line).append("\n");
         }
         finally {
             writer.close();

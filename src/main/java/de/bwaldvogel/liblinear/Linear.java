@@ -39,9 +39,6 @@ public class Linear {
     private static Object      OUTPUT_MUTEX        = new Object();
     private static PrintStream DEBUG_OUTPUT        = System.out;
 
-    /** platform-independent new-line string */
-    final static String        NL                  = System.getProperty("line.separator");
-
     private static final long  DEFAULT_RANDOM_SEED = 0L;
     static Random              random              = new Random(DEFAULT_RANDOM_SEED);
 
@@ -631,7 +628,7 @@ public class Linear {
             if (PGmin_old >= 0) PGmin_old = Double.NEGATIVE_INFINITY;
         }
 
-        info(NL + "optimization finished, #iter = %d" + NL, iter);
+        info("%noptimization finished, #iter = %d%n", iter);
         if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
@@ -644,8 +641,8 @@ public class Linear {
             v += alpha[i] * (alpha[i] * diag[GETI(y, i)] - 2);
             if (alpha[i] > 0) ++nSV;
         }
-        info("Objective value = %f" + NL, v / 2);
-        info("nSV = %d" + NL, nSV);
+        info("Objective value = %g%n", v / 2);
+        info("nSV = %d%n", nSV);
     }
 
     // To support weights for instances, use GETI(i) (i)
@@ -838,7 +835,7 @@ public class Linear {
             if (beta[i] != 0) nSV++;
         }
 
-        info("Objective value = %f%n", v);
+        info("Objective value = %g%n", v);
         info("nSV = %d%n", nSV);
     }
 
@@ -989,7 +986,7 @@ public class Linear {
         for (i = 0; i < l; i++)
             v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
                 * Math.log(upper_bound[GETI(y, i)]);
-        info("Objective value = %f%n", v);
+        info("Objective value = %g%n", v);
     }
 
     /**
@@ -1227,7 +1224,7 @@ public class Linear {
         for (j = 0; j < l; j++)
             if (b[j] > 0) v += C[GETI(y, j)] * b[j] * b[j];
 
-        info("Objective value = %f%n", v);
+        info("Objective value = %g%n", v);
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
@@ -1543,7 +1540,7 @@ public class Linear {
             else
                 v += C[GETI(y, j)] * Math.log(1 + exp_wTx[j]);
 
-        info("Objective value = %f%n", v);
+        info("Objective value = %g%n", v);
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
