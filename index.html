@@ -1,0 +1,90 @@
+---
+layout: default
+title: liblinear-java
+---
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+		<link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+		<!--[if lt IE 9]>
+		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<title>{{ page.title }}</title>
+	</head>
+
+	<body>
+		<div id="container">
+			<div class="inner">
+
+				<header>
+				<h1>liblinear-java</h1>
+				<h2><strong>Java</strong> port of the <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">original C++ sources</a>.</h2>
+				</header>
+
+				<section id="downloads" class="clearfix">
+				<a href="https://github.com/bwaldvogel/liblinear-java/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+				<a href="https://github.com/bwaldvogel/liblinear-java/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+				<a href="https://github.com/bwaldvogel/liblinear-java" id="view-on-github" class="button"><span>View on GitHub</span></a>
+				</section>
+
+				<hr/>
+
+				<section id="main_content">
+
+				<h3>Maven</h3>
+				<p>Liblinear is available via the official Maven repository.</p>
+
+{% highlight xml %}<dependency>
+    <groupId>de.bwaldvogel</groupId>
+    <artifactId>liblinear</artifactId>
+    <version>1.91</version>
+</dependency>{% endhighlight %}
+
+				<h3>Usage</h3>
+				<p>The usage is pretty similar to the usage of the <code>C++</code> version.</p>
+
+				<h4>Standalone</h4>
+<pre><code>$ java -cp liblinear-1.91.jar de.bwaldvogel.liblinear.Train -v 5 rcv1_train.binary
+nSV = 6020
+time: 935 ms
+correct: 19637
+Cross Validation Accuracy = 97.0112%
+</code></pre>
+
+				<h4>Java API</h4>
+{% highlight java %}Problem problem = new Problem();
+problem.l = ... // number of training examples
+problem.n = ... // number of features
+problem.x = ... // feature nodes
+problem.y = ... // target values
+
+SolverType solver = SolverType.L2R_LR; // -s 0
+double C = 1.0;    // cost of constraints violation
+double eps = 0.01; // stopping criteria
+
+Parameter parameter = new Parameter(solver, C, eps);
+Model model = Linear.train(problem, parameter);
+File modelFile = new File("model");
+model.save(modelFile);
+// load model or use it directly
+model = Model.load(modelFile);
+
+Feature[] instance = new FeatureNode[5];
+double prediction = Linear.predict(model, instance);{% endhighlight %}
+
+				<h3>Weka</h3>
+				<p>There is a <a href="https://github.com/bwaldvogel/liblinear-weka">Weka wrapper</a> that can be installed using the Weka Package Manager.</p>
+
+				<footer>
+				Maintained by <a href="https://github.com/bwaldvogel">Benedikt Waldvogel</a><br>
+				</footer>
+
+			</div>
+		</div>
+	</body>
+</html>
