@@ -216,7 +216,7 @@ public class Linear {
      * Loads the model from inputReader.
      * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      *
-     * <p><b>Note: The inputReader is closed after reading or in case of an exception.</b></p>
+     * <p>Note: The inputReader is <b>NOT closed</b> after reading or in case of an exception.</p>
      */
     public static Model loadModel(Reader inputReader) throws IOException {
         Model model = new Model();
@@ -232,64 +232,59 @@ public class Linear {
             reader = new BufferedReader(inputReader);
         }
 
-        try {
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                String[] split = whitespace.split(line);
-                if (split[0].equals("solver_type")) {
-                    SolverType solver = SolverType.valueOf(split[1]);
-                    if (solver == null) {
-                        throw new RuntimeException("unknown solver type");
-                    }
-                    model.solverType = solver;
-                } else if (split[0].equals("nr_class")) {
-                    model.nr_class = atoi(split[1]);
-                    Integer.parseInt(split[1]);
-                } else if (split[0].equals("nr_feature")) {
-                    model.nr_feature = atoi(split[1]);
-                } else if (split[0].equals("bias")) {
-                    model.bias = atof(split[1]);
-                } else if (split[0].equals("w")) {
-                    break;
-                } else if (split[0].equals("label")) {
-                    model.label = new int[model.nr_class];
-                    for (int i = 0; i < model.nr_class; i++) {
-                        model.label[i] = atoi(split[i + 1]);
-                    }
-                } else {
-                    throw new RuntimeException("unknown text in model file: [" + line + "]");
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            String[] split = whitespace.split(line);
+            if (split[0].equals("solver_type")) {
+                SolverType solver = SolverType.valueOf(split[1]);
+                if (solver == null) {
+                    throw new RuntimeException("unknown solver type");
                 }
-            }
-
-            int w_size = model.nr_feature;
-            if (model.bias >= 0) w_size++;
-
-            int nr_w = model.nr_class;
-            if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
-
-            model.w = new double[w_size * nr_w];
-            int[] buffer = new int[128];
-
-            for (int i = 0; i < w_size; i++) {
-                for (int j = 0; j < nr_w; j++) {
-                    int b = 0;
-                    while (true) {
-                        int ch = reader.read();
-                        if (ch == -1) {
-                            throw new EOFException("unexpected EOF");
-                        }
-                        if (ch == ' ') {
-                            model.w[i * nr_w + j] = atof(new String(buffer, 0, b));
-                            break;
-                        } else {
-                            buffer[b++] = ch;
-                        }
-                    }
+                model.solverType = solver;
+            } else if (split[0].equals("nr_class")) {
+                model.nr_class = atoi(split[1]);
+                Integer.parseInt(split[1]);
+            } else if (split[0].equals("nr_feature")) {
+                model.nr_feature = atoi(split[1]);
+            } else if (split[0].equals("bias")) {
+                model.bias = atof(split[1]);
+            } else if (split[0].equals("w")) {
+                break;
+            } else if (split[0].equals("label")) {
+                model.label = new int[model.nr_class];
+                for (int i = 0; i < model.nr_class; i++) {
+                    model.label[i] = atoi(split[i + 1]);
                 }
+            } else {
+                throw new RuntimeException("unknown text in model file: [" + line + "]");
             }
         }
-        finally {
-            closeQuietly(reader);
+
+        int w_size = model.nr_feature;
+        if (model.bias >= 0) w_size++;
+
+        int nr_w = model.nr_class;
+        if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
+
+        model.w = new double[w_size * nr_w];
+        int[] buffer = new int[128];
+
+        for (int i = 0; i < w_size; i++) {
+            for (int j = 0; j < nr_w; j++) {
+                int b = 0;
+                while (true) {
+                    int ch = reader.read();
+                    if (ch == -1) {
+                        throw new EOFException("unexpected EOF");
+                    }
+                    if (ch == ' ') {
+                        model.w[i * nr_w + j] = atof(new String(buffer, 0, b));
+                        break;
+                    } else {
+                        buffer[b++] = ch;
+                    }
+                }
+            }
         }
 
         return model;
@@ -301,7 +296,12 @@ public class Linear {
      */
     public static Model loadModel(File modelFile) throws IOException {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), FILE_CHARSET));
-        return loadModel(inputReader);
+        try {
+            return loadModel(inputReader);
+        }
+        finally {
+            inputReader.close();
+        }
     }
 
     static void closeQuietly(Closeable c) {
