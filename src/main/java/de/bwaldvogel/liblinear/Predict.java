@@ -4,6 +4,7 @@ import static de.bwaldvogel.liblinear.Linear.atof;
 import static de.bwaldvogel.liblinear.Linear.atoi;
 import static de.bwaldvogel.liblinear.Linear.closeQuietly;
 import static de.bwaldvogel.liblinear.Linear.printf;
+import static de.bwaldvogel.liblinear.Linear.info;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -132,17 +133,19 @@ public class Predict {
 
         if (model.solverType.isSupportVectorRegression()) //
         {
-            System.out.printf("Mean squared error = %g (regression)%n", error / total);
-            System.out.printf("Squared correlation coefficient = %g (regression)%n", //
+            info("Mean squared error = %g (regression)%n", error / total);
+            info("Squared correlation coefficient = %g (regression)%n", //
                 ((total * sumpt - sump * sumt) * (total * sumpt - sump * sumt)) / ((total * sumpp - sump * sump) * (total * sumtt - sumt * sumt)));
         } else {
-            System.out.printf("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
+            info("Accuracy = %g%% (%d/%d)%n", (double)correct / total * 100, correct, total);
         }
     }
 
     private static void exit_with_help() {
-        System.out.printf("Usage: predict [options] test_file model_file output_file%n" + "options:%n"
-            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0); currently for logistic regression only%n");
+        System.out.printf("Usage: predict [options] test_file model_file output_file%n" //
+            + "options:%n" //
+            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0); currently for logistic regression only%n" //
+            + "-q quiet mode (no outputs)%n");
         System.exit(1);
     }
 
@@ -160,6 +163,11 @@ public class Predict {
                     } catch (NumberFormatException e) {
                         exit_with_help();
                     }
+                    break;
+
+                case 'q':
+                    i--;
+                    Linear.disableDebugOutput();
                     break;
 
                 default:
