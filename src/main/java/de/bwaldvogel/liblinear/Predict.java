@@ -46,13 +46,13 @@ public class Predict {
         else
             n = nr_feature;
 
+        if (flag_predict_probability && !model.isProbabilityModel()) {
+            throw new IllegalArgumentException("probability output is only supported for logistic regression");
+        }
+
         Formatter out = new Formatter(writer);
 
         if (flag_predict_probability) {
-            if (!model.isProbabilityModel()) {
-                throw new IllegalArgumentException("probability output is only supported for logistic regression");
-            }
-
             int[] labels = model.getLabels();
             prob_estimates = new double[nr_class];
 
