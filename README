@@ -1,6 +1,10 @@
 This is the Java version of LIBLINEAR.
-The project site of the original (C++) version is located at
-           http://www.csie.ntu.edu.tw/~cjlin/liblinear/
+
+The project site of the original (C++) version is located at:
+       http://www.csie.ntu.edu.tw/~cjlin/liblinear/
+
+The upstream changelog can be found at:
+       http://www.csie.ntu.edu.tw/~cjlin/liblinear/log
 
 Please be aware that the code would be written differently at various places,
 if it would be a pure Java project (Java coding style, less use of statics, smaller classes and methods etc.).
