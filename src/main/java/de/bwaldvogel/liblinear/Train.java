@@ -156,6 +156,7 @@ public class Train {
                     }
                     break;
                 case 'q':
+                    i--;
                     Linear.disableDebugOutput();
                     break;
                 default:
