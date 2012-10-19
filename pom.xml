@@ -4,7 +4,7 @@
     <artifactId>liblinear</artifactId>
     <packaging>jar</packaging>
     <name>liblinear</name>
-    <version>1.92-SNAPSHOT</version>
+    <version>1.92</version>
     <description>Java port of Liblinear</description>
     <url>http://www.bwaldvogel.de/liblinear-java/</url>
 
