@@ -537,7 +537,7 @@ environment variables of VC++ have not been set, type
 
 2. Type
 
-    nmake -f Makefile.win clean all
+    `nmake -f Makefile.win clean all`
 
 
 MATLAB/OCTAVE Interface
