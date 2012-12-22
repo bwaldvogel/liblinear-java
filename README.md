@@ -88,21 +88,21 @@ Quick Start
 
 See the section **Installation** for installing LIBLINEAR.
 
-After installation, there are programs `train' and `predict' for
+After installation, there are programs `train` and `predict` for
 training and testing, respectively.
 
 About the data format, please check the README file of LIBSVM. Note
 that feature index must start from 1 (but not 0).
 
-A sample classification data included in this package is `heart_scale'.
+A sample classification data included in this package is `heart_scale`.
 
 Type `train heart_scale`, and the program will read the training
 data and output the model file `heart_scale.model`. If you have a test
-set called heart_scale.t, then type `predict heart_scale.t heart_scale.model output`
+set called `heart_scale.t`, then type `predict heart_scale.t heart_scale.model output`
 to see the prediction accuracy. The `output` file contains the predicted class labels.
 
 For more information about `train` and `predict`, see the sections
-`train' Usage and `predict' Usage.
+`train` Usage and `predict` Usage.
 
 To obtain good performances, sometimes one needs to scale the
 data. Please check the program `svm-scale` of LIBSVM. For large and
@@ -111,12 +111,12 @@ sparse data, use `-l 0` to keep the sparsity.
 Installation
 ============
 
-On Unix systems, type `make' to build the `train' and `predict'
+On Unix systems, type `make` to build the `train` and `predict`
 programs. Run them without arguments to show the usages.
 
 On other systems, consult `Makefile` to build them (e.g., see
 'Building Windows binaries' in this file) or use the pre-built
-binaries (Windows binaries are in the directory `windows').
+binaries (Windows binaries are in the directory `windows`).
 
 This software uses some level-1 BLAS subroutines. The needed functions are
 included in this package.  If a BLAS library is available on your
@@ -319,39 +319,38 @@ Library Usage
             double bias;
         };
 
-    where `l' is the number of training data. If bias >= 0, we assume
+    where `l` is the number of training data. If bias >= 0, we assume
     that one additional feature is added to the end of each data
-    instance. `n' is the number of feature (including the bias feature
-    if bias >= 0). `y' is an array containing the target values. (integers
-    in classification, real numbers in regression) And `x' is an array
+    instance. `n` is the number of feature (including the bias feature
+    if bias >= 0). `y` is an array containing the target values. (integers
+    in classification, real numbers in regression) And `x` is an array
     of pointers, each of which points to a sparse representation (array
     of feature_node) of one training vector.
 
     For example, if we have the following training data:
 
-    LABEL       ATTR1   ATTR2   ATTR3   ATTR4   ATTR5
-    -----       -----   -----   -----   -----   -----
-    1           0       0.1     0.2     0       0
-    2           0       0.1     0.3    -1.2     0
-    1           0.4     0       0       0       0
-    2           0       0.1     0       1.4     0.5
-    3          -0.1    -0.2     0.1     1.1     0.1
+		LABEL       ATTR1   ATTR2   ATTR3   ATTR4   ATTR5
+		-----       -----   -----   -----   -----   -----
+		1           0       0.1     0.2     0       0
+		2           0       0.1     0.3    -1.2     0
+		1           0.4     0       0       0       0
+		2           0       0.1     0       1.4     0.5
+		3          -0.1    -0.2     0.1     1.1     0.1
 
     and bias = 1, then the components of problem are:
 
-    l = 5
-    n = 6
+		l = 5
+		n = 6
 
-    y -> 1 2 1 2 3
+		y -> 1 2 1 2 3
 
-    x -> [ ] -> (2,0.1) (3,0.2) (6,1) (-1,?)
-         [ ] -> (2,0.1) (3,0.3) (4,-1.2) (6,1) (-1,?)
-         [ ] -> (1,0.4) (6,1) (-1,?)
-         [ ] -> (2,0.1) (4,1.4) (5,0.5) (6,1) (-1,?)
-         [ ] -> (1,-0.1) (2,-0.2) (3,0.1) (4,1.1) (5,0.1) (6,1) (-1,?)
+		x -> [ ] -> (2,0.1) (3,0.2) (6,1) (-1,?)
+			 [ ] -> (2,0.1) (3,0.3) (4,-1.2) (6,1) (-1,?)
+			 [ ] -> (1,0.4) (6,1) (-1,?)
+			 [ ] -> (2,0.1) (4,1.4) (5,0.5) (6,1) (-1,?)
+			 [ ] -> (1,-0.1) (2,-0.2) (3,0.1) (4,1.1) (5,0.1) (6,1) (-1,?)
 
-    struct parameter describes the parameters of a linear classification
-    or regression model:
+    `struct parameter` describes the parameters of a linear classification or regression model:
 
         struct parameter
         {
@@ -524,7 +523,7 @@ Library Usage
 Building Windows Binaries
 =========================
 
-Windows binaries are in the directory `windows'. To build them via
+Windows binaries are in the directory `windows`. To build them via
 Visual C++, use the following steps:
 
 1. Open a dos command box and change to liblinear directory. If
