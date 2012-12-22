@@ -368,18 +368,17 @@ Library Usage
 
     solver_type can be one of L2R_LR, L2R_L2LOSS_SVC_DUAL, L2R_L2LOSS_SVC, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_L2LOSS_SVC, L1R_LR, L2R_LR_DUAL, L2R_L2LOSS_SVR, L2R_L2LOSS_SVR_DUAL, L2R_L1LOSS_SVR_DUAL.
   for classification
-    L2R_LR                L2-regularized logistic regression (primal)
-    L2R_L2LOSS_SVC_DUAL   L2-regularized L2-loss support vector classification (dual)
-    L2R_L2LOSS_SVC        L2-regularized L2-loss support vector classification (primal)
-    L2R_L1LOSS_SVC_DUAL   L2-regularized L1-loss support vector classification (dual)
-    MCSVM_CS              support vector classification by Crammer and Singer
-    L1R_L2LOSS_SVC        L1-regularized L2-loss support vector classification
-    L1R_LR                L1-regularized logistic regression
-    L2R_LR_DUAL           L2-regularized logistic regression (dual)
-  for regression
-    L2R_L2LOSS_SVR        L2-regularized L2-loss support vector regression (primal)
-    L2R_L2LOSS_SVR_DUAL   L2-regularized L2-loss support vector regression (dual)
-    L2R_L1LOSS_SVR_DUAL   L2-regularized L1-loss support vector regression (dual)
+    - `L2R_LR`                L2-regularized logistic regression (primal)
+    - `L2R_L2LOSS_SVC_DUAL`   L2-regularized L2-loss support vector classification (dual)
+    - `L2R_L2LOSS_SVC`        L2-regularized L2-loss support vector classification (primal)
+    - `L2R_L1LOSS_SVC_DUAL`   L2-regularized L1-loss support vector classification (dual)
+    - `MCSVM_CS`              support vector classification by Crammer and Singer
+    - `L1R_L2LOSS_SVC`        L1-regularized L2-loss support vector classification
+    - `L1R_LR`                L1-regularized logistic regression
+    - `L2R_LR_DUAL`           L2-regularized logistic regression (dual) for regression
+    - `L2R_L2LOSS_SVR`        L2-regularized L2-loss support vector regression (primal)
+    - `L2R_L2LOSS_SVR_DUAL`   L2-regularized L2-loss support vector regression (dual)
+    - `L2R_L1LOSS_SVR_DUAL`   L2-regularized L1-loss support vector regression (dual)
 
     C is the cost of constraints violation.
     p is the sensitiveness of loss of support vector regression.
@@ -422,10 +421,10 @@ Library Usage
      index corresponds to nr_class weight values. Weights are
      organized in the following way
 
-     +------------------+------------------+------------+
-     | nr_class weights | nr_class weights |  ...
-     | for 1st feature  | for 2nd feature  |
-     +------------------+------------------+------------+
+         +------------------+------------------+------------+
+         | nr_class weights | nr_class weights |  ...
+         | for 1st feature  | for 2nd feature  |
+         +------------------+------------------+------------+
 
      If bias >= 0, x becomes [x; bias]. The number of features is
      increased by one, so w is a (nr_feature+1)*nr_class array. The
