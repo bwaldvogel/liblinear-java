@@ -302,8 +302,8 @@ Output probability estimates (for logistic regression only).
 Library Usage
 =============
 
-- Function: model* train(const struct problem *prob,
-                const struct parameter *param);
+- Function: `model* train(const struct problem *prob,
+                const struct parameter *param);`
 
     This function constructs and returns a linear classification
     or regression model according to the given training data and
