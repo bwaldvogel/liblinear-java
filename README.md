@@ -169,74 +169,74 @@ and mark
     -v n: n-fold cross validation mode
     -q : quiet mode (no outputs)
 
-    Option -v randomly splits the data into n parts and calculates cross
-    validation accuracy on them.
+Option -v randomly splits the data into n parts and calculates cross
+validation accuracy on them.
 
-    Formulations:
+Formulations:
 
-    For L2-regularized logistic regression (-s 0), we solve
+For L2-regularized logistic regression (-s 0), we solve
 
     min_w w^Tw/2 + C \sum log(1 + exp(-y_i w^Tx_i))
 
-    For L2-regularized L2-loss SVC dual (-s 1), we solve
+For L2-regularized L2-loss SVC dual (-s 1), we solve
 
     min_alpha  0.5(alpha^T (Q + I/2/C) alpha) - e^T alpha
         s.t.   0 <= alpha_i,
 
-    For L2-regularized L2-loss SVC (-s 2), we solve
+For L2-regularized L2-loss SVC (-s 2), we solve
 
     min_w w^Tw/2 + C \sum max(0, 1- y_i w^Tx_i)^2
 
-    For L2-regularized L1-loss SVC dual (-s 3), we solve
+For L2-regularized L1-loss SVC dual (-s 3), we solve
 
     min_alpha  0.5(alpha^T Q alpha) - e^T alpha
         s.t.   0 <= alpha_i <= C,
 
-    For L1-regularized L2-loss SVC (-s 5), we solve
+For L1-regularized L2-loss SVC (-s 5), we solve
 
     min_w \sum |w_j| + C \sum max(0, 1- y_i w^Tx_i)^2
 
-    For L1-regularized logistic regression (-s 6), we solve
+For L1-regularized logistic regression (-s 6), we solve
 
     min_w \sum |w_j| + C \sum log(1 + exp(-y_i w^Tx_i))
 
-    For L2-regularized logistic regression (-s 7), we solve
+For L2-regularized logistic regression (-s 7), we solve
 
     min_alpha  0.5(alpha^T Q alpha) + \sum alpha_i*log(alpha_i) + \sum (C-alpha_i)*log(C-alpha_i) - a constant
         s.t.   0 <= alpha_i <= C,
 
-    where
+where
 
     Q is a matrix with Q_ij = y_i y_j x_i^T x_j.
 
-    For L2-regularized L2-loss SVR (-s 11), we solve
+For L2-regularized L2-loss SVR (-s 11), we solve
 
     min_w w^Tw/2 + C \sum max(0, |y_i-w^Tx_i|-epsilon)^2
 
-    For L2-regularized L2-loss SVR dual (-s 12), we solve
+For L2-regularized L2-loss SVR dual (-s 12), we solve
 
     min_beta  0.5(beta^T (Q + lambda I/2/C) beta) - y^T beta + \sum |beta_i|
 
-    For L2-regularized L1-loss SVR dual (-s 13), we solve
+For L2-regularized L1-loss SVR dual (-s 13), we solve
 
     min_beta  0.5(beta^T Q beta) - y^T beta + \sum |beta_i|
         s.t.   -C <= beta_i <= C,
 
-    where
+where
 
     Q is a matrix with Q_ij = x_i^T x_j.
 
-    If bias >= 0, w becomes [w; w_{n+1}] and x becomes [x; bias].
+If `bias >= 0`, w becomes `[w; w_{n+1}]` and x becomes `[x; bias]`.
 
-    The primal-dual relationship implies that -s 1 and -s 2 give the same
-    model, -s 0 and -s 7 give the same, and -s 11 and -s 12 give the same.
+The primal-dual relationship implies that -s 1 and -s 2 give the same
+model, -s 0 and -s 7 give the same, and -s 11 and -s 12 give the same.
 
-    We implement 1-vs-the rest multi-class strategy for classification.
-    In training i vs. non_i, their C parameters are (weight from -wi)*C
-    and C, respectively. If there are only two classes, we train only one
-    model. Thus weight1*C vs. weight2*C is used. See examples below.
+We implement 1-vs-the rest multi-class strategy for classification.
+In training i vs. non_i, their C parameters are `(weight from -wi)*C`
+and C, respectively. If there are only two classes, we train only one
+model. Thus `weight1*C` vs. `weight2*C` is used. See examples below.
 
-    We also implement multi-class SVM by Crammer and Singer (-s 4):
+We also implement multi-class SVM by Crammer and Singer (-s 4):
 
     min_{w_m, \xi_i}  0.5 \sum_m ||w_m||^2 + C \sum_i \xi_i
         s.t.  w^T_{y_i} x_i - w^T_m x_i >= \e^m_i - \xi_i \forall m,i
@@ -244,7 +244,7 @@ and mark
     where e^m_i = 0 if y_i  = m,
           e^m_i = 1 if y_i != m,
 
-    Here we solve the dual problem:
+Here we solve the dual problem:
 
     min_{\alpha}  0.5 \sum_m ||w_m(\alpha)||^2 + \sum_i \sum_m e^m_i alpha^m_i
         s.t.  \alpha^m_i <= C^m_i \forall m,i , \sum_m \alpha^m_i=0 \forall i
