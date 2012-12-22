@@ -309,7 +309,7 @@ Library Usage
     or regression model according to the given training data and
     parameters.
 
-    struct problem describes the problem:
+    `struct problem` describes the problem:
 
         struct problem
         {
