@@ -235,6 +235,31 @@ public class LinearTest {
     }
 
     @Test
+    public void testPredictProbabilityWrongSolver() throws Exception {
+        Problem prob = new Problem();
+        prob.l = 1;
+        prob.n = 1;
+        prob.x = new FeatureNode[prob.l][];
+        prob.y = new double[prob.l];
+        for (int i = 0; i < prob.l; i++) {
+            prob.x[i] = new FeatureNode[] {};
+            prob.y[i] = i;
+        }
+
+        SolverType solverType = SolverType.L2R_L1LOSS_SVC_DUAL;
+        Parameter param = new Parameter(solverType, 10, 0.1);
+        Model model = Linear.train(prob, param);
+        try {
+            Linear.predictProbability(model, prob.x[0], new double[1]);
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage()).isEqualTo("probability output is only supported for logistic regression." //
+                + " This is currently only supported by the following solvers:" //
+                + " L2R_LR, L1R_LR, L2R_LR_DUAL");
+        }
+    }
+
+    @Test
     public void testRealloc() {
 
         int[] f = new int[] {1, 2, 3};

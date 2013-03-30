@@ -321,7 +321,18 @@ public class Linear {
      */
     public static double predictProbability(Model model, Feature[] x, double[] prob_estimates) throws IllegalArgumentException {
         if (!model.isProbabilityModel()) {
-            throw new IllegalArgumentException("probability output is only supported for logistic regression");
+            StringBuilder sb = new StringBuilder("probability output is only supported for logistic regression");
+            sb.append(". This is currently only supported by the following solvers: ");
+            int i = 0;
+            for (SolverType solverType : SolverType.values()) {
+                if (solverType.isLogisticRegressionSolver()) {
+                    if (i++ > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(solverType.name());
+                }
+            }
+            throw new IllegalArgumentException(sb.toString());
         }
         int nr_class = model.nr_class;
         int nr_w;
