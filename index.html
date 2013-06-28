@@ -46,7 +46,7 @@ title: liblinear-java
 </dependency>{% endhighlight %}
 
 				<h3>Usage</h3>
-				<p>The usage is pretty similar to the usage of the <code>C++</code> version.</p>
+				<p>The usage is pretty similar to the <code>C++</code> library version.</p>
 
 				<h4>Standalone</h4>
 <pre><code>$ java -cp liblinear-1.92.jar de.bwaldvogel.liblinear.Train -v 5 rcv1_train.binary
@@ -74,7 +74,7 @@ model.save(modelFile);
 // load model or use it directly
 model = Model.load(modelFile);
 
-Feature[] instance = new FeatureNode[5];
+Feature[] instance = { new FeatureNode(1, 4), new FeatureNode(2, 2) };
 double prediction = Linear.predict(model, instance);{% endhighlight %}
 
 				<h3>Weka</h3>
