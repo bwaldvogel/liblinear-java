@@ -2,7 +2,7 @@
 
 This is the Java version of LIBLINEAR.
 
-The project site of the original (C++) version is located at:
+The project site of the original `C++` version is located at:
        http://www.csie.ntu.edu.tw/~cjlin/liblinear/
 
 The upstream changelog can be found at:
@@ -15,17 +15,17 @@ However, I tried to stick as close as possible to the original C++ source code
 for the following reasons:
 
 - **Maintainability**:
-        Patches for the original C++ version can be often applied easily
+        Patches for the original C++ version can often be applied easily
 
 - **Probability of translation errors**:
         Sticking to the original source code makes it less likely to introduce
         new bugs that are caused by porting to Java.
 
 - **Code Reviews**:
-        Should be more easy since it can be compared to the original version.
+        It should be more easy to conduct code reviews since the sources can be compared to the original version.
 
 
-Below follow the contents of the original README file.
+Below follows a slightly modified version of the original README file.
 Please note that the README refers to the C++ version.
 However, as already stated above, the Java version is almost identical to use.
 The two most important methods that you might be interested in are:
@@ -56,10 +56,7 @@ Table of Contents
 - `predict` Usage
 - Examples
 - Library Usage
-- Building Windows Binaries
 - Additional Information
-- MATLAB/OCTAVE interface
-- PYTHON interface
 
 When to use LIBLINEAR but not LIBSVM
 ====================================
@@ -519,34 +516,6 @@ Library Usage
     Users can specify their output format by a function. Use
         set_print_string_function(NULL);
     for default printing to stdout.
-
-Building Windows Binaries
-=========================
-
-Windows binaries are in the directory `windows`. To build them via
-Visual C++, use the following steps:
-
-1. Open a dos command box and change to liblinear directory. If
-environment variables of VC++ have not been set, type
-
-    `C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat`
-
-    You may have to modify the above command according which version of VC++ or where it is installed.
-
-2. Type
-
-    `nmake -f Makefile.win clean all`
-
-
-MATLAB/OCTAVE Interface
-=======================
-
-Please check the file README in the directory `matlab`.
-
-PYTHON Interface
-================
-
-Please check the file README in the directory `python`.
 
 Additional Information
 ======================
