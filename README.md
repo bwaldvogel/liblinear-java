@@ -51,7 +51,6 @@ Table of Contents
 
 - When to use LIBLINEAR but not LIBSVM
 - Quick Start
-- Installation
 - `train` Usage
 - `predict` Usage
 - Examples
@@ -69,8 +68,9 @@ is an example.
 
 Warning: While generally liblinear is very fast, its default solver
 may be slow under certain situations (e.g., data not scaled or C is
-large). See Appendix B of our SVM guide about how to handle such
-cases.
+large).
+See Appendix B of our SVM guide about how to handle such cases.
+
 http://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf
 
 Warning: If you are a beginner and your data sets are not large, you
@@ -104,26 +104,6 @@ For more information about `train` and `predict`, see the sections
 To obtain good performances, sometimes one needs to scale the
 data. Please check the program `svm-scale` of LIBSVM. For large and
 sparse data, use `-l 0` to keep the sparsity.
-
-Installation
-============
-
-On Unix systems, type `make` to build the `train` and `predict`
-programs. Run them without arguments to show the usages.
-
-On other systems, consult `Makefile` to build them (e.g., see
-'Building Windows binaries' in this file) or use the pre-built
-binaries (Windows binaries are in the directory `windows`).
-
-This software uses some level-1 BLAS subroutines. The needed functions are
-included in this package.  If a BLAS library is available on your
-machine, you may use it by modifying the Makefile: Unmark the following line
-
-        #LIBS ?= -lblas
-
-and mark
-
-        LIBS ?= blas/blas.a
 
 `train` Usage
 =============
