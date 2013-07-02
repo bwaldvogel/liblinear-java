@@ -8,8 +8,13 @@ The project site of the original `C++` version is located at
 The upstream changelog can be found at
        http://www.csie.ntu.edu.tw/~cjlin/liblinear/log
 
-Please be aware that the code would be written differently at various places,
-if it would be a pure Java project (Java coding style, less use of statics, smaller classes and methods etc.).
+Please be aware that the code would be written differently at various places, i.e.
+
+- use Java coding style,
+- use less static functions and state,
+- write smaller classes and methods,
+
+if it would be a pure Java project.
 
 However, I tried to stick as close as possible to the original C++ source code
 for the following reasons:
@@ -27,7 +32,7 @@ for the following reasons:
 
 Below follows a slightly modified version of the original README file.
 Please note that the README refers to the C++ version.
-However, as already stated above, the Java version is almost identical to use.
+As afore mentioned, the Java version is almost identical to use.
 The two most important methods that you might be interested in are:
 
 - `Linear.train(…)`
