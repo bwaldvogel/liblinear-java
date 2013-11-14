@@ -47,9 +47,14 @@ public class Linear {
      */
     public static void crossValidation(Problem prob, Parameter param, int nr_fold, double[] target) {
         int i;
-        int[] fold_start = new int[nr_fold + 1];
         int l = prob.l;
         int[] perm = new int[l];
+
+        if (nr_fold > l) {
+            nr_fold = l;
+            System.err.println("WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)");
+        }
+        int[] fold_start = new int[nr_fold + 1];
 
         for (i = 0; i < l; i++)
             perm[i] = i;
@@ -134,6 +139,22 @@ public class Linear {
                 label[nr_class] = this_label;
                 count[nr_class] = 1;
                 ++nr_class;
+            }
+        }
+
+        //
+        // Labels are ordered by their first occurrence in the training set.
+        // However, for two-class sets with -1/+1 labels and -1 appears first,
+        // we swap labels to ensure that internally the binary SVM has positive data corresponding to the +1 instances.
+        //
+        if (nr_class == 2 && label[0] == -1 && label[1] == 1) {
+            swap(label, 0, 1);
+            swap(count, 0, 1);
+            for (i = 0; i < l; i++) {
+                if (data_label[i] == 0)
+                    data_label[i] = 1;
+                else
+                    data_label[i] = 0;
             }
         }
 
