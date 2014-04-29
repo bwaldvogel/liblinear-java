@@ -1781,7 +1781,7 @@ public class Linear {
                     }
                     try {
 						pool.shutdown();
-						pool.awaitTermination(24, TimeUnit.HOURS);
+						pool.awaitTermination(Integer.MAX_VALUE, TimeUnit.DAYS);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 						throw new RuntimeException(e);
