@@ -17,6 +17,9 @@ import java.nio.charset.Charset;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 
@@ -307,7 +310,7 @@ public class Linear {
                 }
             }
         }
-
+        reader.close();
         return model;
     }
 
@@ -1635,7 +1638,7 @@ public class Linear {
     /**
      * @throws IllegalArgumentException if the feature nodes of prob are not sorted in ascending order
      */
-    public static Model train(Problem prob, Parameter param) {
+    public static Model train(final Problem prob, final Parameter param) {
 
         if (prob == null) throw new IllegalArgumentException("problem must not be null");
         if (param == null) throw new IllegalArgumentException("parameter must not be null");
@@ -1653,10 +1656,10 @@ public class Linear {
             }
         }
 
-        int l = prob.l;
-        int n = prob.n;
-        int w_size = prob.n;
-        Model model = new Model();
+        final int l = prob.l;
+        final int n = prob.n;
+        final int w_size = prob.n;
+        final Model model = new Model();
 
         if (prob.bias >= 0)
             model.nr_feature = n - 1;
@@ -1681,10 +1684,10 @@ public class Linear {
 
             // group training data of the same class
             GroupClassesReturn rv = groupClasses(prob, perm);
-            int nr_class = rv.nr_class;
-            int[] label = rv.label;
-            int[] start = rv.start;
-            int[] count = rv.count;
+            final int nr_class = rv.nr_class;
+            final int[] label = rv.label;
+            final int[] start = rv.start;
+            final int[] count = rv.count;
 
             checkProblemSize(n, nr_class);
 
@@ -1694,7 +1697,7 @@ public class Linear {
                 model.label[i] = label[i];
 
             // calculate weighted C
-            double[] weighted_C = new double[nr_class];
+            final double[] weighted_C = new double[nr_class];
             for (int i = 0; i < nr_class; i++)
                 weighted_C[i] = param.C;
             for (int i = 0; i < param.getNumWeights(); i++) {
@@ -1707,7 +1710,7 @@ public class Linear {
             }
 
             // constructing the subproblem
-            Feature[][] x = new Feature[l][];
+            final Feature[][] x = new Feature[l][];
             for (int i = 0; i < l; i++)
                 x[i] = prob.x[perm[i]];
 
@@ -1744,25 +1747,45 @@ public class Linear {
 
                     train_one(sub_prob, param, model.w, weighted_C[0], weighted_C[1]);
                 } else {
+                	//Each sub-model fit in different thread
                     model.w = new double[w_size * nr_class];
-                    double[] w = new double[w_size];
+                    final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
                     for (int i = 0; i < nr_class; i++) {
-                        int si = start[i];
-                        int ei = si + count[i];
+                    	final int idx = i;
+                    	pool.submit(new Runnable() {
+							@Override
+							public void run() {
+								final double[] w = new double[w_size];
+			                    final Problem one_vs_rest = new Problem();
+		                    	one_vs_rest.l = l;
+		                    	one_vs_rest.n = n;
+		                    	one_vs_rest.x = x;
+		                    	one_vs_rest.y = new double[l];
+		                        int si = start[idx];
+		                        int ei = si + count[idx];
 
-                        int k = 0;
-                        for (; k < si; k++)
-                            sub_prob.y[k] = -1;
-                        for (; k < ei; k++)
-                            sub_prob.y[k] = +1;
-                        for (; k < sub_prob.l; k++)
-                            sub_prob.y[k] = -1;
+		                        int k = 0;
+		                        for (; k < si; k++)
+		                        	one_vs_rest.y[k] = -1;
+		                        for (; k < ei; k++)
+		                        	one_vs_rest.y[k] = +1;
+		                        for (; k < one_vs_rest.l; k++)
+		                        	one_vs_rest.y[k] = -1;
 
-                        train_one(sub_prob, param, w, weighted_C[i], param.C);
+		                        train_one(one_vs_rest, param, w, weighted_C[idx], param.C);
 
-                        for (int j = 0; j < n; j++)
-                            model.w[j * nr_class + i] = w[j];
+		                        for (int j = 0; j < n; j++)
+		                            model.w[j * nr_class + idx] = w[j];
+							}
+						});
                     }
+                    try {
+						pool.shutdown();
+						pool.awaitTermination(24, TimeUnit.HOURS);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+						throw new RuntimeException(e);
+					}
                 }
             }
         }
@@ -1879,3 +1902,4 @@ public class Linear {
         random = new Random(DEFAULT_RANDOM_SEED);
     }
 }
+
