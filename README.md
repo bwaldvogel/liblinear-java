@@ -33,10 +33,11 @@ for the following reasons:
 Below follows a slightly modified version of the original README file.
 Please note that the README refers to the C++ version.
 As afore mentioned, the Java version is almost identical to use.
-The two most important methods that you might be interested in are:
+The three most important methods that you might be interested in are:
 
 - `Linear.train(…)`
 - `Linear.predict(…)`
+- `Linear.predictProbability(…)`
 
 -------------------------------------------------------------------------------
 
