@@ -10,9 +10,9 @@ The upstream changelog can be found at
 
 Please be aware that the code would be written differently at various places, i.e.
 
-- use Java coding style,
-- use less static functions and state,
-- write smaller classes and methods,
+- Java coding style,
+- less static functions and state,
+- smaller classes and methods,
 
 if it would be a pure Java project.
 
