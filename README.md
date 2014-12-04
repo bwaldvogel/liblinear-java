@@ -143,7 +143,7 @@ sparse data, use `-l 0` to keep the sparsity.
         -s 1, 3, 4 and 7
             Dual maximal violation <= eps; similar to libsvm (default 0.1)
         -s 5 and 6
-            |f'(w)|_inf <= eps*min(pos,neg)/l*|f'(w0)|_inf,
+            |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,
             where f is the primal function (default 0.01)
         -s 12 and 13\n"
             |f'(alpha)|_1 <= eps |f'(alpha0)|,
@@ -216,7 +216,7 @@ The primal-dual relationship implies that -s 1 and -s 2 give the same
 model, -s 0 and -s 7 give the same, and -s 11 and -s 12 give the same.
 
 We implement 1-vs-the rest multi-class strategy for classification.
-In training i vs. non_i, their C parameters are `(weight from -wi)*C`
+In training `i` vs. `non_i`, their C parameters are `(weight from -wi)*C`
 and C, respectively. If there are only two classes, we train only one
 model. Thus `weight1*C` vs. `weight2*C` is used. See examples below.
 
@@ -313,26 +313,26 @@ Library Usage
 
     For example, if we have the following training data:
 
-		LABEL       ATTR1   ATTR2   ATTR3   ATTR4   ATTR5
-		-----       -----   -----   -----   -----   -----
-		1           0       0.1     0.2     0       0
-		2           0       0.1     0.3    -1.2     0
-		1           0.4     0       0       0       0
-		2           0       0.1     0       1.4     0.5
-		3          -0.1    -0.2     0.1     1.1     0.1
+        LABEL       ATTR1   ATTR2   ATTR3   ATTR4   ATTR5
+        -----       -----   -----   -----   -----   -----
+        1           0       0.1     0.2     0       0
+        2           0       0.1     0.3    -1.2     0
+        1           0.4     0       0       0       0
+        2           0       0.1     0       1.4     0.5
+        3          -0.1    -0.2     0.1     1.1     0.1
 
     and bias = 1, then the components of problem are:
 
-		l = 5
-		n = 6
+        l = 5
+        n = 6
 
-		y -> 1 2 1 2 3
+        y -> 1 2 1 2 3
 
-		x -> [ ] -> (2,0.1) (3,0.2) (6,1) (-1,?)
-			 [ ] -> (2,0.1) (3,0.3) (4,-1.2) (6,1) (-1,?)
-			 [ ] -> (1,0.4) (6,1) (-1,?)
-			 [ ] -> (2,0.1) (4,1.4) (5,0.5) (6,1) (-1,?)
-			 [ ] -> (1,-0.1) (2,-0.2) (3,0.1) (4,1.1) (5,0.1) (6,1) (-1,?)
+        x -> [ ] -> (2,0.1) (3,0.2) (6,1) (-1,?)
+             [ ] -> (2,0.1) (3,0.3) (4,-1.2) (6,1) (-1,?)
+             [ ] -> (1,0.4) (6,1) (-1,?)
+             [ ] -> (2,0.1) (4,1.4) (5,0.5) (6,1) (-1,?)
+             [ ] -> (1,-0.1) (2,-0.2) (3,0.1) (4,1.1) (5,0.1) (6,1) (-1,?)
 
     `struct parameter` describes the parameters of a linear classification or regression model:
 
@@ -358,7 +358,8 @@ Library Usage
     - `MCSVM_CS`              support vector classification by Crammer and Singer
     - `L1R_L2LOSS_SVC`        L1-regularized L2-loss support vector classification
     - `L1R_LR`                L1-regularized logistic regression
-    - `L2R_LR_DUAL`           L2-regularized logistic regression (dual) for regression
+    - `L2R_LR_DUAL`           L2-regularized logistic regression (dual)
+  for regression
     - `L2R_L2LOSS_SVR`        L2-regularized L2-loss support vector regression (primal)
     - `L2R_L2LOSS_SVR_DUAL`   L2-regularized L2-loss support vector regression (dual)
     - `L2R_L1LOSS_SVR_DUAL`   L2-regularized L1-loss support vector regression (dual)
@@ -404,10 +405,12 @@ Library Usage
      index corresponds to nr_class weight values. Weights are
      organized in the following way
 
+     ```
          +------------------+------------------+------------+
          | nr_class weights | nr_class weights |  ...
          | for 1st feature  | for 2nd feature  |
          +------------------+------------------+------------+
+     ```
 
      If bias >= 0, x becomes [x; bias]. The number of features is
      increased by one, so w is a (nr_feature+1)*nr_class array. The
@@ -466,6 +469,24 @@ Library Usage
     This function outputs the name of labels into an array called label.
     For a regression model, label is unchanged.
 
+- Function: `double get_decfun_coef(const struct model *model_, int feat_idx,
+            int label_idx);`
+
+    This function gives the coefficient for the feature with feature index =
+    feat_idx and the class with label index = label_idx. Note that feat_idx
+    starts from 1, while label_idx starts from 0. If feat_idx is not in the
+    valid range (1 to nr_feature), then a zero value will be returned. For
+    classification models, if label_idx is not in the valid range (0 to
+    nr_class-1), then a zero value will be returned; for regression models,
+    label_idx is ignored.
+
+- Function: `double get_decfun_bias(const struct model *model_, int label_idx);`
+
+    This function gives the bias term corresponding to the class with the
+    label_idx. For classification models, if label_idx is not in a valid range
+    (0 to nr_class-1), then a zero value will be returned; for regression
+    models, label_idx is ignored.
+
 - Function: `const char *check_parameter(const struct problem *prob,
             const struct parameter *param);`
 
@@ -473,6 +494,16 @@ Library Usage
     range of the problem. This function should be called before calling
     train() and cross_validation(). It returns NULL if the
     parameters are feasible, otherwise an error message is returned.
+
+- Function: `int check_probability_model(const struct model *model);`
+
+    This function returns 1 if the model supports probability output;
+    otherwise, it returns 0.
+
+- Function: `int check_regression_model(const struct model *model);`
+
+    This function returns 1 if the model is a regression model; otherwise
+    it returns 0.
 
 - Function: `int save_model(const char *model_file_name,
             const struct model *model_);`

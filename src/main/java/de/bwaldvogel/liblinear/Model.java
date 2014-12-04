@@ -88,6 +88,67 @@ public final class Model implements Serializable {
         return bias;
     }
 
+    private double get_w_value(int idx, int label_idx) {
+        if (idx < 0 || idx > nr_feature) {
+            return 0;
+        }
+        if (solverType.isSupportVectorRegression()) {
+            return w[idx];
+        } else {
+            if (label_idx < 0 || label_idx >= nr_class) {
+                return 0;
+            }
+            if (nr_class == 2 && solverType != SolverType.MCSVM_CS) {
+                if (label_idx == 0) {
+                    return w[idx];
+                } else {
+                    return -w[idx];
+                }
+            } else {
+                return w[idx * nr_class + label_idx];
+            }
+        }
+    }
+
+    /**
+     * This function gives the coefficient for the feature with feature index =
+     * feat_idx and the class with label index = label_idx. Note that feat_idx
+     * starts from 1, while label_idx starts from 0. If feat_idx is not in the
+     * valid range (1 to nr_feature), then a zero value will be returned. For
+     * classification models, if label_idx is not in the valid range (0 to
+     * nr_class-1), then a zero value will be returned; for regression models,
+     * label_idx is ignored.
+     *
+     * @since 1.95
+     */
+    // feat_idx: starting from 1 to nr_feature
+    // label_idx: starting from 0 to nr_class-1 for classification models;
+    //            for regression models, label_idx is ignored.
+    public double getDecfunCoef(int featIdx, int labelIdx) {
+        if (featIdx > nr_feature) {
+            return 0;
+        }
+        return get_w_value(featIdx - 1, labelIdx);
+    }
+
+    /**
+     * This function gives the bias term corresponding to the class with the
+     * label_idx. For classification models, if label_idx is not in a valid range
+     * (0 to nr_class-1), then a zero value will be returned; for regression
+     * models, label_idx is ignored.
+     *
+     * @since 1.95
+     */
+    public double getDecfunBias(int labelIdx) {
+        int biasIdx = nr_feature;
+        if (bias <= 0) {
+            return 0;
+        } else {
+            return bias * get_w_value(biasIdx, labelIdx);
+        }
+    }
+
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Model");

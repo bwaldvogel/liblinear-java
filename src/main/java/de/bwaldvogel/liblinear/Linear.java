@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.94
+ * @version 1.95
  */
 public class Linear {
 
@@ -721,7 +721,7 @@ public class Linear {
         double d, G, H;
         double Gmax_old = Double.POSITIVE_INFINITY;
         double Gmax_new, Gnorm1_new;
-        double Gnorm1_init = 0; // initialize to 0 to get rid of Eclipse warning/error
+        double Gnorm1_init= -1.0; // Gnorm1_init is initialized at the first iteration
         double[] beta = new double[l];
         double[] QD = new double[l];
         double[] y = prob.y;
@@ -1051,7 +1051,7 @@ public class Linear {
         double d, G_loss, G, H;
         double Gmax_old = Double.POSITIVE_INFINITY;
         double Gmax_new, Gnorm1_new;
-        double Gnorm1_init = 0; // eclipse moans this variable might not be initialized
+        double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
         double d_old, d_diff;
         double loss_old = 0; // eclipse moans this variable might not be initialized
         double loss_new;
@@ -1293,7 +1293,7 @@ public class Linear {
         double sigma = 0.01;
         double w_norm, w_norm_new;
         double z, G, H;
-        double Gnorm1_init = 0; // eclipse moans this variable might not be initialized
+        double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
         double Gmax_old = Double.POSITIVE_INFINITY;
         double Gmax_new, Gnorm1_new;
         double QP_Gmax_old = Double.POSITIVE_INFINITY;
@@ -1666,9 +1666,7 @@ public class Linear {
         model.solverType = param.solverType;
         model.bias = prob.bias;
 
-        if (param.solverType == SolverType.L2R_L2LOSS_SVR || //
-            param.solverType == SolverType.L2R_L1LOSS_SVR_DUAL || //
-            param.solverType == SolverType.L2R_L2LOSS_SVR_DUAL) {
+        if (param.solverType.isSupportVectorRegression()) {
             model.w = new double[w_size];
             model.nr_class = 2;
             model.label = null;
