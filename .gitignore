@@ -5,5 +5,5 @@
 !.gitignore
 !.travis.yml
 
-/target
-/data
+build/
+data/

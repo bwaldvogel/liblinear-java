@@ -1,0 +1,93 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'nexus'
+
+version = '1.95'
+
+sourceCompatibility = 1.6
+
+compileJava.options.encoding = 'UTF-8'
+
+ext {
+    title = 'liblinear'
+    description = 'Java port of Liblinear'
+    url = 'https://www.github.com/bwaldvogel/liblinear'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': title, 'Implementation-Version': version
+    }
+}
+
+// https://github.com/bmuschko/gradle-nexus-plugin
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
+    }
+}
+
+ext {
+    powermockVersion = '1.4.8'
+}
+
+modifyPom {
+    project {
+        groupId        'de.bwaldvogel'
+        artifactId     'liblinear'
+        name           title
+        description    description
+        url            url
+        inceptionYear '2008'
+
+        scm {
+            url 'git@github.com:bwaldvogel/liblinear.git'
+            connection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
+            developerConnection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
+        }
+
+        licenses {
+            license {
+                name 'The BSD License'
+                url 'http://www.opensource.org/licenses/bsd-license.php'
+                distribution 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id 'bwaldvogel'
+                name 'Benedikt Waldvogel'
+                email 'mail@bwaldvogel.de'
+            }
+        }
+    }
+}
+
+nexus {
+    attachSources = true
+    attachTests = false
+    attachJavadoc = true
+    sign = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.8.1'
+    testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
+}
+
+// vim: set ts=4 sw=4 et:
