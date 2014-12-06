@@ -4,5 +4,5 @@
 
 !.gitignore
 
-/target
-/data
+build/
+data/
