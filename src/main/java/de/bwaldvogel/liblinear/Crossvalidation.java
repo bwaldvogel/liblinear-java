@@ -5,17 +5,16 @@ package de.bwaldvogel.liblinear;
  */
 public class Crossvalidation {
 
+
     public static void crossvalidation(Problem prob, Parameter param, int nr_fold, double[] target) {
         Linear.crossValidation(prob, param, nr_fold, target);
     }
 
     /**
-     * Evaluate each parameter using the metric
+     * Cross-validation using Metrics for evaluation.
      *
-     * @param prob
-     * @param param
-     * @param nr_fold
-     * @return
+     * @param performance holds the evaluation values for each parameter
+     * @param metrics Defines the metrics by which the predicted labels on the validation set should be evaluated
      */
     public static void crossvalidation(Problem prob, Parameter[] param, int nr_fold, double[] performance, Metrics metrics) {
 
@@ -25,7 +24,6 @@ public class Crossvalidation {
             performance[i] = metrics.evaluate(prob.y, target);
         }
     }
-
 
     public static int argmax(double[] values) {
         if (values.length == 0) System.err.println("Cannot get an argmax of an empty array");
