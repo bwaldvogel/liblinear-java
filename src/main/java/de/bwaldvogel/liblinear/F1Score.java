@@ -10,9 +10,12 @@ public class F1Score implements Metrics
     double[] classes;
     F1Average average;
 
-    public F1Score(double[] classes, F1Average average){
-        this.classes = classes;
+    public F1Score(F1Average average){
         this.average = average;
+    }
+
+    public void setClasses(double[] classes){
+        this.classes=classes;
     }
 
 

@@ -36,20 +36,6 @@ public class Crossvalidation {
         }
     }
 
-    public static int argmax(double[] values) {
-        if (values.length == 0) System.err.println("Cannot get an argmax of an empty array");
-        int maxInd = 0;
-        double max = values[0];
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] > max) {
-                max = values[i];
-                maxInd = i;
-            }
-        }
-        return maxInd;
-
-    }
-
 
     public static double mean(double[] values){
         double sum = 0;
