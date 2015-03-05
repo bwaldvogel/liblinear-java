@@ -13,6 +13,14 @@ public class Crossvalidation {
             this.mean = mean;
             this.std = std;
         }
+
+        public double getMean() {
+            return mean;
+        }
+
+        public double getStd() {
+            return std;
+        }
     }
 
 
