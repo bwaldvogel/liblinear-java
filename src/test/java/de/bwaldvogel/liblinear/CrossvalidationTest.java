@@ -26,24 +26,12 @@ public class CrossvalidationTest {
 
     @Test
     public void testCrossValidate() {
-        double[] performance = new double[params.length];
+        Crossvalidation.Result[] performance = new Crossvalidation.Result[params.length];
         Crossvalidation.crossvalidation(prob, params, 2, performance, new Accuracy());
         for (int i = 0; i < performance.length; i++) {
-            assertThat(performance[i]).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
+            assertThat(performance[i].mean).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
         }
 
     }
-
-    @Test
-    public void testCrossValidateF1() {
-        double[] performance = new double[params.length];
-        double[] labels = {1, 2, 3};
-        Crossvalidation.crossvalidation(prob, params, 2, performance, new F1Score(labels));
-        for (int i = 0; i < performance.length; i++) {
-            assertThat(performance[i]).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
-        }
-
-    }
-
 
 }

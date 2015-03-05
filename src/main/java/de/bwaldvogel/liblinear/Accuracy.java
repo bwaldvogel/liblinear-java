@@ -7,8 +7,15 @@ public class Accuracy implements Metrics {
 
 
     @Override
-    public double evaluate(double[] trueLabels, double[] predLabels) {
-        return getAccuracy(trueLabels,predLabels);
+    public Crossvalidation.Result evaluate(double[][] trueLabels, double[][] predLabels) {
+        int noFold = trueLabels.length;
+        double[] acc = new double[noFold];
+        for (int i = 0; i < noFold; i++) {
+            acc[i]= getAccuracy(trueLabels[i],predLabels[i]);
+        }
+        double mean = Crossvalidation.mean(acc);
+        double std = Crossvalidation.std(mean,acc);
+        return new Crossvalidation.Result(mean,std);
     }
 
     private double getAccuracy(double[] trueLabels, double[] predicted) {
@@ -21,5 +28,9 @@ public class Accuracy implements Metrics {
         return total_correct/(double)trueLabels.length;
 
     }
+
+
+
+
 
 }

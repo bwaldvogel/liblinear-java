@@ -1,7 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.PrintStream;
 
 /**
  * Created by christinamueller on 2/23/15.
@@ -9,14 +8,26 @@ import java.util.Set;
 public class F1Score implements Metrics
 {
     double[] classes;
-    public F1Score(double[] classes){
+    F1Average average;
+
+    public F1Score(double[] classes, F1Average average){
         this.classes = classes;
+        this.average = average;
     }
 
 
     @Override
-    public double evaluate(double[] trueLabels, double[] predLabels) {
-        return getAvgF1(trueLabels,predLabels,classes);
+    public Crossvalidation.Result evaluate(double[][] trueLabels, double[][] predLabels) {
+        int noFold = trueLabels.length;
+        double[] acc = new double[noFold];
+        for (int i = 0; i < noFold; i++) {
+            acc[i]= getAvgF1(trueLabels[i],predLabels[i],classes);
+        }
+        double mean = Crossvalidation.mean(acc);
+        double std = Crossvalidation.std(mean,acc);
+        return new Crossvalidation.Result(mean,std);
+
+
     }
 
     private double getAvgF1(double[] trueLabels, double[] predicted, double[] labels) {
@@ -27,12 +38,11 @@ public class F1Score implements Metrics
 
         double[] f1Scores = new double[labels.length];
         double[] support = new double[labels.length];
-        double avgF1 = 0.0d;
+
         for (int j = 0; j < labels.length; j++) {
 
             double[] trueConverted = new double[predicted.length];
             double[] predConverted = new double[predicted.length];
-
             int labelCounter = 0;
             double label = labels[j];
             for (int i = 0; i < predicted.length; i++) {
@@ -45,11 +55,11 @@ public class F1Score implements Metrics
                 else
                     predConverted[i] = -1;
             }
+
             support[j] = (double) labelCounter / trueLabels.length;
             f1Scores[j] = getF1(trueConverted, predConverted);
-            avgF1 = avgF1 + support[j] * f1Scores[j];
         }
-        return avgF1;
+        return average.getAverage(f1Scores,support);
     }
 
     private double getF1(double[] trueLabels, double[] predicted) {
@@ -92,8 +102,34 @@ public class F1Score implements Metrics
 
     }
 
+    public static class F1Macro implements F1Average {
 
+        @Override
+        public double getAverage(double[] scores, double[] support) {
+            return average(scores);
+        }
 
+        private double average(double[] values){
+            return Crossvalidation.mean(values);
+        }
+
+    }
+
+    public static class F1Weighted implements F1Average {
+
+        @Override
+        public double getAverage(double[] scores, double[] support) {
+            return average(scores,support);
+        }
+        private double average(double[] values,double[] support){
+            double avgF1 = 0.0d;
+            for (int i = 0; i < support.length; i++) {
+                avgF1 = avgF1 + support[i] * values[i];
+            }
+            return avgF1;
+        }
+
+    }
 
 
 }

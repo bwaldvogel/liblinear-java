@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'nexus'
 
-version = '1.95'
+version = '0.0.3-FORK'
 
 sourceCompatibility = 1.6
 
@@ -37,11 +37,11 @@ ext {
 
 modifyPom {
     project {
-        groupId        'de.bwaldvogel'
-        artifactId     'liblinear'
-        name           title
-        description    description
-        url            url
+        groupId 'de.bwaldvogel'
+        artifactId 'liblinear'
+        name title
+        description description
+        url url
         inceptionYear '2008'
 
         scm {
@@ -72,9 +72,20 @@ nexus {
     attachSources = true
     attachTests = false
     attachJavadoc = true
-    sign = true
+    sign = false
 }
-
+//
+//repositories {
+//    repository(url:"http://maven.int.s-cloud.net/content/repositories/snapshots") {
+//        repositories.mavenDeployer {
+//            authentication(userName: "me", password: "myPassword")
+//            pom.version = '0.0.3-SNAPSHOT'
+//            pom.artifactId = 'bwaldvogel'
+//            pom.groupId = 'bwaldvogel'
+//        }
+//}
+//}
+//
 repositories {
     mavenCentral()
 }
@@ -82,6 +93,38 @@ repositories {
 task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
+
+
+
+uploadArchives {
+
+    repositories.mavenDeployer {
+        //authentication(userName: "me", password: "myPasswor
+        pom.version = '0.0.3-FORK'
+        pom.artifactId = 'bwaldvogel'
+        pom.groupId = 'bwaldvogel'
+        repository(url: "scp://maven.int.s-cloud.net/content/repositories/snapshots")
+        snapshotRepository(url: "scp://maven.int.s-cloud.net/content/repositories/snapshots")
+        //snapshots(url:"http://maven.int.s-cloud.net/content/repositories/snapshots")
+    }
+
+
+}
+
+//
+//uploadArchives {
+//    repositories {
+//
+//        ivy {
+//            credentials {
+//                username "username"
+//                password "pw"
+//            }
+//            url "http://repo.mycompany.com"
+//        }
+//    }
+//}
+
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'

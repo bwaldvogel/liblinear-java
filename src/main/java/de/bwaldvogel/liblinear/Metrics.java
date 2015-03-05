@@ -5,6 +5,6 @@ package de.bwaldvogel.liblinear;
  */
 public interface Metrics {
 
-    public double evaluate(double[] trueLabels, double[] predLabels);
+    public Crossvalidation.Result evaluate(double[][] trueLabels, double[][] predLabels);
 
 }
