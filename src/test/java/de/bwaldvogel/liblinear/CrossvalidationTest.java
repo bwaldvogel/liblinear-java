@@ -27,7 +27,7 @@ public class CrossvalidationTest {
     @Test
     public void testCrossValidate() {
         Crossvalidation.Result[] performance = new Crossvalidation.Result[params.length];
-        Crossvalidation.crossvalidation(prob, params, 2, performance, new Accuracy());
+        Crossvalidation.crossvalidationWithMetrics(prob, params, 2, performance, new Accuracy());
         for (int i = 0; i < performance.length; i++) {
             assertThat(performance[i].mean).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
         }

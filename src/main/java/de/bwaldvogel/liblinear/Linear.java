@@ -98,7 +98,7 @@ public class Linear {
     /**
      * @param target predicted classes
      */
-    public static void crossValidation(Problem prob, Parameter param, int nr_fold, double[][] target,double[][] perm_y) {
+    public static void crossValidationWithMetrics(Problem prob, Parameter param, int nr_fold, double[][] target, double[][] perm_y) {
         int i;
         int l = prob.l;
         int[] perm = new int[l];
@@ -147,7 +147,6 @@ public class Linear {
             double[] y = new double[end - begin];
 
             for (j = begin; j < end; j++) {
-
                 pred[j - begin] = predict(submodel, prob.x[perm[j]]);
                 y[j - begin] = prob.y[perm[j]];
             }

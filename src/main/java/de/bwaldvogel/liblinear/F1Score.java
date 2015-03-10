@@ -10,14 +10,10 @@ public class F1Score implements Metrics
     double[] classes;
     F1Average average;
 
-    public F1Score(F1Average average){
+    public F1Score(F1Average average, double[] classes){
         this.average = average;
+        this.classes = classes;
     }
-
-    public void setClasses(double[] classes){
-        this.classes=classes;
-    }
-
 
     @Override
     public Crossvalidation.Result evaluate(double[][] trueLabels, double[][] predLabels) {
