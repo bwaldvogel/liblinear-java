@@ -10,6 +10,8 @@ public final class Parameter {
     /** stopping criteria */
     double     eps;
 
+    int max_iters = 1000; // maximal iterations
+
     SolverType solverType;
 
     double[]   weight      = null;
@@ -19,13 +21,31 @@ public final class Parameter {
     double     p;
 
     public Parameter( SolverType solver, double C, double eps ) {
-        this(solver, C, eps, 0.1);
+        setSolverType(solver);
+        setC(C);
+        setEps(eps);
+
+    }
+
+    public Parameter( SolverType solver, double C, int max_iters, double eps ) {
+        setSolverType(solver);
+        setC(C);
+        setEps(eps);
+        setMaxIters(max_iters);
     }
 
     public Parameter( SolverType solverType, double C, double eps, double p ) {
         setSolverType(solverType);
         setC(C);
         setEps(eps);
+        setP(p);
+    }
+
+    public Parameter( SolverType solverType, double C, double eps, int max_iters, double p ) {
+        setSolverType(solverType);
+        setC(C);
+        setEps(eps);
+        setMaxIters(max_iters);
         setP(p);
     }
 
@@ -94,6 +114,15 @@ public final class Parameter {
 
     public double getEps() {
         return eps;
+    }
+
+    public void setMaxIters(int iters) {
+        if (iters <= 0) throw new IllegalArgumentException("max iters not be <= 0");
+        this.max_iters = iters;
+    }
+
+    public int getMaxIters() {
+        return max_iters;
     }
 
     public void setSolverType(SolverType solverType) {
