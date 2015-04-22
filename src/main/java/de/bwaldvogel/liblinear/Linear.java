@@ -714,7 +714,7 @@ public class Linear {
         int w_size = prob.n;
         double eps = param.eps;
         int i, s, iter = 0;
-        int max_iter = 1000;
+        int max_iter = param.getMaxIters();
         int active_size = l;
         int[] index = new int[l];
 
@@ -1017,7 +1017,7 @@ public class Linear {
         v *= 0.5;
         for (i = 0; i < l; i++)
             v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
-                * Math.log(upper_bound[GETI(y, i)]);
+                    * Math.log(upper_bound[GETI(y, i)]);
         info("Objective value = %g%n", v);
     }
 
@@ -1375,7 +1375,7 @@ public class Linear {
                         violation = -Gp;
                     else if (Gn > 0)
                         violation = Gn;
-                    //outer-level shrinking
+                        //outer-level shrinking
                     else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
                         active_size--;
                         swap(index, s, active_size);
@@ -1430,7 +1430,7 @@ public class Linear {
                             violation = -Gp;
                         else if (Gn > 0)
                             violation = Gn;
-                        //inner-level shrinking
+                            //inner-level shrinking
                         else if (Gp > QP_Gmax_old / l && Gn < -QP_Gmax_old / l) {
                             QP_active_size--;
                             swap(index, s, QP_active_size);
@@ -1470,7 +1470,7 @@ public class Linear {
                     //inner stopping
                     if (QP_active_size == active_size)
                         break;
-                    //active set reactivation
+                        //active set reactivation
                     else {
                         QP_active_size = active_size;
                         QP_Gmax_old = Double.POSITIVE_INFINITY;
