@@ -18,13 +18,12 @@ public final class Parameter {
 
     int[]      weightLabel = null;
 
-    double     p;
+    double     p = 0.1;
 
     public Parameter( SolverType solver, double C, double eps ) {
         setSolverType(solver);
         setC(C);
         setEps(eps);
-
     }
 
     public Parameter( SolverType solver, double C, int max_iters, double eps ) {

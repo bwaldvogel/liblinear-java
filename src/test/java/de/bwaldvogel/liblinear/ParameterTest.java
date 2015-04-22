@@ -17,6 +17,13 @@ public class ParameterTest {
     }
 
     @Test
+    public void testDefaults() {
+        Parameter parameters = new Parameter(SolverType.L1R_LR, 1, 0.1);
+        assertThat(parameters.getP()).isEqualTo(0.1);
+        assertThat(parameters.getMaxIters()).isEqualTo(1000);
+    }
+
+    @Test
     public void testSetWeights() {
 
         assertThat(_param.weight).isNull();
