@@ -33,6 +33,18 @@ public class MetricsTest {
 
 
     @Test
+    public void testEvaluateF1Macro2() {
+        double[][] y = {{1.0, 2.0, 3.0, 2.0,3.0}};
+        double[][] pred = {{1.0, 2.0, 3.0, 1.0,2.0}};
+        double[] labels = new double[]{1.0, 2.0, 3.0};
+        F1Score f1 = new F1Score(new F1Score.F1Macro(),labels);
+        Crossvalidation.Result result = f1.evaluate(y, pred);
+        assertThat(result.getF1PerClass().length == 1);
+        assertThat(result.getF1PerClass()[0].length == 3);
+    }
+
+
+    @Test
     public void testAccuracy() {
         double[][] y = {{1.0, 2.0, 3.0, 2.0,3.0}};
         double[][] pred = {{1.0, 2.0, 3.0, 1.0,2.0}};

@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'nexus'
 
-version = '1.95'
+version = '0.0.6-FORK'
 
 sourceCompatibility = 1.6
 
@@ -16,7 +16,8 @@ ext {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': title, 'Implementation-Version': version
+        attributes 'Implementation-Title': title, 'Implementation-Version':
+                version
     }
 }
 
@@ -37,17 +38,18 @@ ext {
 
 modifyPom {
     project {
-        groupId        'de.bwaldvogel'
-        artifactId     'liblinear'
-        name           title
-        description    description
-        url            url
+        groupId 'de.bwaldvogel'
+        artifactId 'liblinear'
+        name title
+        description description
+        url url
         inceptionYear '2008'
 
         scm {
             url 'git@github.com:bwaldvogel/liblinear.git'
             connection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
-            developerConnection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
+            developerConnection
+            'scm:git:git@github.com:bwaldvogel/liblinear.git'
         }
 
         licenses {
@@ -72,9 +74,21 @@ nexus {
     attachSources = true
     attachTests = false
     attachJavadoc = true
-    sign = true
+    sign = false
 }
-
+//
+//repositories {
+//    repository(url:"http://maven.int.s-cloud.net/content/repositories/snapshots")
+//    {
+//        repositories.mavenDeployer {
+//            authentication(userName: "me", password: "myPassword")
+//            pom.version = '0.0.3-SNAPSHOT'
+//            pom.artifactId = 'bwaldvogel'
+//            pom.groupId = 'bwaldvogel'
+//        }
+//}
+//}
+//
 repositories {
     mavenCentral()
 }
@@ -83,11 +97,48 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
 
+
+
+uploadArchives {
+
+    repositories.mavenDeployer {
+        //authentication(userName: "me", password: "myPasswor
+        pom.version = '0.0.6-FORK'
+        pom.artifactId = 'bwaldvogel'
+        pom.groupId = 'bwaldvogel'
+        repository(url:
+                "scp://maven.int.s-cloud.net/content/repositories/snapshots")
+        snapshotRepository(url:
+                "scp://maven.int.s-cloud.net/content/repositories/snapshots")
+        //snapshots(url:"http://maven.int.s-cloud.net/content/repositories/snapshots")
+    }
+
+
+}
+
+//
+//uploadArchives {
+//    repositories {
+//
+//        ivy {
+//            credentials {
+//                username "username"
+//                password "pw"
+//            }
+//            url "http://repo.mycompany.com"
+//        }
+//    }
+//}
+
+
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
-    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
-    testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4',
+            version: powermockVersion
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito',
+            version: powermockVersion
 }
 
 // vim: set ts=4 sw=4 et:
+
