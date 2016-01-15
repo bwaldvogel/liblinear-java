@@ -2,11 +2,7 @@ package liblinear;
 
 import static liblinear.Linear.NL;
 import static liblinear.Linear.info;
-import static org.netlib.blas.DAXPY.DAXPY;
-import static org.netlib.blas.DDOT.DDOT;
-import static org.netlib.blas.DNRM2.DNRM2;
-import static org.netlib.blas.DSCAL.DSCAL;
-
+import org.netlib.blas.BLAS;
 
 class Tron {
 
@@ -15,6 +11,8 @@ class Tron {
     private final double   eps;
 
     private final int      max_iter;
+
+    private final BLAS blas = BLAS.getInstance();
 
     public Tron( final Function fun_obj ) {
         this(fun_obj, 0.1);
@@ -53,7 +51,7 @@ class Tron {
 
         f = fun_obj.fun(w);
         fun_obj.grad(w, g);
-        delta = DNRM2(n, g, inc);
+        delta = blas.dnrm2(n, g, inc);
         // delta = dnrm2_(&n, g, &inc);
         double gnorm1 = delta;
         double gnorm = gnorm1;
@@ -67,18 +65,18 @@ class Tron {
 
             // memcpy(w_new, w, sizeof(double)*n);
             System.arraycopy(w, 0, w_new, 0, n);
-            DAXPY(n, one, s, inc, w_new, inc);
+            blas.daxpy(n, one, s, inc, w_new, inc);
 
-            gs = DDOT(n, g, inc, s, inc);
+            gs = blas.ddot(n, g, inc, s, inc);
             // gs = ddot_(&n, g, &inc, s, &inc);
-            prered = -0.5 * (gs - DDOT(n, s, inc, r, inc));
+            prered = -0.5 * (gs - blas.ddot(n, s, inc, r, inc));
             fnew = fun_obj.fun(w_new);
 
             // Compute the actual reduction.
             actred = f - fnew;
 
             // On the first iteration, adjust the initial step bound.
-            snorm = DNRM2(n, s, inc);
+            snorm = blas.dnrm2(n, s, inc);
             // snorm = dnrm2_(&n, s, &inc);
             if (iter == 1) delta = Math.min(delta, snorm);
 
@@ -108,7 +106,7 @@ class Tron {
                 f = fnew;
                 fun_obj.grad(w, g);
 
-                gnorm = DNRM2(n, g, inc);
+                gnorm = blas.dnrm2(n, g, inc);
                 // gnorm = dnrm2_(&n, g, &inc);
                 if (gnorm <= eps * gnorm1) break;
             }
@@ -141,47 +139,47 @@ class Tron {
             r[i] = -g[i];
             d[i] = r[i];
         }
-        cgtol = 0.1 * DNRM2(n, g, inc);
+        cgtol = 0.1 * blas.dnrm2(n, g, inc);
 
         int cg_iter = 0;
         // rTr = ddot_(&n, r, &inc, r, &inc);
-        rTr = DDOT(n, r, inc, r, inc);
+        rTr = blas.ddot(n, r, inc, r, inc);
 
         while (true) {
-            if (DNRM2(n, r, inc) <= cgtol) break;
+            if (blas.dnrm2(n, r, inc) <= cgtol) break;
             cg_iter++;
             fun_obj.Hv(d, Hd);
 
-            double alpha = rTr / DDOT(n, d, inc, Hd, inc);
-            DAXPY(n, alpha, d, inc, s, inc);
+            double alpha = rTr / blas.ddot(n, d, inc, Hd, inc);
+            blas.daxpy(n, alpha, d, inc, s, inc);
             // daxpy_(&n, &alpha, d, &inc, s, &inc);
             // if (dnrm2_(&n, s, &inc) > delta)
-            if (DNRM2(n, s, inc) > delta) {
+            if (blas.dnrm2(n, s, inc) > delta) {
                 info("cg reaches trust region boundary\n");
                 alpha = -alpha;
                 // daxpy_(&n, &alpha, d, &inc, s, &inc);
-                DAXPY(n, alpha, d, inc, s, inc);
+                blas.daxpy(n, alpha, d, inc, s, inc);
 
-                double std = DDOT(n, s, inc, d, inc);
-                double sts = DDOT(n, s, inc, s, inc);
-                double dtd = DDOT(n, d, inc, d, inc);
+                double std = blas.ddot(n, s, inc, d, inc);
+                double sts = blas.ddot(n, s, inc, s, inc);
+                double dtd = blas.ddot(n, d, inc, d, inc);
                 double dsq = delta * delta;
                 double rad = Math.sqrt(std * std + dtd * (dsq - sts));
                 if (std >= 0)
                     alpha = (dsq - sts) / (std + rad);
                 else
                     alpha = (rad - std) / dtd;
-                DAXPY(n, alpha, d, inc, s, inc);
+                blas.daxpy(n, alpha, d, inc, s, inc);
                 alpha = -alpha;
-                DAXPY(n, alpha, Hd, inc, r, inc);
+                blas.daxpy(n, alpha, Hd, inc, r, inc);
                 break;
             }
             alpha = -alpha;
-            DAXPY(n, alpha, Hd, inc, r, inc);
-            rnewTrnew = DDOT(n, r, inc, r, inc);
+            blas.daxpy(n, alpha, Hd, inc, r, inc);
+            rnewTrnew = blas.ddot(n, r, inc, r, inc);
             double beta = rnewTrnew / rTr;
-            DSCAL(n, beta, d, inc);
-            DAXPY(n, one, r, inc, d, inc);
+            blas.dscal(n, beta, d, inc);
+            blas.daxpy(n, one, r, inc, d, inc);
             rTr = rnewTrnew;
         }
 

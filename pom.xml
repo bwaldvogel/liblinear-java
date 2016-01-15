@@ -3,9 +3,30 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>liblinear</groupId>
     <artifactId>liblinear</artifactId>
+    <packaging>jar</packaging>
     <name>liblinear</name>
-    <version>1.5</version>
-    <url>http://www.csie.ntu.edu.tw/~cjlin/liblinear/</url>
+    <version>1.51</version>
+    <description>Java port of Liblinear</description>
+    <url>http://www.bwaldvogel.de/liblinear-java/</url>
+    <licenses>
+        <license>
+            <name>The BSD License</name>
+            <url>http://www.opensource.org/licenses/bsd-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git@github.com:bwaldvogel/liblinear-java.git</connection>
+        <developerConnection>scm:git:git@github.com:bwaldvogel/liblinear-java.git</developerConnection>
+        <url>git@github.com:bwaldvogel/liblinear-java.git</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>bwaldvogel</id>
+            <name>Benedikt Waldvogel</name>
+            <email>mail at bwaldvogel.de</email>
+        </developer>
+    </developers>
     <build>
         <plugins>
             <plugin>
@@ -16,57 +37,39 @@
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>assembly</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <finalName>liblinear-${project.version}</finalName>
-                    <descriptors>
-                        <descriptor>assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>powermock-repo</id>
-            <url>http://powermock.googlecode.com/svn/repo/</url>
-        </repository>
-        <repository>
-            <id>fest-assert</id>
-            <url>http://svn.codehaus.org/fest/m2/repo/</url>
-        </repository>
-    </repositories>
     <properties>
-        <powermock.version>1.2.5</powermock.version>
+        <powermock.version>1.4.6</powermock.version>
     </properties>
     <dependencies>
-        <!--
-        this dependency needs to be installed manually (see the 'lib' folder)
-        -->
         <dependency>
-            <groupId>org.netlib.jlapack</groupId>
-            <artifactId>blas</artifactId>
-            <version>0.8</version>
+            <groupId>com.googlecode.netlib-java</groupId>
+            <artifactId>netlib-java</artifactId>
+            <version>0.9.3</version>
             <scope>compile</scope>
         </dependency>
 
         <!-- dependencies for unit testing -->
         <dependency>
-            <groupId>org.powermock.modules</groupId>
+            <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.powermock.api</groupId>
+            <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
