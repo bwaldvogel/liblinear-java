@@ -5,7 +5,7 @@
     <artifactId>liblinear</artifactId>
     <packaging>jar</packaging>
     <name>liblinear</name>
-    <version>1.51</version>
+    <version>1.5</version>
     <description>Java port of Liblinear</description>
     <url>http://www.bwaldvogel.de/liblinear-java/</url>
     <licenses>
