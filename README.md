@@ -8,6 +8,9 @@ The project site of the original `C++` version is located at
 The upstream changelog can be found at
        http://www.csie.ntu.edu.tw/~cjlin/liblinear/log
 
+The upstream GitHub project can be found at
+       https://github.com/cjlin1/liblinear
+
 Please be aware that the code would be written differently at various places, i.e.
 
 - Java coding style,
