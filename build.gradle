@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'nexus'
 
-version = '1.7.1-SNAPSHOT'
+version = '1.7.1'
 
 sourceCompatibility = 1.5
 
