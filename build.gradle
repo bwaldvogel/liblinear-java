@@ -34,7 +34,7 @@ buildscript {
 }
 
 ext {
-    powermockVersion = '1.6.1'
+    powermockVersion = '1.6.4'
 }
 
 modifyPom {
