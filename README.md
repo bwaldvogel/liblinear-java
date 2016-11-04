@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/bwaldvogel/liblinear-java.png?branch=master)](https://travis-ci.org/bwaldvogel/liblinear-java)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear)
 
 This is the Java version of LIBLINEAR.
 
