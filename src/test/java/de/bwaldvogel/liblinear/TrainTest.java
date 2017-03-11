@@ -3,8 +3,10 @@ package de.bwaldvogel.liblinear;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -69,8 +71,7 @@ public class TrainTest {
         try {
             for (String line : lines)
                 writer.append(line).append("\n");
-        }
-        finally {
+        } finally {
             writer.close();
         }
 
@@ -80,6 +81,38 @@ public class TrainTest {
         Problem prob = train.getProblem();
         assertThat(prob.bias).isEqualTo(1);
         assertThat(prob.y).hasSize(lines.size());
+        assertThat(prob.y).isEqualTo(new double[] { 1, 2, 1, 1, 2 });
+        assertThat(prob.n).isEqualTo(8);
+        assertThat(prob.l).isEqualTo(prob.y.length);
+        assertThat(prob.x).hasSize(prob.y.length);
+
+        for (Feature[] nodes : prob.x) {
+
+            assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
+            for (Feature node : nodes) {
+                // bias term
+                if (prob.bias >= 0 && nodes[nodes.length - 1] == node) {
+                    assertThat(node.getIndex()).isEqualTo(prob.n);
+                    assertThat(node.getValue()).isEqualTo(prob.bias);
+                } else {
+                    assertThat(node.getIndex()).isLessThan(prob.n);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testReadProblemFromStream() throws Exception {
+        String data = "1 1:1  3:1  4:1   6:1\n"
+            + "2 2:1  3:1  5:1   7:1\n"
+            + "1 3:1  5:1\n"
+            + "1 1:1  4:1  7:1\n"
+            + "2 4:1  5:1  7:1\n";
+
+        Charset charset = Charset.forName("UTF-8");
+        Problem prob = Train.readProblem(new ByteArrayInputStream(data.getBytes(charset)), charset, 1);
+        assertThat(prob.bias).isEqualTo(1);
+        assertThat(prob.y).hasSize(5);
         assertThat(prob.y).isEqualTo(new double[] {1, 2, 1, 1, 2});
         assertThat(prob.n).isEqualTo(8);
         assertThat(prob.l).isEqualTo(prob.y.length);

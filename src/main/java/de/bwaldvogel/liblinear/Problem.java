@@ -2,6 +2,8 @@ package de.bwaldvogel.liblinear;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
 
 /**
@@ -56,5 +58,26 @@ public class Problem {
      */
     public static Problem readFromFile(File file, double bias) throws IOException, InvalidInputDataException {
         return Train.readProblem(file, bias);
+    }
+
+    /**
+     * see {@link Train#readProblem(File, Charset, double)}
+     */
+    public static Problem readFromFile(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(file, charset, bias);
+    }
+
+    /**
+     * see {@link Train#readProblem(InputStream, double)}
+     */
+    public static Problem readFromStream(InputStream inputStream, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(inputStream, bias);
+    }
+
+    /**
+     * see {@link Train#readProblem(InputStream, Charset, double)}
+     */
+    public static Problem readFromStream(InputStream inputStream, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(inputStream, charset, bias);
     }
 }

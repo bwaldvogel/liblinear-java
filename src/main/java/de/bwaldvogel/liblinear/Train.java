@@ -5,8 +5,11 @@ import static de.bwaldvogel.liblinear.Linear.atoi;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -217,79 +220,101 @@ public class Train {
      * @throws InvalidInputDataException if the input file is not correctly formatted
      */
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
-        BufferedReader fp = new BufferedReader(new FileReader(file));
+        InputStream inputStream = new FileInputStream(file);
+        try {
+            return readProblem(inputStream, bias);
+        } finally {
+            inputStream.close();
+        }
+    }
+
+    public static Problem readProblem(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        InputStream inputStream = new FileInputStream(file);
+        try {
+            return readProblem(inputStream, charset, bias);
+        } finally {
+            inputStream.close();
+        }
+    }
+
+    public static Problem readProblem(InputStream inputStream, double bias) throws IOException, InvalidInputDataException {
+        return readProblem(inputStream, Charset.defaultCharset(), bias);
+    }
+
+    public static Problem readProblem(InputStream inputStream, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        BufferedReader fp = new BufferedReader(new InputStreamReader(inputStream, charset));
         List<Double> vy = new ArrayList<Double>();
         List<Feature[]> vx = new ArrayList<Feature[]>();
         int max_index = 0;
 
         int lineNr = 0;
 
-        try {
-            while (true) {
-                String line = fp.readLine();
-                if (line == null) break;
-                lineNr++;
+        while (true) {
+            String line = fp.readLine();
+            if (line == null) break;
+            lineNr++;
 
-                StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
-                String token;
-                try {
-                    token = st.nextToken();
-                } catch (NoSuchElementException e) {
-                    throw new InvalidInputDataException("empty line", file, lineNr, e);
-                }
-
-                try {
-                    vy.add(atof(token));
-                } catch (NumberFormatException e) {
-                    throw new InvalidInputDataException("invalid label: " + token, file, lineNr, e);
-                }
-
-                int m = st.countTokens() / 2;
-                Feature[] x;
-                if (bias >= 0) {
-                    x = new Feature[m + 1];
-                } else {
-                    x = new Feature[m];
-                }
-                int indexBefore = 0;
-                for (int j = 0; j < m; j++) {
-
-                    token = st.nextToken();
-                    int index;
-                    try {
-                        index = atoi(token);
-                    } catch (NumberFormatException e) {
-                        throw new InvalidInputDataException("invalid index: " + token, file, lineNr, e);
-                    }
-
-                    // assert that indices are valid and sorted
-                    if (index < 0) throw new InvalidInputDataException("invalid index: " + index, file, lineNr);
-                    if (index <= indexBefore) throw new InvalidInputDataException("indices must be sorted in ascending order", file, lineNr);
-                    indexBefore = index;
-
-                    token = st.nextToken();
-                    try {
-                        double value = atof(token);
-                        x[j] = new FeatureNode(index, value);
-                    } catch (NumberFormatException e) {
-                        throw new InvalidInputDataException("invalid value: " + token, file, lineNr);
-                    }
-                }
-                if (m > 0) {
-                    max_index = Math.max(max_index, x[m - 1].getIndex());
-                }
-
-                vx.add(x);
+            StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
+            String token;
+            try {
+                token = st.nextToken();
+            } catch (NoSuchElementException e) {
+                throw new InvalidInputDataException("empty line", lineNr, e);
             }
 
-            return constructProblem(vy, vx, max_index, bias);
+            try {
+                vy.add(atof(token));
+            } catch (NumberFormatException e) {
+                throw new InvalidInputDataException("invalid label: " + token, lineNr, e);
+            }
+
+            int m = st.countTokens() / 2;
+            Feature[] x;
+            if (bias >= 0) {
+                x = new Feature[m + 1];
+            } else {
+                x = new Feature[m];
+            }
+            int indexBefore = 0;
+            for (int j = 0; j < m; j++) {
+
+                token = st.nextToken();
+                int index;
+                try {
+                    index = atoi(token);
+                } catch (NumberFormatException e) {
+                    throw new InvalidInputDataException("invalid index: " + token, lineNr, e);
+                }
+
+                // assert that indices are valid and sorted
+                if (index < 0) throw new InvalidInputDataException("invalid index: " + index, lineNr);
+                if (index <= indexBefore)
+                    throw new InvalidInputDataException("indices must be sorted in ascending order", lineNr);
+                indexBefore = index;
+
+                token = st.nextToken();
+                try {
+                    double value = atof(token);
+                    x[j] = new FeatureNode(index, value);
+                } catch (NumberFormatException e) {
+                    throw new InvalidInputDataException("invalid value: " + token, lineNr);
+                }
+            }
+            if (m > 0) {
+                max_index = Math.max(max_index, x[m - 1].getIndex());
+            }
+
+            vx.add(x);
         }
-        finally {
-            fp.close();
-        }
+
+        return constructProblem(vy, vx, max_index, bias);
     }
 
-    void readProblem(String filename) throws IOException, InvalidInputDataException {
+    public void readProblem(String filename) throws IOException, InvalidInputDataException {
+        readProblem(filename, bias);
+    }
+
+    public void readProblem(String filename, double bias) throws IOException, InvalidInputDataException {
         prob = Train.readProblem(new File(filename), bias);
     }
 
