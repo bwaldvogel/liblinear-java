@@ -6,6 +6,7 @@ apply plugin: 'org.standardout.versioneye'
 version = '1.95'
 
 sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -82,7 +83,8 @@ repositories {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
+    gradleVersion = '3.4.1'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 
 dependencies {
