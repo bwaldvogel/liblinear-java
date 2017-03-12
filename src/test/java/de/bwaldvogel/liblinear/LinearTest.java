@@ -1,7 +1,8 @@
 package de.bwaldvogel.liblinear;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,7 +17,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.fest.assertions.Delta;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
@@ -144,7 +144,7 @@ public class LinearTest {
                         for (double estimate : estimates) {
                             estimationSum += estimate;
                         }
-                        assertThat(estimationSum).isEqualTo(1.0, Delta.delta(0.001));
+                        assertThat(estimationSum).isEqualTo(1.0, offset(0.001));
                     }
                     i++;
                 }
