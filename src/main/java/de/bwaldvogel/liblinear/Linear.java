@@ -1798,7 +1798,7 @@ public class Linear {
                         C[i] = Cn;
                 }
                 fun_obj = new L2R_LrFunction(prob, C);
-                Tron tron_obj = new Tron(fun_obj, primal_solver_tol);
+                Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters);
                 tron_obj.tron(w);
                 break;
             }
@@ -1811,7 +1811,7 @@ public class Linear {
                         C[i] = Cn;
                 }
                 fun_obj = new L2R_L2_SvcFunction(prob, C);
-                Tron tron_obj = new Tron(fun_obj, primal_solver_tol);
+                Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters);
                 tron_obj.tron(w);
                 break;
             }
@@ -1840,7 +1840,7 @@ public class Linear {
                     C[i] = param.C;
 
                 fun_obj = new L2R_L2_SvrFunction(prob, C, param.p);
-                Tron tron_obj = new Tron(fun_obj, param.eps);
+                Tron tron_obj = new Tron(fun_obj, param.eps, param.max_iters);
                 tron_obj.tron(w);
                 break;
             }
