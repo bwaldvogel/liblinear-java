@@ -527,13 +527,12 @@ public class Linear {
      * See Algorithm 3 of Hsieh et al., ICML 2008
      *</pre>
      */
-    private static void solve_l2r_l1l2_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type) {
+    private static void solve_l2r_l1l2_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
         int i, s, iter = 0;
         double C, d, G;
         double[] QD = new double[l];
-        int max_iter = 1000;
         int[] index = new int[l];
         double[] alpha = new double[l];
         byte[] y = new byte[l];
@@ -893,12 +892,11 @@ public class Linear {
      *
      * @since 1.7
      */
-    private static void solve_l2r_lr_dual(Problem prob, double w[], double eps, double Cp, double Cn) {
+    private static void solve_l2r_lr_dual(Problem prob, double w[], double eps, double Cp, double Cn, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
         int i, s, iter = 0;
         double xTx[] = new double[l];
-        int max_iter = 1000;
         int index[] = new int[l];
         double alpha[] = new double[2 * l]; // store alpha and C - alpha
         byte y[] = new byte[l];
@@ -1039,11 +1037,10 @@ public class Linear {
      *
      * @since 1.5
      */
-    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
+    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps, double Cp, double Cn, int max_iter) {
         int l = prob_col.l;
         int w_size = prob_col.n;
         int j, s, iter = 0;
-        int max_iter = 1000;
         int active_size = w_size;
         int max_num_linesearch = 20;
 
@@ -1278,12 +1275,11 @@ public class Linear {
      *
      * @since 1.5
      */
-    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps, double Cp, double Cn) {
+    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps, double Cp, double Cn, int max_iter) {
         int l = prob_col.l;
         int w_size = prob_col.n;
         int j, s, newton_iter = 0, iter = 0;
         int max_newton_iter = 100;
-        int max_iter = 1000;
         int max_num_linesearch = 20;
         int active_size;
         int QP_active_size;
@@ -1816,23 +1812,23 @@ public class Linear {
                 break;
             }
             case L2R_L2LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL, param.max_iters);
                 break;
             case L2R_L1LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL, param.max_iters);
                 break;
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn);
+                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters);
                 break;
             }
             case L1R_LR: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn);
+                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters);
                 break;
             }
             case L2R_LR_DUAL:
-                solve_l2r_lr_dual(prob, w, eps, Cp, Cn);
+                solve_l2r_lr_dual(prob, w, eps, Cp, Cn, param.max_iters);
                 break;
             case L2R_L2LOSS_SVR: {
                 double[] C = new double[prob.l];
