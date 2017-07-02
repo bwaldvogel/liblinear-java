@@ -2,7 +2,6 @@ package de.bwaldvogel.liblinear;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +13,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.Random;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
-    static final Charset       FILE_CHARSET        = Charset.forName("ISO-8859-1");
+    static final Charset       FILE_CHARSET        = StandardCharsets.ISO_8859_1;
 
     static final Locale        DEFAULT_LOCALE      = Locale.ENGLISH;
 
@@ -326,20 +326,11 @@ public class Linear {
      * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      */
     public static Model loadModel(File modelFile) throws IOException {
-        BufferedReader inputReader = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), FILE_CHARSET));
-        try {
+        try (FileInputStream in = new FileInputStream(modelFile);
+             InputStreamReader inputStreamReader = new InputStreamReader(in, FILE_CHARSET);
+             BufferedReader inputReader = new BufferedReader(inputStreamReader)) {
             return loadModel(inputReader);
         }
-        finally {
-            inputReader.close();
-        }
-    }
-
-    static void closeQuietly(Closeable c) {
-        if (c == null) return;
-        try {
-            c.close();
-        } catch (Throwable t) {}
     }
 
     public static double predict(Model model, Feature[] x) {
@@ -452,8 +443,7 @@ public class Linear {
         int nr_w = model.nr_class;
         if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
 
-        Formatter formatter = new Formatter(modelOutput, DEFAULT_LOCALE);
-        try {
+        try (Formatter formatter = new Formatter(modelOutput, DEFAULT_LOCALE)) {
             printf(formatter, "solver_type %s\n", model.solverType.name());
             printf(formatter, "nr_class %d\n", model.nr_class);
 
@@ -486,9 +476,6 @@ public class Linear {
             formatter.flush();
             IOException ioException = formatter.ioException();
             if (ioException != null) throw ioException;
-        }
-        finally {
-            formatter.close();
         }
     }
 

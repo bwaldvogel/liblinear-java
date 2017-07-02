@@ -6,6 +6,8 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,19 +67,14 @@ public class TrainTest {
 
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<String>();
+        Collection<String> lines = new ArrayList<>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1   7:1");
         lines.add("1 3:1  5:1");
         lines.add("1 1:1  4:1  7:1");
         lines.add("2 4:1  5:1  7:1");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append("\n");
-        } finally {
-            writer.close();
-        }
+
+        writeToFile(file, lines);
 
         Train train = new Train();
         train.readProblem(file.getAbsolutePath());
@@ -145,17 +142,11 @@ public class TrainTest {
 
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<String>();
+        Collection<String> lines = new ArrayList<>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 ");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append("\n");
-        }
-        finally {
-            writer.close();
-        }
+
+        writeToFile(file, lines);
 
         Problem prob = Train.readProblem(file, -1.0);
         assertThat(prob.bias).isEqualTo(-1);
@@ -173,19 +164,12 @@ public class TrainTest {
     public void testReadUnsortedProblem() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<String>();
+        Collection<String> lines = new ArrayList<>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1   7:1");
         lines.add("1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append("\n");
-        }
-        finally {
-            writer.close();
-        }
+        writeToFile(file, lines);
 
         Train train = new Train();
         train.readProblem(file.getAbsolutePath());
@@ -196,18 +180,11 @@ public class TrainTest {
     public void testReadProblemWithInvalidIndex() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<String>();
+        Collection<String> lines = new ArrayList<>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1  -4:1");
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append("\n");
-        }
-        finally {
-            writer.close();
-        }
+        writeToFile(file, lines);
 
         Train train = new Train();
         try {
@@ -221,25 +198,28 @@ public class TrainTest {
     public void testReadWrongProblem() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<String>();
+        Collection<String> lines = new ArrayList<>();
         lines.add("1 1:1  3:1  4:1   6:1");
         lines.add("2 2:1  3:1  5:1   7:1");
         lines.add("1 3:1  5:a"); // here's the mistake: incomplete line
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        try {
-            for (String line : lines)
-                writer.append(line).append("\n");
-        }
-        finally {
-            writer.close();
-        }
+        writeToFile(file, lines);
 
         Train train = new Train();
         try {
             train.readProblem(file.getAbsolutePath());
         } catch (InvalidInputDataException e) {
             throw e;
+        }
+    }
+
+    private void writeToFile(File file, Collection<String> lines) throws IOException {
+        try (Writer writer = new FileWriter(file);
+             BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
+            for (String line : lines) {
+                bufferedWriter.append(line).append("\n");
+            }
+            bufferedWriter.flush();
         }
     }
 }

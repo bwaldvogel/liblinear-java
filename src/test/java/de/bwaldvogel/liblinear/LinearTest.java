@@ -68,12 +68,12 @@ public class LinearTest {
 
             prob.y[i] = random.nextInt(numClasses);
 
-            Set<Integer> randomNumbers = new TreeSet<Integer>();
+            Set<Integer> randomNumbers = new TreeSet<>();
             int num = random.nextInt(prob.n) + 1;
             for (int j = 0; j < num; j++) {
                 randomNumbers.add(random.nextInt(prob.n) + 1);
             }
-            List<Integer> randomIndices = new ArrayList<Integer>(randomNumbers);
+            List<Integer> randomIndices = new ArrayList<>(randomNumbers);
             Collections.sort(randomIndices);
 
             prob.x[i] = new FeatureNode[randomIndices.size()];

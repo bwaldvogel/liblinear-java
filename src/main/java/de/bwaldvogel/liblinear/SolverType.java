@@ -93,7 +93,7 @@ public enum SolverType {
         this.supportVectorRegression = supportVectorRegression;
     }
 
-    private static Map<Integer, SolverType> SOLVERS_BY_ID = new HashMap<Integer, SolverType>();
+    private static Map<Integer, SolverType> SOLVERS_BY_ID = new HashMap<>();
     static {
         for (SolverType solverType : SolverType.values()) {
             SolverType old = SOLVERS_BY_ID.put(Integer.valueOf(solverType.getId()), solverType);

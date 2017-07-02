@@ -2,7 +2,6 @@ package de.bwaldvogel.liblinear;
 
 import static de.bwaldvogel.liblinear.Linear.atof;
 import static de.bwaldvogel.liblinear.Linear.atoi;
-import static de.bwaldvogel.liblinear.Linear.closeQuietly;
 import static de.bwaldvogel.liblinear.Linear.printf;
 import static de.bwaldvogel.liblinear.Linear.info;
 
@@ -66,7 +65,7 @@ public class Predict {
 
         String line = null;
         while ((line = reader.readLine()) != null) {
-            List<Feature> x = new ArrayList<Feature>();
+            List<Feature> x = new ArrayList<>();
             StringTokenizer st = new StringTokenizer(line, " \t\n");
             double target_label;
             try {
@@ -180,18 +179,12 @@ public class Predict {
             exit_with_help();
         }
 
-        BufferedReader reader = null;
-        Writer writer = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(argv[i]), Linear.FILE_CHARSET));
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(argv[i + 2]), Linear.FILE_CHARSET));
-
+        try (FileInputStream in = new FileInputStream(argv[i]);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in, Linear.FILE_CHARSET));
+             FileOutputStream out = new FileOutputStream(argv[i + 2]);
+             Writer writer = new BufferedWriter(new OutputStreamWriter(out, Linear.FILE_CHARSET))) {
             Model model = Linear.loadModel(new File(argv[i + 1]));
             doPredict(reader, writer, model);
-        }
-        finally {
-            closeQuietly(reader);
-            closeQuietly(writer);
         }
     }
 }

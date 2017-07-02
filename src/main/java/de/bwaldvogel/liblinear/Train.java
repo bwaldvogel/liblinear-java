@@ -220,20 +220,14 @@ public class Train {
      * @throws InvalidInputDataException if the input file is not correctly formatted
      */
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
-        InputStream inputStream = new FileInputStream(file);
-        try {
+        try (InputStream inputStream = new FileInputStream(file)) {
             return readProblem(inputStream, bias);
-        } finally {
-            inputStream.close();
         }
     }
 
     public static Problem readProblem(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
-        InputStream inputStream = new FileInputStream(file);
-        try {
+        try (InputStream inputStream = new FileInputStream(file)) {
             return readProblem(inputStream, charset, bias);
-        } finally {
-            inputStream.close();
         }
     }
 
@@ -243,8 +237,8 @@ public class Train {
 
     public static Problem readProblem(InputStream inputStream, Charset charset, double bias) throws IOException, InvalidInputDataException {
         BufferedReader fp = new BufferedReader(new InputStreamReader(inputStream, charset));
-        List<Double> vy = new ArrayList<Double>();
-        List<Feature[]> vx = new ArrayList<Feature[]>();
+        List<Double> vy = new ArrayList<>();
+        List<Feature[]> vx = new ArrayList<>();
         int max_index = 0;
 
         int lineNr = 0;
