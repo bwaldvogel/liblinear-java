@@ -10,11 +10,13 @@ class Tron {
     private final Function fun_obj;
     private final double   eps;
     private final int      max_iter;
+    private final double   eps_cg;
 
-    public Tron( final Function fun_obj, double eps, int max_iter ) {
+    public Tron(Function fun_obj, double eps, int max_iter, double eps_cg) {
         this.fun_obj = fun_obj;
         this.eps = eps;
         this.max_iter = max_iter;
+        this.eps_cg = eps_cg;
     }
 
     void tron(double[] w) {
@@ -34,16 +36,20 @@ class Tron {
         double[] w_new = new double[n];
         double[] g = new double[n];
 
+        // calculate gradient norm at w=0 for stopping condition.
+        double[] w0 = new double[n];
         for (i = 0; i < n; i++)
-            w[i] = 0;
+            w0[i] = 0;
+        fun_obj.fun(w0);
+        fun_obj.grad(w0, g);
+        double gnorm0 = euclideanNorm(g);
 
         f = fun_obj.fun(w);
         fun_obj.grad(w, g);
         delta = euclideanNorm(g);
-        double gnorm1 = delta;
-        double gnorm = gnorm1;
+        double gnorm = delta;
 
-        if (gnorm <= eps * gnorm1)
+        if (gnorm <= eps * gnorm0)
             search = 0;
 
         iter = 1;
@@ -91,7 +97,7 @@ class Tron {
                 fun_obj.grad(w, g);
 
                 gnorm = euclideanNorm(g);
-                if (gnorm <= eps * gnorm1)
+                if (gnorm <= eps * gnorm0)
                     break;
             }
             if (f < -1.0e+32) {
@@ -121,7 +127,7 @@ class Tron {
             r[i] = -g[i];
             d[i] = r[i];
         }
-        cgtol = 0.1 * euclideanNorm(g);
+        cgtol = eps_cg * euclideanNorm(g);
 
         int cg_iter = 0;
         rTr = dot(r, r);

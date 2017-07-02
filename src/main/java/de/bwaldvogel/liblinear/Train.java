@@ -23,12 +23,26 @@ public class Train {
     }
 
     private double    bias             = 1;
+    private boolean   find_C           = false;
+    private boolean   C_specified      = false;
+    private boolean   solver_specified = false;
     private boolean   cross_validation = false;
     private String    inputFilename;
     private String    modelFilename;
     private int       nr_fold;
     private Parameter param            = null;
     private Problem   prob             = null;
+
+    private void do_find_parameter_C() {
+        double start_C;
+        double max_C = 1024;
+        if (C_specified)
+            start_C = param.C;
+        else
+            start_C = -1.0;
+        ParameterSearchResult result = Linear.findParameterC(prob, param, nr_fold, start_C, max_C);
+        System.out.printf("Best C = %f  CV accuracy = %g%%%n", result.getBestC(), 100.0 * result.getBestRate());
+    }
 
     private void do_cross_validation() {
 
@@ -94,12 +108,13 @@ public class Train {
             + "   -s 5 and 6%n"
             + "       |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,%n"
             + "       where f is the primal function (default 0.01)%n"
-            + "   -s 12 and 13\n"
-            + "       |f'(alpha)|_1 <= eps |f'(alpha0)|,\n"
-            + "       where f is the dual function (default 0.1)\n"
+            + "   -s 12 and 13%n"
+            + "       |f'(alpha)|_1 <= eps |f'(alpha0)|,%n"
+            + "       where f is the dual function (default 0.1)%n"
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
+            + "-C : find parameter C (only for -s 0 and 2)%n"
             + "-q : quiet mode (no outputs)%n");
         System.exit(1);
     }
@@ -133,9 +148,11 @@ public class Train {
             switch (argv[i - 1].charAt(1)) {
                 case 's':
                     param.solverType = SolverType.getById(atoi(argv[i]));
+                    solver_specified = true;
                     break;
                 case 'c':
                     param.setC(atof(argv[i]));
+                    C_specified = true;
                     break;
                 case 'p':
                     param.setP(atof(argv[i]));
@@ -164,6 +181,10 @@ public class Train {
                     i--;
                     Linear.disableDebugOutput();
                     break;
+                case 'C':
+                    find_C = true;
+                    i--;
+                    break;
                 default:
                     System.err.println("unknown option");
                     exit_with_help();
@@ -182,6 +203,19 @@ public class Train {
             int p = argv[i].lastIndexOf('/');
             ++p; // whew...
             modelFilename = argv[i].substring(p) + ".model";
+        }
+
+        // default solver for parameter selection is L2R_L2LOSS_SVC
+        if (find_C) {
+            if (!cross_validation)
+                nr_fold = 5;
+            if (!solver_specified) {
+                System.err.printf("Solver not specified. Using -s 2%n");
+                param.setSolverType(SolverType.L2R_L2LOSS_SVC);
+            } else if (param.getSolverType() != SolverType.L2R_LR && param.getSolverType() != SolverType.L2R_L2LOSS_SVC) {
+                System.err.printf("Warm-start parameter search only available for -s 0 and -s 2%n");
+                exit_with_help();
+            }
         }
 
         if (param.eps == Double.POSITIVE_INFINITY) {
@@ -360,11 +394,21 @@ public class Train {
     private void run(String[] args) throws IOException, InvalidInputDataException {
         parse_command_line(args);
         readProblem(inputFilename);
-        if (cross_validation)
+        if (find_C) {
+            do_find_parameter_C();
+        } else if (cross_validation)
             do_cross_validation();
         else {
             Model model = Linear.train(prob, param);
             Linear.saveModel(new File(modelFilename), model);
         }
+    }
+
+    boolean isFindC() {
+        return find_C;
+    }
+
+    int getNumFolds() {
+        return nr_fold;
     }
 }

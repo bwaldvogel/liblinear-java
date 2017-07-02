@@ -28,11 +28,25 @@ public class TrainTest {
     }
 
     @Test
+    public void testDoCrossValidationOnIrisDataSet() throws Exception {
+        for (SolverType solver : SolverType.values()) {
+            Train.main(new String[] {"-v", "5", "-s", "" + solver.getId(), "src/test/resources/iris.scale"});
+        }
+    }
+
+    @Test
+    public void testFindBestCOnIrisDataSet() throws Exception {
+        Train.main(new String[] {"-C", "src/test/resources/iris.scale"});
+    }
+
+    @Test
     public void testParseCommandLine() {
         Train train = new Train();
 
         for (SolverType solver : SolverType.values()) {
             train.parse_command_line(new String[] {"-B", "5.3", "-s", "" + solver.getId(), "-p", "0.01", "model-filename"});
+            assertThat(train.isFindC()).isFalse();
+            assertThat(train.getNumFolds()).isEqualTo(0);
             Parameter param = train.getParameter();
             assertThat(param.solverType).isEqualTo(solver);
             // check default eps
@@ -50,6 +64,33 @@ public class TrainTest {
             assertThat(train.getBias()).isEqualTo(5.3);
             assertThat(param.p).isEqualTo(0.01);
         }
+    }
+
+    @Test
+    public void testParseCommandLine_FindC_NoSolverSpecified() {
+        Train train = new Train();
+
+        train.parse_command_line(new String[] {"-C", "model-filename"});
+        assertThat(train.isFindC()).isTrue();
+        assertThat(train.getNumFolds()).isEqualTo(5);
+        Parameter param = train.getParameter();
+        assertThat(param.solverType).isEqualTo(SolverType.L2R_L2LOSS_SVC);
+        // check default eps
+        assertThat(param.eps).isEqualTo(0.01);
+        assertThat(param.p).isEqualTo(0.1);
+    }
+
+    @Test
+    public void testParseCommandLine_FindC_SolverAndNumFoldsSpecified() {
+        Train train = new Train();
+
+        train.parse_command_line(new String[] {"-s", "0", "-v", "10", "-C", "model-filename"});
+        assertThat(train.isFindC()).isTrue();
+        assertThat(train.getNumFolds()).isEqualTo(10);
+        Parameter param = train.getParameter();
+        assertThat(param.solverType).isEqualTo(SolverType.L2R_LR);
+        assertThat(param.eps).isEqualTo(0.01);
+        assertThat(param.p).isEqualTo(0.1);
     }
 
     @Test
