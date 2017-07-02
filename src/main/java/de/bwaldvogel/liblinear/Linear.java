@@ -172,7 +172,11 @@ public class Linear {
                 else
                     total_w_size = subprob[i].n * submodel.nr_class;
 
-                if (prev_w[i] != null && num_unchanged_w >= 0) {
+                if (prev_w[i] == null) {
+                    prev_w[i] = new double[total_w_size];
+                    for (j = 0; j < total_w_size; j++)
+                        prev_w[i][j] = submodel.w[j];
+                } else if (num_unchanged_w >= 0) {
                     double norm_w_diff = 0;
                     for (j = 0; j < total_w_size; j++) {
                         norm_w_diff += (submodel.w[j] - prev_w[i][j]) * (submodel.w[j] - prev_w[i][j]);
@@ -183,7 +187,6 @@ public class Linear {
                     if (norm_w_diff > 1e-15)
                         num_unchanged_w = -1;
                 } else {
-                    prev_w[i] = new double[total_w_size];
                     for (j = 0; j < total_w_size; j++)
                         prev_w[i][j] = submodel.w[j];
                 }
@@ -1781,6 +1784,8 @@ public class Linear {
 
         if (param.solverType.isSupportVectorRegression()) {
             model.w = new double[w_size];
+            for (int i = 0; i < w_size; i++)
+                model.w[i] = 0;
             model.nr_class = 2;
             model.label = null;
 

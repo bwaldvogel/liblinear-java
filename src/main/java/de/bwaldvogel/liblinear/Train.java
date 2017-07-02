@@ -40,6 +40,7 @@ public class Train {
             start_C = param.C;
         else
             start_C = -1.0;
+        System.out.printf("Doing parameter search with %d-fold cross validation.%n", nr_fold);
         ParameterSearchResult result = Linear.findParameterC(prob, param, nr_fold, start_C, max_C);
         System.out.printf("Best C = %f  CV accuracy = %g%%%n", result.getBestC(), 100.0 * result.getBestRate());
     }

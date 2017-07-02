@@ -33,7 +33,6 @@ class Tron {
         int search = 1, iter = 1;
         double[] s = new double[n];
         double[] r = new double[n];
-        double[] w_new = new double[n];
         double[] g = new double[n];
 
         // calculate gradient norm at w=0 for stopping condition.
@@ -54,6 +53,7 @@ class Tron {
 
         iter = 1;
 
+        double[] w_new = new double[n];
         while (iter <= max_iter && search != 0) {
             cg_iter = trcg(delta, g, s, r);
 
