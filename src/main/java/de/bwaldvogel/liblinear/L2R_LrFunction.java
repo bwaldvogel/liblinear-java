@@ -7,7 +7,7 @@ class L2R_LrFunction implements Function {
     private final double[] D;
     private final Problem  prob;
 
-    public L2R_LrFunction( Problem prob, double[] C ) {
+    public L2R_LrFunction(Problem prob, double[] C) {
         int l = prob.l;
 
         this.prob = prob;
@@ -16,7 +16,6 @@ class L2R_LrFunction implements Function {
         D = new double[l];
         this.C = C;
     }
-
 
     private void Xv(double[] v, double[] Xv) {
 
@@ -42,7 +41,6 @@ class L2R_LrFunction implements Function {
             }
         }
     }
-
 
     public double fun(double[] w) {
         int i;
@@ -97,7 +95,6 @@ class L2R_LrFunction implements Function {
         XTv(wa, Hs);
         for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + Hs[i];
-        // delete[] wa;
     }
 
     public int get_nr_variable() {

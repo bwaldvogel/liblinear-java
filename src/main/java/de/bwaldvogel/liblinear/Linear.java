@@ -744,7 +744,6 @@ public class Linear {
             index[i] = i;
         }
 
-
         while (iter < max_iter) {
             Gmax_new = 0;
             Gnorm1_new = 0;

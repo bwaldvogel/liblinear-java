@@ -20,7 +20,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -34,8 +34,9 @@ public class LinearTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void disableDebugOutput() {
+    @Before
+    public void reset() throws Exception {
+        Linear.resetRandom();
         Linear.disableDebugOutput();
     }
 

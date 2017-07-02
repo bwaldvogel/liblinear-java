@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -19,6 +20,12 @@ public class TrainTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Before
+    public void reset() throws Exception {
+        Linear.resetRandom();
+        Linear.disableDebugOutput();
+    }
 
     @Test
     public void testParseCommandLine() {

@@ -8,18 +8,8 @@ import static de.bwaldvogel.liblinear.Linear.info;
 class Tron {
 
     private final Function fun_obj;
-
     private final double   eps;
-
     private final int      max_iter;
-
-    public Tron( final Function fun_obj ) {
-        this(fun_obj, 0.1);
-    }
-
-    public Tron( final Function fun_obj, double eps ) {
-        this(fun_obj, eps, 1000);
-    }
 
     public Tron( final Function fun_obj, double eps, int max_iter ) {
         this.fun_obj = fun_obj;
@@ -53,7 +43,8 @@ class Tron {
         double gnorm1 = delta;
         double gnorm = gnorm1;
 
-        if (gnorm <= eps * gnorm1) search = 0;
+        if (gnorm <= eps * gnorm1)
+            search = 0;
 
         iter = 1;
 
@@ -100,7 +91,8 @@ class Tron {
                 fun_obj.grad(w, g);
 
                 gnorm = euclideanNorm(g);
-                if (gnorm <= eps * gnorm1) break;
+                if (gnorm <= eps * gnorm1)
+                    break;
             }
             if (f < -1.0e+32) {
                 info("WARNING: f < -1.0e+32%n");
