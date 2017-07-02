@@ -293,26 +293,21 @@ public class Linear {
         for (int i = 0; i < w_size; i++) {
             for (int j = 0; j < nr_w; j++) {
                 int b = 0;
-                try {
-                    while (true) {
-                        int ch = reader.read();
-                        if (ch == -1) {
-                            throw new EOFException("unexpected EOF");
-                        }
-                        if (ch == ' ') {
-                            model.w[i * nr_w + j] = atof(new String(buffer, 0, b));
-                            break;
-                        } else {
-                            buffer[b++] = ch;
-                        }
+                while (true) {
+                    int ch = reader.read();
+                    if (ch == -1) {
+                        throw new EOFException("unexpected EOF");
                     }
-                } catch (ArrayIndexOutOfBoundsException aioobex) {
-                    if (b > 127) {
-                        throw new RuntimeException("in model file, weight at index " + (i * nr_w + j) + ", with string content '" +
-                                                   new String(buffer, 0, 127) + "', is not terminated " +
-                                                   "with a whitespace character, or is longer than expected (128 characters max).");
+                    if (ch == ' ') {
+                        model.w[i * nr_w + j] = atof(new String(buffer, 0, b));
+                        break;
                     } else {
-                        throw aioobex;
+                        if (b >= buffer.length) {
+                            throw new RuntimeException("illegal weight in model file at index " + (i * nr_w + j) + ", with string content '" +
+                                    new String(buffer, 0, buffer.length) + "', is not terminated " +
+                                    "with a whitespace character, or is longer than expected (" + buffer.length + " characters max).");
+                        }
+                        buffer[b++] = ch;
                     }
                 }
             }

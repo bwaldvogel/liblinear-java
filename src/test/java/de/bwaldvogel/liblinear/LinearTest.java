@@ -237,6 +237,30 @@ public class LinearTest {
     }
 
     @Test
+    public void testLoadIllegalModel() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
+                "nr_class 2",
+                "label 1 2",
+                "nr_feature 10",
+                "bias -1.0",
+                "w",
+                "0.1 0.2 0.3 ",
+                "0.4 0.5 " + repeat("0", 1024));
+        writeToFile(file, lines);
+
+        try {
+            Model.load(file);
+            fail("RuntimeException expected");
+        } catch (RuntimeException e) {
+            String x = repeat("0", 128);
+            assertThat(e).hasMessage("illegal weight in model file at index 5, with string content '" + x
+                    + "', is not terminated with a whitespace character, or is longer than expected (128 characters max).");
+        }
+    }
+
+    @Test
     public void testTrainUnsortedProblem() {
         Problem prob = new Problem();
         prob.bias = -1;
