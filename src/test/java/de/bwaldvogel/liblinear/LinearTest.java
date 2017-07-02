@@ -1,5 +1,7 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.TestUtils.repeat;
+import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 import static org.junit.Assert.fail;
@@ -11,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -187,6 +190,50 @@ public class LinearTest {
             Model loadedModel = Linear.loadModel(tempFile);
             assertThat(loadedModel).isEqualTo(model);
         }
+    }
+
+    @Test
+    public void testLoadEmptyModel() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        List<String> lines = Arrays.asList("solver_type L2R_LR",
+                "nr_class 2",
+                "label 1 2",
+                "nr_feature 0",
+                "bias -1.0",
+                "w");
+        writeToFile(file, lines);
+
+        Model model = Model.load(file);
+        assertThat(model.getSolverType()).isEqualTo(SolverType.L2R_LR);
+        assertThat(model.getLabels()).containsExactly(1, 2);
+        assertThat(model.getNrClass()).isEqualTo(2);
+        assertThat(model.getNrFeature()).isEqualTo(0);
+        assertThat(model.getFeatureWeights()).isEmpty();
+        assertThat(model.getBias()).isEqualTo(-1.0);
+    }
+
+    @Test
+    public void testLoadSimpleModel() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
+                "nr_class 2",
+                "label 1 2",
+                "nr_feature 6",
+                "bias -1.0",
+                "w",
+                "0.1 0.2 0.3 ",
+                "0.4 0.5 0.6 ");
+        writeToFile(file, lines);
+
+        Model model = Model.load(file);
+        assertThat(model.getSolverType()).isEqualTo(SolverType.L2R_L2LOSS_SVR);
+        assertThat(model.getLabels()).containsExactly(1, 2);
+        assertThat(model.getNrClass()).isEqualTo(2);
+        assertThat(model.getNrFeature()).isEqualTo(6);
+        assertThat(model.getFeatureWeights()).containsExactly(0.1, 0.2, 0.3, 0.4, 0.5, 0.6);
+        assertThat(model.getBias()).isEqualTo(-1.0, offset(0.001));
     }
 
     @Test
