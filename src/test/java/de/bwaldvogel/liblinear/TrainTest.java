@@ -10,10 +10,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 
 public class TrainTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
     public void testParseCommandLine() {
@@ -58,8 +63,7 @@ public class TrainTest {
     @Test
     public void testReadProblem() throws Exception {
 
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = temporaryFolder.newFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
@@ -139,8 +143,7 @@ public class TrainTest {
     @Test
     public void testReadProblemEmptyLine() throws Exception {
 
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = temporaryFolder.newFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
@@ -168,8 +171,7 @@ public class TrainTest {
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadUnsortedProblem() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = temporaryFolder.newFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
@@ -192,8 +194,7 @@ public class TrainTest {
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadProblemWithInvalidIndex() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = temporaryFolder.newFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");
@@ -218,8 +219,7 @@ public class TrainTest {
 
     @Test(expected = InvalidInputDataException.class)
     public void testReadWrongProblem() throws Exception {
-        File file = File.createTempFile("svm", "test");
-        file.deleteOnExit();
+        File file = temporaryFolder.newFile();
 
         Collection<String> lines = new ArrayList<String>();
         lines.add("1 1:1  3:1  4:1   6:1");

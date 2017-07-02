@@ -18,13 +18,18 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.powermock.api.mockito.PowerMockito;
 
 
 public class LinearTest {
 
     private static Random random = new Random(12345);
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void disableDebugOutput() {
@@ -176,8 +181,7 @@ public class LinearTest {
             Model model = createRandomModel();
             model.solverType = solverType;
 
-            File tempFile = File.createTempFile("liblinear", "modeltest");
-            tempFile.deleteOnExit();
+            File tempFile = temporaryFolder.newFile("modeltest-" + solverType);
             Linear.saveModel(tempFile, model);
 
             Model loadedModel = Linear.loadModel(tempFile);
