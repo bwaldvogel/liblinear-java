@@ -1,16 +1,14 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,12 +65,12 @@ public class TrainTest {
 
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<>();
-        lines.add("1 1:1  3:1  4:1   6:1");
-        lines.add("2 2:1  3:1  5:1   7:1");
-        lines.add("1 3:1  5:1");
-        lines.add("1 1:1  4:1  7:1");
-        lines.add("2 4:1  5:1  7:1");
+        List<String> lines = Arrays.asList(
+                "1 1:1  3:1  4:1   6:1",
+                "2 2:1  3:1  5:1   7:1",
+                "1 3:1  5:1",
+                "1 1:1  4:1  7:1",
+                "2 4:1  5:1  7:1");
 
         writeToFile(file, lines);
 
@@ -87,19 +85,7 @@ public class TrainTest {
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x).hasSize(prob.y.length);
 
-        for (Feature[] nodes : prob.x) {
-
-            assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
-            for (Feature node : nodes) {
-                // bias term
-                if (prob.bias >= 0 && nodes[nodes.length - 1] == node) {
-                    assertThat(node.getIndex()).isEqualTo(prob.n);
-                    assertThat(node.getValue()).isEqualTo(prob.bias);
-                } else {
-                    assertThat(node.getIndex()).isLessThan(prob.n);
-                }
-            }
-        }
+        validate(prob);
     }
 
     @Test
@@ -119,19 +105,7 @@ public class TrainTest {
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x).hasSize(prob.y.length);
 
-        for (Feature[] nodes : prob.x) {
-
-            assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
-            for (Feature node : nodes) {
-                // bias term
-                if (prob.bias >= 0 && nodes[nodes.length - 1] == node) {
-                    assertThat(node.getIndex()).isEqualTo(prob.n);
-                    assertThat(node.getValue()).isEqualTo(prob.bias);
-                } else {
-                    assertThat(node.getIndex()).isLessThan(prob.n);
-                }
-            }
-        }
+        validate(prob);
     }
 
     /**
@@ -142,9 +116,9 @@ public class TrainTest {
 
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<>();
-        lines.add("1 1:1  3:1  4:1   6:1");
-        lines.add("2 ");
+        List<String> lines = Arrays.asList(
+                "1 1:1  3:1  4:1   6:1",
+                "2 ");
 
         writeToFile(file, lines);
 
@@ -160,66 +134,78 @@ public class TrainTest {
         assertThat(prob.x[1]).hasSize(0);
     }
 
-    @Test(expected = InvalidInputDataException.class)
+    @Test
     public void testReadUnsortedProblem() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<>();
-        lines.add("1 1:1  3:1  4:1   6:1");
-        lines.add("2 2:1  3:1  5:1   7:1");
-        lines.add("1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
+        List<String> lines = Arrays.asList(
+                "1 1:1  3:1  4:1   6:1",
+                "2 2:1  3:1  5:1   7:1",
+                "1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
 
         writeToFile(file, lines);
 
         Train train = new Train();
-        train.readProblem(file.getAbsolutePath());
+        try {
+            train.readProblem(file.getAbsolutePath());
+            fail("InvalidInputDataException expected");
+        } catch (InvalidInputDataException e) {
+            assertThat(e).hasMessage("indices must be sorted in ascending order");
+        }
     }
 
-
-    @Test(expected = InvalidInputDataException.class)
+    @Test
     public void testReadProblemWithInvalidIndex() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<>();
-        lines.add("1 1:1  3:1  4:1   6:1");
-        lines.add("2 2:1  3:1  5:1  -4:1");
+        List<String> lines = Arrays.asList(
+                "1 1:1  3:1  4:1   6:1",
+                "2 2:1  3:1  5:1  -4:1");
 
         writeToFile(file, lines);
 
         Train train = new Train();
         try {
             train.readProblem(file.getAbsolutePath());
+            fail("InvalidInputDataException expected");
         } catch (InvalidInputDataException e) {
-            throw e;
+            assertThat(e).hasMessage("invalid index: -4");
         }
     }
 
-    @Test(expected = InvalidInputDataException.class)
+    @Test
     public void testReadWrongProblem() throws Exception {
         File file = temporaryFolder.newFile();
 
-        Collection<String> lines = new ArrayList<>();
-        lines.add("1 1:1  3:1  4:1   6:1");
-        lines.add("2 2:1  3:1  5:1   7:1");
-        lines.add("1 3:1  5:a"); // here's the mistake: incomplete line
+        List<String> lines = Arrays.asList(
+                "1 1:1  3:1  4:1   6:1",
+                "2 2:1  3:1  5:1   7:1",
+                "1 3:1  5:a"); // here's the mistake: incomplete line
 
         writeToFile(file, lines);
 
         Train train = new Train();
         try {
             train.readProblem(file.getAbsolutePath());
+            fail("InvalidInputDataException expected");
         } catch (InvalidInputDataException e) {
-            throw e;
+            assertThat(e).hasMessage("invalid value: a");
         }
     }
 
-    private void writeToFile(File file, Collection<String> lines) throws IOException {
-        try (Writer writer = new FileWriter(file);
-             BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
-            for (String line : lines) {
-                bufferedWriter.append(line).append("\n");
+    private void validate(Problem prob) {
+        for (Feature[] nodes : prob.x) {
+            assertThat(nodes.length).isLessThanOrEqualTo(prob.n);
+            for (Feature node : nodes) {
+                // bias term
+                if (prob.bias >= 0 && nodes[nodes.length - 1] == node) {
+                    assertThat(node.getIndex()).isEqualTo(prob.n);
+                    assertThat(node.getValue()).isEqualTo(prob.bias);
+                } else {
+                    assertThat(node.getIndex()).isLessThan(prob.n);
+                }
             }
-            bufferedWriter.flush();
         }
     }
+
 }
