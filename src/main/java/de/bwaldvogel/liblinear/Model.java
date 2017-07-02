@@ -51,6 +51,10 @@ public final class Model implements Serializable {
         return copyOf(label, nr_class);
     }
 
+    public SolverType getSolverType() {
+        return solverType;
+    }
+
     /**
      * The nr_feature*nr_class array w gives feature weights. We use one
      * against the rest for multi-class classification, so each feature
