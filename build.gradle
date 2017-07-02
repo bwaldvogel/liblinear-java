@@ -37,7 +37,7 @@ buildscript {
 ext {
     junitVersion = '4.12'
     assertjVersion = '2.6.0'
-    powermockVersion = '1.6.4'
+    powermockVersion = '1.6.5'
 }
 
 modifyPom {
@@ -85,7 +85,7 @@ repositories {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
+    gradleVersion = '4.0'
     distributionType = "ALL"
 }
 
