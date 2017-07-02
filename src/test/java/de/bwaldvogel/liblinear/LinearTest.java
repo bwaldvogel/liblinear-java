@@ -172,9 +172,8 @@ public class LinearTest {
     @Test
     public void testLoadSaveModel() throws Exception {
 
-        Model model = null;
         for (SolverType solverType : SolverType.values()) {
-            model = createRandomModel();
+            Model model = createRandomModel();
             model.solverType = solverType;
 
             File tempFile = File.createTempFile("liblinear", "modeltest");
