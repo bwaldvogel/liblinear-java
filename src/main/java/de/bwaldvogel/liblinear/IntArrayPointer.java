@@ -12,7 +12,7 @@ final class IntArrayPointer {
         _offset = offset;
     }
 
-    public IntArrayPointer( final int[] array, final int offset ) {
+    public IntArrayPointer(final int[] array, final int offset) {
         _array = array;
         setOffset(offset);
     }

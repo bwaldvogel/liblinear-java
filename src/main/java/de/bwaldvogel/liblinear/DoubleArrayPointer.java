@@ -12,7 +12,7 @@ final class DoubleArrayPointer {
         _offset = offset;
     }
 
-    public DoubleArrayPointer( final double[] array, final int offset ) {
+    public DoubleArrayPointer(final double[] array, final int offset) {
         _array = array;
         setOffset(offset);
     }

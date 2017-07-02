@@ -9,7 +9,7 @@ class L2R_L2_SvcFunction implements Function {
 
     protected int            sizeI;
 
-    public L2R_L2_SvcFunction( Problem prob, double[] C ) {
+    public L2R_L2_SvcFunction(Problem prob, double[] C) {
         int l = prob.l;
 
         this.prob = prob;

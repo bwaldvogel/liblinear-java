@@ -7,7 +7,7 @@ public class L2R_L2_SvrFunction extends L2R_L2_SvcFunction {
 
     private double p;
 
-    public L2R_L2_SvrFunction( Problem prob, double[] C, double p ) {
+    public L2R_L2_SvrFunction(Problem prob, double[] C, double p) {
         super(prob, C);
         this.p = p;
     }

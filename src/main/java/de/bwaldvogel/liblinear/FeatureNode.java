@@ -5,7 +5,7 @@ public class FeatureNode implements Feature {
     public final int index;
     public double    value;
 
-    public FeatureNode( final int index, final double value ) {
+    public FeatureNode(final int index, final double value) {
         if (index < 0) throw new IllegalArgumentException("index must be >= 0");
         this.index = index;
         this.value = value;
@@ -39,7 +39,7 @@ public class FeatureNode implements Feature {
         result = prime * result + index;
         long temp;
         temp = Double.doubleToLongBits(value);
-        result = prime * result + (int)(temp ^ (temp >>> 32));
+        result = prime * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
 
@@ -48,7 +48,7 @@ public class FeatureNode implements Feature {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        FeatureNode other = (FeatureNode)obj;
+        FeatureNode other = (FeatureNode) obj;
         if (index != other.index) return false;
         if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value)) return false;
         return true;

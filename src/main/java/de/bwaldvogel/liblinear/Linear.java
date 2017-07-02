@@ -102,7 +102,7 @@ public class Linear {
         final int   nr_class;
         final int[] start;
 
-        GroupClassesReturn( int nr_class, int[] label, int[] start, int[] count ) {
+        GroupClassesReturn(int nr_class, int[] label, int[] start, int[] count) {
             this.nr_class = nr_class;
             this.label = label;
             this.start = start;
@@ -121,7 +121,7 @@ public class Linear {
         int i;
 
         for (i = 0; i < l; i++) {
-            int this_label = (int)prob.y[i];
+            int this_label = (int) prob.y[i];
             int j;
             for (j = 0; j < nr_class; j++) {
                 if (this_label == label[j]) {
@@ -248,7 +248,7 @@ public class Linear {
 
         BufferedReader reader = null;
         if (inputReader instanceof BufferedReader) {
-            reader = (BufferedReader)inputReader;
+            reader = (BufferedReader) inputReader;
         } else {
             reader = new BufferedReader(inputReader);
         }
@@ -731,7 +731,7 @@ public class Linear {
         double d, G, H;
         double Gmax_old = Double.POSITIVE_INFINITY;
         double Gmax_new, Gnorm1_new;
-        double Gnorm1_init= -1.0; // Gnorm1_init is initialized at the first iteration
+        double Gnorm1_init = -1.0; // Gnorm1_init is initialized at the first iteration
         double[] beta = new double[l];
         double[] QD = new double[l];
         double[] y = prob.y;
