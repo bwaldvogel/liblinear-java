@@ -8,4 +8,5 @@
 !.travis.yml
 
 build/
+classes/
 data/
