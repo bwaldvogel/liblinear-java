@@ -104,8 +104,8 @@ class Tron {
                 info("WARNING: f < -1.0e+32%n");
                 break;
             }
-            if (Math.abs(actred) <= 0 && prered <= 0) {
-                info("WARNING: actred and prered <= 0%n");
+            if (prered <= 0) {
+                info("WARNING: prered <= 0%n");
                 break;
             }
             if (Math.abs(actred) <= 1.0e-12 * Math.abs(f) && Math.abs(prered) <= 1.0e-12 * Math.abs(f)) {
