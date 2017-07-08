@@ -66,17 +66,16 @@ class L2R_L2_SvcFunction implements Function {
     public void Hv(double[] s, double[] Hs) {
         int i;
         int w_size = get_nr_variable();
-        double[] wa = new double[sizeI];
         Feature[][] x = prob.x;
 
         for (i = 0; i < w_size; i++)
             Hs[i] = 0;
         for (i = 0; i < sizeI; i++) {
             Feature[] xi = x[I[i]];
-            wa[i] = SparseOperator.dot(s, xi);
-            wa[i] = C[I[i]] * wa[i];
+            double xTs = SparseOperator.dot(s, xi);
+            xTs = C[I[i]] * xTs;
 
-            SparseOperator.axpy(wa[i], xi, Hs);
+            SparseOperator.axpy(xTs, xi, Hs);
         }
         for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + 2 * Hs[i];

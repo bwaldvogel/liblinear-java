@@ -82,17 +82,17 @@ class L2R_LrFunction implements Function {
         int i;
         int l = prob.l;
         int w_size = get_nr_variable();
-        double[] wa = new double[l];
         Feature[][] x = prob.x;
 
         for (i = 0; i < w_size; i++)
             Hs[i] = 0;
         for (i = 0; i < l; i++) {
             Feature[] xi = x[i];
-            wa[i] = SparseOperator.dot(s, xi);
-            wa[i] = C[i] * D[i] * wa[i];
+            double xTs = SparseOperator.dot(s, xi);
 
-            SparseOperator.axpy(wa[i], xi, Hs);
+            xTs = C[i] * D[i] * xTs;
+
+            SparseOperator.axpy(xTs, xi, Hs);
         }
         for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + Hs[i];
