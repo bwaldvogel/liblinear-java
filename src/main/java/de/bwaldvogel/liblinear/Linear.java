@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  */
 public class Linear {
 
-    static final int           VERSION             = 195;
+    static final int           VERSION             = 211;
 
     static final Charset       FILE_CHARSET        = StandardCharsets.ISO_8859_1;
 
