@@ -56,7 +56,8 @@ public final class Model implements Serializable {
     }
 
     /**
-     * The nr_feature*nr_class array w gives feature weights. We use one
+     * The array w gives feature weights; its size is
+     * nr_feature*nr_class but is nr_feature if nr_class = 2. We use one
      * against the rest for multi-class classification, so each feature
      * index corresponds to nr_class weight values. Weights are
      * organized in the following way
