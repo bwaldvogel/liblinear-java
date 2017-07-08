@@ -28,9 +28,11 @@ import java.util.regex.Pattern;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 1.95
+ * @version 2.11
  */
 public class Linear {
+
+    static final int           VERSION             = 195;
 
     static final Charset       FILE_CHARSET        = StandardCharsets.ISO_8859_1;
 
@@ -1997,6 +1999,10 @@ public class Linear {
         synchronized (OUTPUT_MUTEX) {
             DEBUG_OUTPUT = debugOutput;
         }
+    }
+
+    public static int getVersion() {
+        return VERSION;
     }
 
     /**
