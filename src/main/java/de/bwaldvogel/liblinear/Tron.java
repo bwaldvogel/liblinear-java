@@ -2,6 +2,9 @@ package de.bwaldvogel.liblinear;
 
 import static de.bwaldvogel.liblinear.Linear.info;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+
 /**
  * Trust Region Newton Method optimization
  */
@@ -54,8 +57,9 @@ class Tron {
         iter = 1;
 
         double[] w_new = new double[n];
+        AtomicBoolean reach_boundary = new AtomicBoolean();
         while (iter <= max_iter && search != 0) {
-            cg_iter = trcg(delta, g, s, r);
+            cg_iter = trcg(delta, g, s, r, reach_boundary);
 
             System.arraycopy(w, 0, w_new, 0, n);
             daxpy(one, s, w_new);
@@ -85,8 +89,13 @@ class Tron {
                 delta = Math.max(sigma1 * delta, Math.min(alpha * snorm, sigma2 * delta));
             else if (actred < eta2 * prered)
                 delta = Math.max(sigma1 * delta, Math.min(alpha * snorm, sigma3 * delta));
-            else
-                delta = Math.max(delta, Math.min(alpha * snorm, sigma3 * delta));
+            else {
+                if (reach_boundary.get()) {
+                    delta = sigma3 * delta;
+                } else {
+                    delta = Math.max(delta, Math.min(alpha * snorm, sigma3 * delta));
+                }
+            }
 
             info("iter %2d act %5.3e pre %5.3e delta %5.3e f %5.3e |g| %5.3e CG %3d%n", iter, actred, prered, delta, f, gnorm, cg_iter);
 
@@ -115,13 +124,14 @@ class Tron {
         }
     }
 
-    private int trcg(double delta, double[] g, double[] s, double[] r) {
+    private int trcg(double delta, double[] g, double[] s, double[] r, AtomicBoolean reach_boundary) {
         int n = fun_obj.get_nr_variable();
         double one = 1;
         double[] d = new double[n];
         double[] Hd = new double[n];
         double rTr, rnewTrnew, cgtol;
 
+        reach_boundary.set(false);
         for (int i = 0; i < n; i++) {
             s[i] = 0;
             r[i] = -g[i];
@@ -141,6 +151,7 @@ class Tron {
             daxpy(alpha, d, s);
             if (euclideanNorm(s) > delta) {
                 info("cg reaches trust region boundary%n");
+                reach_boundary.set(true);
                 alpha = -alpha;
                 daxpy(alpha, d, s);
 
