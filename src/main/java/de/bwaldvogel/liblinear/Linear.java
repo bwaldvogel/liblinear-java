@@ -689,11 +689,10 @@ public class Linear {
         for (i = 0; i < l; i++) {
             QD[i] = diag[GETI(y, i)];
 
-            for (Feature xi : prob.x[i]) {
-                double val = xi.getValue();
-                QD[i] += val * val;
-                w[xi.getIndex() - 1] += y[i] * alpha[i] * val;
-            }
+            Feature[] xi = prob.x[i];
+            QD[i] += SparseOperator.nrm2_sq(xi);
+            SparseOperator.axpy(y[i] * alpha[i], xi, w);
+
             index[i] = i;
         }
 
@@ -708,13 +707,10 @@ public class Linear {
 
             for (s = 0; s < active_size; s++) {
                 i = index[s];
-                G = 0;
                 byte yi = y[i];
+                Feature[] xi = prob.x[i];
 
-                for (Feature xi : prob.x[i]) {
-                    G += w[xi.getIndex() - 1] * xi.getValue();
-                }
-                G = G * yi - 1;
+                G = yi * SparseOperator.dot(w, xi) - 1;
 
                 C = upper_bound[GETI(y, i)];
                 G += alpha[i] * diag[GETI(y, i)];
@@ -749,10 +745,7 @@ public class Linear {
                     double alpha_old = alpha[i];
                     alpha[i] = Math.min(Math.max(alpha[i] - G / QD[i], 0.0), C);
                     d = (alpha[i] - alpha_old) * yi;
-
-                    for (Feature xi : prob.x[i]) {
-                        w[xi.getIndex() - 1] += d * xi.getValue();
-                    }
+                    SparseOperator.axpy(d, xi, w);
                 }
             }
 
@@ -859,12 +852,9 @@ public class Linear {
         for (i = 0; i < w_size; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
-            QD[i] = 0;
-            for (Feature xi : prob.x[i]) {
-                double val = xi.getValue();
-                QD[i] += val * val;
-                w[xi.getIndex() - 1] += beta[i] * val;
-            }
+            Feature[] xi = prob.x[i];
+            QD[i] = SparseOperator.nrm2_sq(xi);
+            SparseOperator.axpy(beta[i], xi, w);
 
             index[i] = i;
         }
@@ -883,11 +873,8 @@ public class Linear {
                 G = -y[i] + lambda[GETI_SVR(i)] * beta[i];
                 H = QD[i] + lambda[GETI_SVR(i)];
 
-                for (Feature xi : prob.x[i]) {
-                    int ind = xi.getIndex() - 1;
-                    double val = xi.getValue();
-                    G += val * w[ind];
-                }
+                Feature[] xi = prob.x[i];
+                G += SparseOperator.dot(w, xi);
 
                 double Gp = G + p;
                 double Gn = G - p;
@@ -943,11 +930,8 @@ public class Linear {
                 beta[i] = Math.min(Math.max(beta[i] + d, -upper_bound[GETI_SVR(i)]), upper_bound[GETI_SVR(i)]);
                 d = beta[i] - beta_old;
 
-                if (d != 0) {
-                    for (Feature xi : prob.x[i]) {
-                        w[xi.getIndex() - 1] += d * xi.getValue();
-                    }
-                }
+                if (d != 0)
+                    SparseOperator.axpy(d, xi, w);
             }
 
             if (iter == 0) Gnorm1_init = Gnorm1_new;
@@ -1040,12 +1024,9 @@ public class Linear {
         for (i = 0; i < w_size; i++)
             w[i] = 0;
         for (i = 0; i < l; i++) {
-            xTx[i] = 0;
-            for (Feature xi : prob.x[i]) {
-                double val = xi.getValue();
-                xTx[i] += val * val;
-                w[xi.getIndex() - 1] += y[i] * alpha[2 * i] * val;
-            }
+            Feature[] xi = prob.x[i];
+            xTx[i] = SparseOperator.nrm2_sq(xi);
+            SparseOperator.axpy(y[i] * alpha[2 * i], xi, w);
             index[i] = i;
         }
 
@@ -1058,13 +1039,11 @@ public class Linear {
             double Gmax = 0;
             for (s = 0; s < l; s++) {
                 i = index[s];
-                byte yi = y[i];
+                final byte yi = y[i];
                 double C = upper_bound[GETI(y, i)];
                 double ywTx = 0, xisq = xTx[i];
-                for (Feature xi : prob.x[i]) {
-                    ywTx += w[xi.getIndex() - 1] * xi.getValue();
-                }
-                ywTx *= y[i];
+                Feature[] xi = prob.x[i];
+                ywTx = yi * SparseOperator.dot(w, xi);
                 double a = xisq, b = ywTx;
 
                 // Decide to minimize g_1(z) or g_2(z)
@@ -1103,9 +1082,7 @@ public class Linear {
                 {
                     alpha[ind1] = z;
                     alpha[ind2] = C - z;
-                    for (Feature xi : prob.x[i]) {
-                        w[xi.getIndex() - 1] += sign * (z - alpha_old) * yi * xi.getValue();
-                    }
+                    SparseOperator.axpy(sign * (z - alpha_old) * yi, xi, w);
                 }
             }
 
@@ -1271,9 +1248,8 @@ public class Linear {
 
                     appxcond = xj_sq[j] * d * d + G_loss * d + cond;
                     if (appxcond <= 0) {
-                        for (Feature x : prob_col.x[j]) {
-                            b[x.getIndex() - 1] += d_diff * x.getValue();
-                        }
+                        Feature[] x = prob_col.x[j];
+                        SparseOperator.axpy(d_diff, x, b);
                         break;
                     }
 
@@ -1323,9 +1299,8 @@ public class Linear {
 
                     for (int i = 0; i < w_size; i++) {
                         if (w[i] == 0) continue;
-                        for (Feature x : prob_col.x[i]) {
-                            b[x.getIndex() - 1] -= w[i] * x.getValue();
-                        }
+                        Feature[] x = prob_col.x[i];
+                        SparseOperator.axpy(-w[i], x, b);
                     }
                 }
             }
@@ -1570,10 +1545,8 @@ public class Linear {
 
                     wpd[j] += z;
 
-                    for (Feature x : prob_col.x[j]) {
-                        int ind = x.getIndex() - 1;
-                        xTd[ind] += x.getValue() * z;
-                    }
+                    Feature[] x = prob_col.x[j];
+                    SparseOperator.axpy(z, x, xTd);
                 }
 
                 iter++;
@@ -1648,9 +1621,8 @@ public class Linear {
 
                 for (int i = 0; i < w_size; i++) {
                     if (w[i] == 0) continue;
-                    for (Feature x : prob_col.x[i]) {
-                        exp_wTx[x.getIndex() - 1] += w[i] * x.getValue();
-                    }
+                    Feature[] x = prob_col.x[i];
+                    SparseOperator.axpy(w[i], x, exp_wTx);
                 }
 
                 for (int i = 0; i < l; i++)
@@ -1742,7 +1714,6 @@ public class Linear {
         array.set(idxA, array.get(idxB));
         array.set(idxB, temp);
     }
-
 
     /**
      * @throws IllegalArgumentException if the feature nodes of prob are not sorted in ascending order
