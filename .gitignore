@@ -4,3 +4,6 @@
 .gradle/
 bin/
 build/
+.idea/
+classes/
+*.iml
