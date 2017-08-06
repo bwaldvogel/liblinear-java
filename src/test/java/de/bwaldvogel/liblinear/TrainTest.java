@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -218,6 +219,23 @@ public class TrainTest {
             fail("InvalidInputDataException expected");
         } catch (InvalidInputDataException e) {
             assertThat(e).hasMessage("invalid index: -4");
+        }
+    }
+
+    @Test
+    public void testReadProblemWithZeroIndex() throws Exception {
+        File file = temporaryFolder.newFile();
+
+        List<String> lines = Collections.singletonList("1 0:1  1:1");
+
+        writeToFile(file, lines);
+
+        Train train = new Train();
+        try {
+            train.readProblem(file.getAbsolutePath());
+            fail("InvalidInputDataException expected");
+        } catch (InvalidInputDataException e) {
+            assertThat(e).hasMessage("invalid index: 0");
         }
     }
 

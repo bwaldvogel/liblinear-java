@@ -316,7 +316,7 @@ public class Train {
                 }
 
                 // assert that indices are valid and sorted
-                if (index < 0) throw new InvalidInputDataException("invalid index: " + index, lineNr);
+                if (index <= 0) throw new InvalidInputDataException("invalid index: " + index, lineNr);
                 if (index <= indexBefore)
                     throw new InvalidInputDataException("indices must be sorted in ascending order", lineNr);
                 indexBefore = index;
