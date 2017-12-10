@@ -1313,7 +1313,7 @@ public class Linear {
             iter++;
             if (iter % 10 == 0) info(".");
 
-            if (Gmax_new <= eps * Gnorm1_init) {
+            if (Gnorm1_new <= eps * Gnorm1_init) {
                 if (active_size == w_size)
                     break;
                 else {
