@@ -1301,7 +1301,7 @@ public class Linear {
 
                     for (int i = 0; i < w_size; i++) {
                         if (w[i] == 0) continue;
-                        Feature[] x = prob_col.x[j];
+                        Feature[] x = prob_col.x[i];
                         SparseOperator.axpy(-w[i], x, b);
                     }
                 }
