@@ -104,4 +104,19 @@ class L2R_L2_SvcFunction implements Function {
             Xv[i] = SparseOperator.dot(v, x[i]);
     }
 
+    @Override
+    public void get_diagH(double[] M) {
+        int w_size = get_nr_variable();
+        Feature[][] x = prob.x;
+
+        for (int i = 0; i < w_size; i++)
+            M[i] = 1;
+
+        for (int i = 0; i < sizeI; i++) {
+            int idx = I[i];
+            for (Feature s : x[idx]) {
+                M[s.getIndex() - 1] += s.getValue() * s.getValue() * C[idx] * 2;
+            }
+        }
+    }
 }

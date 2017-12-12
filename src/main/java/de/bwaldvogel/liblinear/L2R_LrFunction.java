@@ -106,4 +106,20 @@ class L2R_LrFunction implements Function {
         return prob.n;
     }
 
+    @Override
+    public void get_diagH(double[] M) {
+        int l = prob.l;
+        int w_size = get_nr_variable();
+        Feature[][] x = prob.x;
+
+        for (int i = 0; i < w_size; i++)
+            M[i] = 1;
+
+        for (int i = 0; i < l; i++) {
+            for (Feature s : x[i]) {
+                M[s.getIndex() - 1] += s.getValue() * s.getValue() * C[i] * D[i];
+            }
+        }
+    }
+
 }
