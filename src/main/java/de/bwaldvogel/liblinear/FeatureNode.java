@@ -14,6 +14,7 @@ public class FeatureNode implements Feature {
     /**
      * @since 1.9
      */
+    @Override
     public int getIndex() {
         return index;
     }
@@ -21,6 +22,7 @@ public class FeatureNode implements Feature {
     /**
      * @since 1.9
      */
+    @Override
     public double getValue() {
         return value;
     }
@@ -28,6 +30,7 @@ public class FeatureNode implements Feature {
     /**
      * @since 1.9
      */
+    @Override
     public void setValue(double value) {
         this.value = value;
     }

@@ -19,6 +19,7 @@ class L2R_L2_SvcFunction implements Function {
         this.C = C;
     }
 
+    @Override
     public double fun(double[] w) {
         int i;
         double f = 0;
@@ -40,10 +41,12 @@ class L2R_L2_SvcFunction implements Function {
         return (f);
     }
 
+    @Override
     public int get_nr_variable() {
         return prob.n;
     }
 
+    @Override
     public void grad(double[] w, double[] g) {
         double[] y = prob.y;
         int l = prob.l;
@@ -63,6 +66,7 @@ class L2R_L2_SvcFunction implements Function {
             g[i] = w[i] + 2 * g[i];
     }
 
+    @Override
     public void Hv(double[] s, double[] Hs) {
         int i;
         int w_size = get_nr_variable();

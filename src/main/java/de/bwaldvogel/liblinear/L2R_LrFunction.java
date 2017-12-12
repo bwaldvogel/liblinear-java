@@ -38,6 +38,7 @@ class L2R_LrFunction implements Function {
         }
     }
 
+    @Override
     public double fun(double[] w) {
         int i;
         double f = 0;
@@ -61,6 +62,7 @@ class L2R_LrFunction implements Function {
         return (f);
     }
 
+    @Override
     public void grad(double[] w, double[] g) {
         int i;
         double[] y = prob.y;
@@ -78,6 +80,7 @@ class L2R_LrFunction implements Function {
             g[i] = w[i] + g[i];
     }
 
+    @Override
     public void Hv(double[] s, double[] Hs) {
         int i;
         int l = prob.l;
@@ -98,6 +101,7 @@ class L2R_LrFunction implements Function {
             Hs[i] = s[i] + Hs[i];
     }
 
+    @Override
     public int get_nr_variable() {
         return prob.n;
     }
