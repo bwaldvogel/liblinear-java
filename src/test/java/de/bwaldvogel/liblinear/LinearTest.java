@@ -664,4 +664,69 @@ public class LinearTest {
         assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 3));
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
     }
+
+    private static double[] randomWeights(int count) {
+        double[] weights = new double[count];
+        for (int i = 0; i < weights.length; i++) {
+            weights[i] = random.nextDouble();
+        }
+        return weights;
+    }
+
+    private static Problem createBinaryProblem(int exampleCount, double[] weights) {
+        Problem prob = new Problem();
+        prob.bias = -1;
+        prob.l = exampleCount;
+        prob.n = weights.length + 1;
+        prob.x = new FeatureNode[prob.l][];
+        prob.y = new double[prob.l];
+
+        for (int i = 0; i < prob.l; i++) {
+            prob.x[i] = new FeatureNode[weights.length + 1];
+            double dotProduct = 0;
+            for (int j = 0; j < weights.length; j++) {
+                double nextValue = random.nextDouble();
+                dotProduct += weights[j] * nextValue;
+                prob.x[i][j] = new FeatureNode(j + 1, nextValue);
+            }
+            prob.x[i][weights.length] = new FeatureNode(weights.length + 1, 1);
+
+            // ~50% of examples will have a dot product high enough to garner a positive label:
+            prob.y[i] = dotProduct >= (weights.length * 0.25) ? 1 : -1;
+        }
+        return prob;
+    }
+
+    /**
+     * Creates a perfectly separable binary problem and tests the accuracy of the resultant model
+     */
+    @Test
+    public void testBinaryLR() {
+        double[] weights = randomWeights(5);
+        Problem trainingData = createBinaryProblem(3000, weights);
+        Problem evaluationData = createBinaryProblem(1000, weights);
+
+        for (SolverType solver : SolverType.values()) {
+            for (int threadCount : solver == SolverType.L2R_LR ? THREAD_COUNTS : new int[]{1}) {
+                for (double C = 0.1; C <= 100.; C *= 1.2) {
+                    if (!solver.isLogisticRegressionSolver()) continue;
+                    // compared the behavior with the C version
+                    if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
+
+                    Parameter param = new Parameter(solver, C, 0.1, 0.1);
+                    param.setThreadCount(threadCount);
+                    Model model = Linear.train(trainingData, param);
+
+                    int mistakes = 0;
+                    for (int i = 0; i < evaluationData.x.length; i++) {
+                        double prediction = Linear.predict(model, evaluationData.x[i]);
+                        if (prediction != evaluationData.y[i]) mistakes++;
+                    }
+
+                    assertThat(mistakes).as("mistakes with solver " + solver)
+                        .isLessThan((int) (evaluationData.x.length * 0.1));
+                }
+            }
+        }
+    }
 }

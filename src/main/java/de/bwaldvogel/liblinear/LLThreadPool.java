@@ -38,11 +38,58 @@ class LLThreadPool {
         });
   }
 
+  private static class ThreadLocalDoubleArray extends ThreadLocal<double[]> {
+    private final int length;
+
+    public ThreadLocalDoubleArray(int length) {
+      this.length = length;
+    }
+
+    @Override
+    public double[] get() {
+      double[] res = super.get();
+      Arrays.fill(res, 0);
+      return res;
+    }
+
+    @Override
+    protected double[] initialValue() {
+      return new double[this.length];
+    }
+  }
+
   /**
    * Define a functional class since we're targeting Java 1.7
    */
   public static abstract class RangeConsumer {
     public abstract void run(int start, int endExclusive);
+  }
+
+  /**
+   * Specialized RangeConsumer variant for the common case where a RangeConsumer uses a thread-local accumulator array
+   * that is ultimately summed into a global result array.
+   */
+  public static abstract class RangeConsumerWithAccumulatorArray extends RangeConsumer {
+    private final ThreadLocalDoubleArray threadLocalAccumulator;
+    private final double[] globalAccumulator;
+    private final Object synchronizer = new Object();
+
+    public RangeConsumerWithAccumulatorArray(double[] globalAccumulator) {
+      this.threadLocalAccumulator = new ThreadLocalDoubleArray(globalAccumulator.length);
+      this.globalAccumulator = globalAccumulator;
+    }
+
+    public final void run(int start, int endExclusive) {
+      double[] accumulator = threadLocalAccumulator.get();
+      run(start, endExclusive, accumulator);
+      synchronized (synchronizer) {
+        for (int i = 0; i < globalAccumulator.length; i++) {
+          globalAccumulator[i] += accumulator[i];
+        }
+      }
+    }
+
+    public abstract void run(int start, int endExclusive, double[] accumulator);
   }
 
   private static class RangeConsumerRunnable implements Runnable {
@@ -79,7 +126,6 @@ class LLThreadPool {
     }
 
     // schedule the last "chunk"
-
     if (count > remainderStart) {
       futures[futures.length - 1] = pool.submit(new RangeConsumerRunnable(consumer, remainderStart, count));
     }
