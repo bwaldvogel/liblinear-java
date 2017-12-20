@@ -161,7 +161,6 @@ class L2R_LrFunction implements Function {
         int i;
         int l = prob.l;
         int w_size = get_nr_variable();
-        final Feature[][] x = prob.x;
 
         for (i = 0; i < w_size; i++)
             Hs[i] = 0;
