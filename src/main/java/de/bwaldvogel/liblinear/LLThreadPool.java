@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Wraps a ThreadPoolExecutor and provides utility methods for multiplexing operations and accumulating results
  */
-class LLThreadPool {
+class LLThreadPool implements AutoCloseable {
   /**
    * Sets the maximum number of items/iterations that should be handled by a single job.  A higher limit reduces the
    * number of "batches"/jobs that need to be enqueued and joined, but also increases time that some threads will idle
@@ -26,16 +26,23 @@ class LLThreadPool {
 
   public LLThreadPool(int threadCount) {
     this.threadCount = threadCount;
-    this.pool = new ThreadPoolExecutor(0, threadCount, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-        new ThreadFactory() {
-          private final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
+    this.pool =
+        new ThreadPoolExecutor(threadCount, threadCount, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+            new ThreadFactory() {
+              private final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
 
-          public Thread newThread(Runnable r) {
-            Thread thread = defaultFactory.newThread(r);
-            thread.setDaemon(true);
-            return thread;
-          }
-        });
+              public Thread newThread(Runnable r) {
+                Thread thread = defaultFactory.newThread(r);
+                thread.setDaemon(true);
+                return thread;
+              }
+            });
+  }
+
+  @Override
+  public void close() {
+    this.pool.shutdown();
+    this.pool = null;
   }
 
   private static class ThreadLocalDoubleArray extends ThreadLocal<double[]> {
