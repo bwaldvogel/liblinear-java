@@ -1906,7 +1906,8 @@ public class Linear {
                     else
                         C[i] = Cn;
                 }
-                fun_obj = new L2R_LrFunction(prob, C);
+                LLThreadPool threadPool = param.threadCount > 1 ? new LLThreadPool(param.threadCount) : null;
+                fun_obj = new L2R_LrFunction(prob, C, threadPool);
                 Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters, eps_cg);
                 tron_obj.tron(w);
                 break;

@@ -25,6 +25,11 @@ public final class Parameter {
      */
     double[]   init_sol = null;
 
+    /**
+     * Number of threads to use.  Currently implemented only for the L2_LR solver type; ignored otherwise.
+     */
+    int threadCount = 1;
+
     public Parameter(SolverType solver, double C, double eps) {
         setSolverType(solver);
         setC(C);
@@ -149,5 +154,24 @@ public final class Parameter {
 
     public double getP() {
         return p;
+    }
+
+    /**
+     * Sets the number of threads to use.  Multithreading is currently implemented only for the L2_LR solver type;
+     * ignored otherwise.
+     *
+     * @param threads the number of threads to use (must be at least 1)
+     */
+    public void setThreadCount(int threads) {
+        if (threads < 1) throw new IllegalArgumentException("Thread count must be at least 1");
+
+        threadCount = threads;
+    }
+
+    /**
+     * Gets the number of threads to use.  Multithreading is currently implemented only for the L2_LR solver type.
+     */
+    public int getThreadCount() {
+        return threadCount;
     }
 }

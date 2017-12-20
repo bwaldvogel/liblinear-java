@@ -30,6 +30,7 @@ import org.powermock.api.mockito.PowerMockito;
 public class LinearTest {
 
     private static Random random = new Random(12345);
+    private static final int[] THREAD_COUNTS = new int[]{1, 2, 4, 8};
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -120,42 +121,45 @@ public class LinearTest {
         prob.y[3] = 0;
 
         for (SolverType solver : SolverType.values()) {
-            for (double C = 0.1; C <= 100.; C *= 1.2) {
+            for (int threadCount : solver == SolverType.L2R_LR ? THREAD_COUNTS : new int[]{1}) {
+                for (double C = 0.1; C <= 100.; C *= 1.2) {
 
-                // compared the behavior with the C version
-                if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
-                if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
+                    // compared the behavior with the C version
+                    if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
+                    if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
 
-                if (solver.isSupportVectorRegression()) {
-                    continue;
-                }
-
-                Parameter param = new Parameter(solver, C, 0.1, 0.1);
-                Model model = Linear.train(prob, param);
-
-                double[] featureWeights = model.getFeatureWeights();
-                if (solver == SolverType.MCSVM_CS) {
-                    assertThat(featureWeights.length).isEqualTo(8);
-                } else {
-                    assertThat(featureWeights.length).isEqualTo(4);
-                }
-
-                int i = 0;
-                for (double value : prob.y) {
-                    double prediction = Linear.predict(model, prob.x[i]);
-                    assertThat(prediction).as("prediction with solver " + solver).isEqualTo(value);
-                    if (model.isProbabilityModel()) {
-                        double[] estimates = new double[model.getNrClass()];
-                        double probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
-                        assertThat(probabilityPrediction).isEqualTo(prediction);
-                        assertThat(estimates[(int)probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
-                        double estimationSum = 0;
-                        for (double estimate : estimates) {
-                            estimationSum += estimate;
-                        }
-                        assertThat(estimationSum).isEqualTo(1.0, offset(0.001));
+                    if (solver.isSupportVectorRegression()) {
+                        continue;
                     }
-                    i++;
+
+                    Parameter param = new Parameter(solver, C, 0.1, 0.1);
+                    param.setThreadCount(threadCount);
+                    Model model = Linear.train(prob, param);
+
+                    double[] featureWeights = model.getFeatureWeights();
+                    if (solver == SolverType.MCSVM_CS) {
+                        assertThat(featureWeights.length).isEqualTo(8);
+                    } else {
+                        assertThat(featureWeights.length).isEqualTo(4);
+                    }
+
+                    int i = 0;
+                    for (double value : prob.y) {
+                        double prediction = Linear.predict(model, prob.x[i]);
+                        assertThat(prediction).as("prediction with solver " + solver).isEqualTo(value);
+                        if (model.isProbabilityModel()) {
+                            double[] estimates = new double[model.getNrClass()];
+                            double probabilityPrediction = Linear.predictProbability(model, prob.x[i], estimates);
+                            assertThat(probabilityPrediction).isEqualTo(prediction);
+                            assertThat(estimates[(int) probabilityPrediction]).isGreaterThanOrEqualTo(1.0 / model.getNrClass());
+                            double estimationSum = 0;
+                            for (double estimate : estimates) {
+                                estimationSum += estimate;
+                            }
+                            assertThat(estimationSum).isEqualTo(1.0, offset(0.001));
+                        }
+                        i++;
+                    }
                 }
             }
         }
@@ -163,7 +167,6 @@ public class LinearTest {
 
     @Test
     public void testCrossValidation() throws Exception {
-
         int numClasses = random.nextInt(10) + 1;
 
         Problem prob = createRandomProblem(numClasses);

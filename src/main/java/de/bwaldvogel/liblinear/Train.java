@@ -116,6 +116,7 @@ public class Train {
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
             + "-C : find parameter C (only for -s 0 and 2)%n"
+            + "-t n: use n threads when training (primal L2-regularized logistic regression only, default 1)"
             + "-q : quiet mode (no outputs)%n");
         System.exit(1);
     }
@@ -185,6 +186,9 @@ public class Train {
                 case 'C':
                     find_C = true;
                     i--;
+                    break;
+                case 't':
+                    param.setThreadCount(atoi(argv[i]));
                     break;
                 default:
                     System.err.println("unknown option");
