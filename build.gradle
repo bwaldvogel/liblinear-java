@@ -38,6 +38,7 @@ ext {
     junitVersion = '4.12'
     assertjVersion = '2.9.1'
     powermockVersion = '1.6.5'
+    equalsverifierVersion = '2.5.2'
 }
 
 modifyPom {
@@ -94,6 +95,7 @@ dependencies {
     testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
+    testCompile group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: equalsverifierVersion
 }
 
 // vim: set ts=4 sw=4 et:

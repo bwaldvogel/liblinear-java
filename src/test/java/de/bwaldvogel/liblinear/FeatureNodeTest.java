@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
+
 public class FeatureNodeTest {
 
     @Test
@@ -37,4 +40,33 @@ public class FeatureNodeTest {
         assertThat(fn.getIndex()).isEqualTo(1);
         assertThat(fn.getValue()).isEqualTo(-0.22222);
     }
+
+    @Test
+    public void testEqualsAndHashCodeContract() throws Exception {
+        EqualsVerifier.forClass(FeatureNode.class)
+                .usingGetClass()
+                .suppress(Warning.NONFINAL_FIELDS)
+                .verify();
+    }
+
+    @Test
+    public void testEqualsAndHashCodeNaNValue() throws Exception {
+        FeatureNode a = new FeatureNode(1, Double.NaN);
+        FeatureNode b = new FeatureNode(1, Double.NaN);
+        assertThat(a).isEqualTo(b);
+        assertThat(a).hasSameHashCodeAs(b);
+    }
+
+    @Test
+    public void testEqualsWithPositiveAndNegativeZeroValue() throws Exception {
+        FeatureNode a = new FeatureNode(1, -0.0);
+        FeatureNode b = new FeatureNode(1, +0.0);
+        assertThat(a).isNotEqualTo(b);
+    }
+
+    @Test
+    public void testToString() throws Exception {
+        assertThat(new FeatureNode(1, 2.0)).hasToString("FeatureNode(idx=1, value=2.0)");
+    }
+
 }
