@@ -1,9 +1,9 @@
 package de.bwaldvogel.liblinear;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
-
 
 public class FeatureNodeTest {
 
@@ -13,9 +13,14 @@ public class FeatureNodeTest {
         new FeatureNode(0, 0);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testConstructorIndexNegative() {
-        new FeatureNode(-1, 0);
+        try {
+            new FeatureNode(-1, 0);
+            fail("IllegalArgumentException");
+        } catch (Exception e) {
+            assertThat(e).hasMessage("index must be >= 0");
+        }
     }
 
     @Test
