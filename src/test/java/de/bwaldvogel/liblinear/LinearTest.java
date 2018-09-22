@@ -662,23 +662,4 @@ public class LinearTest {
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
     }
 
-    @Test
-    public void testTrainWithIllegalIndex() {
-        Problem prob = new Problem();
-        prob.l = 1;
-        prob.n = 1;
-        prob.x = new FeatureNode[][] {{ new FeatureNode(0, 1) }};
-        prob.y = new double[] {0};
-
-        for (SolverType solver : SolverType.values()) {
-            Parameter param = new Parameter(solver, 1, 0.1, 0.1);
-            try {
-                Linear.train(prob, param);
-                fail("IllegalArgumentException expected");
-            } catch (IllegalArgumentException e) {
-                assertThat(e).hasMessage("feature nodes must be sorted by index in ascending order");
-            }
-        }
-    }
-
 }

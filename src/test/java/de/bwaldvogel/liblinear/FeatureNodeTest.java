@@ -9,8 +9,12 @@ public class FeatureNodeTest {
 
     @Test
     public void testConstructorIndexZero() {
-        // since 1.5 there's no more exception here
-        new FeatureNode(0, 0);
+        try {
+            new FeatureNode(0, 0);
+            fail("IllegalArgumentException");
+        } catch (Exception e) {
+            assertThat(e).hasMessage("index must be > 0");
+        }
     }
 
     @Test
@@ -19,7 +23,7 @@ public class FeatureNodeTest {
             new FeatureNode(-1, 0);
             fail("IllegalArgumentException");
         } catch (Exception e) {
-            assertThat(e).hasMessage("index must be >= 0");
+            assertThat(e).hasMessage("index must be > 0");
         }
     }
 
