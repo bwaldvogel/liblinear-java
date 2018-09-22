@@ -6,7 +6,7 @@ public class FeatureNode implements Feature {
     public double    value;
 
     public FeatureNode(final int index, final double value) {
-        if (index < 0) throw new IllegalArgumentException("index must be >= 0");
+        if (index <= 0) throw new IllegalArgumentException("index must be > 0");
         this.index = index;
         this.value = value;
     }
