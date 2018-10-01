@@ -1,8 +1,8 @@
 apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'nexus'
+apply plugin: 'com.bmuschko.nexus'
 apply plugin: 'org.standardout.versioneye'
 
+group = "de.bwaldvogel"
 version = '2.20'
 
 sourceCompatibility = 1.7
@@ -22,14 +22,13 @@ jar {
     }
 }
 
-// https://github.com/bmuschko/gradle-nexus-plugin
 buildscript {
     repositories {
         jcenter()
     }
 
     dependencies {
-        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
         classpath 'org.standardout:gradle-versioneye-plugin:1.2.0'
     }
 }
@@ -46,7 +45,7 @@ modifyPom {
         groupId        'de.bwaldvogel'
         artifactId     'liblinear'
         name           title
-        description    description
+        description    'Java port of Liblinear'
         url            url
         inceptionYear '2008'
 
@@ -75,9 +74,6 @@ modifyPom {
 }
 
 nexus {
-    attachSources = true
-    attachTests = false
-    attachJavadoc = true
     sign = true
 }
 
