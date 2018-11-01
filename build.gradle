@@ -1,6 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'com.bmuschko.nexus'
-apply plugin: 'org.standardout.versioneye'
 
 group = "de.bwaldvogel"
 version = '2.20'
@@ -29,7 +28,6 @@ buildscript {
 
     dependencies {
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
-        classpath 'org.standardout:gradle-versioneye-plugin:1.2.0'
     }
 }
 
