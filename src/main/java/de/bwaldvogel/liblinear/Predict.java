@@ -114,7 +114,7 @@ public class Predict {
                 printf(out, "\n");
             } else {
                 predict_label = Linear.predict(model, nodes);
-                printf(out, "%g\n", predict_label);
+                printf(out, "%.17g\n", predict_label);
             }
 
             if (predict_label == target_label) {
