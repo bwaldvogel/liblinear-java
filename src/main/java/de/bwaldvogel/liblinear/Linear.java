@@ -578,7 +578,7 @@ public class Linear {
             }
 
             printf(formatter, "nr_feature %d\n", nr_feature);
-            printf(formatter, "bias %.16g\n", model.bias);
+            printf(formatter, "bias %.17g\n", model.bias);
 
             printf(formatter, "w\n");
             for (int i = 0; i < w_size; i++) {
@@ -589,7 +589,7 @@ public class Linear {
                     if (value == 0.0) {
                         printf(formatter, "%d ", 0);
                     } else {
-                        printf(formatter, "%.16g ", value);
+                        printf(formatter, "%.17g ", value);
                     }
                 }
                 printf(formatter, "\n");
