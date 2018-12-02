@@ -206,7 +206,7 @@ class Tron {
      *
      * @since 1.8
      */
-    private static void daxpy(double constant, double vector1[], double vector2[]) {
+    private static void daxpy(double constant, double[] vector1, double[] vector2) {
         if (constant == 0) return;
 
         assert vector1.length == vector2.length;
@@ -220,7 +220,7 @@ class Tron {
      *
      * @since 1.8
      */
-    private static double dot(double vector1[], double vector2[]) {
+    private static double dot(double[] vector1, double[] vector2) {
 
         double product = 0;
         assert vector1.length == vector2.length;

@@ -12,7 +12,7 @@ final class ArraySorter {
         reversedMergesort(a, 0, a.length);
     }
 
-    private static void reversedMergesort(double x[], int off, int len) {
+    private static void reversedMergesort(double[] x, int off, int len) {
         // Insertion sort on smallest arrays
         if (len < 7) {
             for (int i = off; i < len + off; i++)
@@ -66,7 +66,7 @@ final class ArraySorter {
     /**
      * Swaps x[a] with x[b].
      */
-    private static void swap(double x[], int a, int b) {
+    private static void swap(double[] x, int a, int b) {
         double t = x[a];
         x[a] = x[b];
         x[b] = t;
@@ -75,7 +75,7 @@ final class ArraySorter {
     /**
      * Swaps x[a .. (a+n-1)] with x[b .. (b+n-1)].
      */
-    private static void vecswap(double x[], int a, int b, int n) {
+    private static void vecswap(double[] x, int a, int b, int n) {
         for (int i = 0; i < n; i++, a++, b++)
             swap(x, a, b);
     }
@@ -83,7 +83,7 @@ final class ArraySorter {
     /**
      * Returns the index of the median of the three indexed doubles.
      */
-    private static int med3(double x[], int a, int b, int c) {
+    private static int med3(double[] x, int a, int b, int c) {
         return (x[a] < x[b] ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a) : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
     }
 

@@ -585,7 +585,7 @@ public class Linear {
                 for (int j = 0; j < nr_w; j++) {
                     double value = model.w[i * nr_w + j];
 
-                    /** this optimization is the reason for {@link Model#equals(double[], double[])} */
+                    /* this optimization is the reason for {@link Model#equals(double[], double[])} */
                     if (value == 0.0) {
                         printf(formatter, "%d ", 0);
                     } else {
@@ -994,7 +994,7 @@ public class Linear {
      *
      * @since 1.7
      */
-    private static void solve_l2r_lr_dual(Problem prob, double w[], double eps, double Cp, double Cn, int max_iter) {
+    private static void solve_l2r_lr_dual(Problem prob, double[] w, double eps, double Cp, double Cn, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
         int i, s, iter = 0;
