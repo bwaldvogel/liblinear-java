@@ -56,16 +56,15 @@ class Tron {
         if (gnorm <= eps * gnorm0)
             search = 0;
 
-        iter = 1;
+        fun_obj.get_diagH(M);
+        for (i = 0; i < n; i++)
+            M[i] = (1 - alpha_pcg) + alpha_pcg * M[i];
+        delta = Math.sqrt(uTMv(n, g, M, g));
 
         double[] w_new = new double[n];
         AtomicBoolean reach_boundary = new AtomicBoolean();
+        boolean delta_adjusted = false;
         while (iter <= max_iter && search != 0) {
-            fun_obj.get_diagH(M);
-            for (i = 0; i < n; i++)
-                M[i] = (1 - alpha_pcg) + alpha_pcg * M[i];
-            if (iter == 1)
-                delta = Math.sqrt(uTMv(n, g, M, g));
             cg_iter = trpcg(delta, g, M, s, r, reach_boundary);
 
             System.arraycopy(w, 0, w_new, 0, n);
@@ -80,8 +79,10 @@ class Tron {
 
             // On the first iteration, adjust the initial step bound.
             sMnorm = Math.sqrt(uTMv(n, s, M, s));
-            if (iter == 1)
+            if (iter == 1 && !delta_adjusted) {
                 delta = Math.min(delta, sMnorm);
+                delta_adjusted = true;
+            }
 
             // Compute prediction alpha*sMnorm of the step.
             if (fnew - f - gs <= 0)
@@ -112,6 +113,9 @@ class Tron {
                 System.arraycopy(w_new, 0, w, 0, n);
                 f = fnew;
                 fun_obj.grad(w, g);
+                fun_obj.get_diagH(M);
+                for (i = 0; i < n; i++)
+                    M[i] = (1 - alpha_pcg) + alpha_pcg * M[i];
 
                 gnorm = euclideanNorm(g);
                 if (gnorm <= eps * gnorm0)
