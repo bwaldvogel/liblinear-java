@@ -15,7 +15,7 @@ class Tron {
     private final int      max_iter;
     private final double   eps_cg;
 
-    public Tron(Function fun_obj, double eps, int max_iter, double eps_cg) {
+    Tron(Function fun_obj, double eps, int max_iter, double eps_cg) {
         this.fun_obj = fun_obj;
         this.eps = eps;
         this.max_iter = max_iter;

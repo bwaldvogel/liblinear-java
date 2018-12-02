@@ -8,7 +8,7 @@ final class ArraySorter {
      *
      * <em>This code is borrowed from Sun's JDK 1.6.0.07</em>
      */
-    public static void reversedMergesort(double[] a) {
+    static void reversedMergesort(double[] a) {
         reversedMergesort(a, 0, a.length);
     }
 
