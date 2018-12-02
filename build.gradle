@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'com.bmuschko.nexus'
 
 group = "de.bwaldvogel"
-version = '2.20'
+version = '2.21'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7

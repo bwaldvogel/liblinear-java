@@ -28,11 +28,11 @@ import java.util.regex.Pattern;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 2.20
+ * @version 2.21
  */
 public class Linear {
 
-    static final int           VERSION             = 220;
+    static final int           VERSION             = 221;
 
     static final Charset       FILE_CHARSET        = StandardCharsets.ISO_8859_1;
 
