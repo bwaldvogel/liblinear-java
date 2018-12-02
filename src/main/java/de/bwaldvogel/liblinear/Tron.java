@@ -56,7 +56,7 @@ class Tron {
         if (gnorm <= eps * gnorm0)
             search = 0;
 
-        fun_obj.get_diagH(M);
+        fun_obj.get_diag_preconditioner(M);
         for (i = 0; i < n; i++)
             M[i] = (1 - alpha_pcg) + alpha_pcg * M[i];
         delta = Math.sqrt(uTMv(n, g, M, g));
@@ -113,7 +113,7 @@ class Tron {
                 System.arraycopy(w_new, 0, w, 0, n);
                 f = fnew;
                 fun_obj.grad(w, g);
-                fun_obj.get_diagH(M);
+                fun_obj.get_diag_preconditioner(M);
                 for (i = 0; i < n; i++)
                     M[i] = (1 - alpha_pcg) + alpha_pcg * M[i];
 
