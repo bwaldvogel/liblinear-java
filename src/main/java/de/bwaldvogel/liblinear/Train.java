@@ -121,19 +121,19 @@ public class Train {
     }
 
 
-    Problem getProblem() {
+    public Problem getProblem() {
         return prob;
     }
 
-    double getBias() {
+    public double getBias() {
         return bias;
     }
 
-    Parameter getParameter() {
+    public Parameter getParameter() {
         return param;
     }
 
-    void parse_command_line(String argv[]) {
+    public void parse_command_line(String argv[]) {
         int i;
 
         // eps: see setting below
