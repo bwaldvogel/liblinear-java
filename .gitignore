@@ -8,5 +8,9 @@
 !.travis.yml
 
 build/
+out/
 classes/
 data/
+
+*.ipr
+*.iws

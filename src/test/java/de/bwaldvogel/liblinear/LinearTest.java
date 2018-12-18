@@ -41,7 +41,7 @@ public class LinearTest {
         Linear.disableDebugOutput();
     }
 
-    public static Model createRandomModel() {
+    static Model createRandomModel() {
         Model model = new Model();
         model.solverType = SolverType.L2R_LR;
         model.bias = 2;
@@ -61,7 +61,7 @@ public class LinearTest {
         return model;
     }
 
-    public static Problem createRandomProblem(int numClasses) {
+    private static Problem createRandomProblem(int numClasses) {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = random.nextInt(100) + 1;

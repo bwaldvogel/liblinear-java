@@ -105,7 +105,7 @@ class L2R_L2_SvcFunction implements Function {
     }
 
     @Override
-    public void get_diagH(double[] M) {
+    public void get_diag_preconditioner(double[] M) {
         int w_size = get_nr_variable();
         Feature[][] x = prob.x;
 

@@ -11,6 +11,6 @@ interface Function {
 
     int get_nr_variable();
 
-    void get_diagH(double[] M);
+    void get_diag_preconditioner(double[] M);
 
 }

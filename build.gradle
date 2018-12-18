@@ -1,9 +1,8 @@
 apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'nexus'
-apply plugin: 'org.standardout.versioneye'
+apply plugin: 'com.bmuschko.nexus'
 
-version = '2.11'
+group = "de.bwaldvogel"
+version = '2.21'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -22,22 +21,21 @@ jar {
     }
 }
 
-// https://github.com/bmuschko/gradle-nexus-plugin
 buildscript {
     repositories {
         jcenter()
     }
 
     dependencies {
-        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
-        classpath 'org.standardout:gradle-versioneye-plugin:1.2.0'
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
     }
 }
 
 ext {
     junitVersion = '4.12'
-    assertjVersion = '2.6.0'
+    assertjVersion = '2.9.1'
     powermockVersion = '1.6.5'
+    equalsverifierVersion = '2.5.2'
 }
 
 modifyPom {
@@ -45,7 +43,7 @@ modifyPom {
         groupId        'de.bwaldvogel'
         artifactId     'liblinear'
         name           title
-        description    description
+        description    'Java port of Liblinear'
         url            url
         inceptionYear '2008'
 
@@ -74,9 +72,6 @@ modifyPom {
 }
 
 nexus {
-    attachSources = true
-    attachTests = false
-    attachJavadoc = true
     sign = true
 }
 
@@ -84,9 +79,9 @@ repositories {
     mavenCentral()
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.4'
-    distributionType = "ALL"
+wrapper {
+    gradleVersion = "4.10.2"
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 dependencies {
@@ -94,6 +89,7 @@ dependencies {
     testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
+    testCompile group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: equalsverifierVersion
 }
 
 // vim: set ts=4 sw=4 et:

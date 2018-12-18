@@ -23,16 +23,16 @@ import java.util.regex.Pattern;
 /**
  * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a></h2>
  *
- * <p>The usage should be pretty similar to the C version of <tt>liblinear</tt>.</p>
- * <p>Please consider reading the <tt>README</tt> file of <tt>liblinear</tt>.</p>
+ * <p>The usage should be pretty similar to the C version of liblinear.</p>
+ * <p>Please consider reading the README file of liblinear.</p>
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 2.11
+ * @version 2.21
  */
 public class Linear {
 
-    static final int           VERSION             = 211;
+    static final int           VERSION             = 221;
 
     static final Charset       FILE_CHARSET        = StandardCharsets.ISO_8859_1;
 
@@ -578,18 +578,18 @@ public class Linear {
             }
 
             printf(formatter, "nr_feature %d\n", nr_feature);
-            printf(formatter, "bias %.16g\n", model.bias);
+            printf(formatter, "bias %.17g\n", model.bias);
 
             printf(formatter, "w\n");
             for (int i = 0; i < w_size; i++) {
                 for (int j = 0; j < nr_w; j++) {
                     double value = model.w[i * nr_w + j];
 
-                    /** this optimization is the reason for {@link Model#equals(double[], double[])} */
+                    /* this optimization is the reason for {@link Model#equals(double[], double[])} */
                     if (value == 0.0) {
                         printf(formatter, "%d ", 0);
                     } else {
-                        printf(formatter, "%.16g ", value);
+                        printf(formatter, "%.17g ", value);
                     }
                 }
                 printf(formatter, "\n");
@@ -994,7 +994,7 @@ public class Linear {
      *
      * @since 1.7
      */
-    private static void solve_l2r_lr_dual(Problem prob, double w[], double eps, double Cp, double Cn, int max_iter) {
+    private static void solve_l2r_lr_dual(Problem prob, double[] w, double eps, double Cp, double Cn, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
         int i, s, iter = 0;
