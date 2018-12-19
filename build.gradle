@@ -1,7 +1,11 @@
-apply plugin: 'java'
-apply plugin: 'com.bmuschko.nexus'
+apply plugin: 'idea'
+apply plugin: 'java-library'
 
-group = "de.bwaldvogel"
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+archivesBaseName = "liblinear"
+group = "com.jeffreypasternack"
 version = '2.21'
 
 sourceCompatibility = 1.7
@@ -11,8 +15,8 @@ compileJava.options.encoding = 'UTF-8'
 
 ext {
     title = 'liblinear'
-    description = 'Java port of Liblinear'
-    url = 'https://www.github.com/bwaldvogel/liblinear'
+    description = 'Java port of Liblinear with Multithreaded Training'
+    url = 'https://github.com/jeffpasternack/liblinear-java'
 }
 
 jar {
@@ -25,10 +29,6 @@ buildscript {
     repositories {
         jcenter()
     }
-
-    dependencies {
-        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
-    }
 }
 
 ext {
@@ -36,43 +36,6 @@ ext {
     assertjVersion = '2.9.1'
     powermockVersion = '1.6.5'
     equalsverifierVersion = '2.5.2'
-}
-
-modifyPom {
-    project {
-        groupId        'de.bwaldvogel'
-        artifactId     'liblinear'
-        name           title
-        description    'Java port of Liblinear'
-        url            url
-        inceptionYear '2008'
-
-        scm {
-            url 'git@github.com:bwaldvogel/liblinear.git'
-            connection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
-            developerConnection 'scm:git:git@github.com:bwaldvogel/liblinear.git'
-        }
-
-        licenses {
-            license {
-                name 'The BSD License'
-                url 'http://www.opensource.org/licenses/bsd-license.php'
-                distribution 'repo'
-            }
-        }
-
-        developers {
-            developer {
-                id 'bwaldvogel'
-                name 'Benedikt Waldvogel'
-                email 'mail@bwaldvogel.de'
-            }
-        }
-    }
-}
-
-nexus {
-    sign = true
 }
 
 repositories {
@@ -92,4 +55,64 @@ dependencies {
     testCompile group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: equalsverifierVersion
 }
 
-// vim: set ts=4 sw=4 et:
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'liblinear'
+                packaging 'jar'
+
+                description 'Java port of Liblinear with Multithreaded Training'
+                url 'https://github.com/jeffpasternack/liblinear-java'
+
+                scm {
+                    connection 'scm:git@github.com:jeffreypasternack/liblinear-java.git'
+                    developerConnection 'scm:git@github.com:jeffreypasternack/liblinear-java.git'
+                    url 'scm:git@github.com:jeffreypasternack/liblinear-java.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The BSD License'
+                        url 'http://www.opensource.org/licenses/bsd-license.php'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'jeffpasternack'
+                        name 'Jeff Pasternack'
+                    }
+                }
+            }
+        }
+    }
+}

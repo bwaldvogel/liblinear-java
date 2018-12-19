@@ -1,6 +1,21 @@
-[![Build Status](https://travis-ci.org/bwaldvogel/liblinear-java.png?branch=master)](https://travis-ci.org/bwaldvogel/liblinear-java)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear)
-[![BSD 3-Clause License](https://img.shields.io/github/license/bwaldvogel/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Build Status](https://api.travis-ci.org/jeffpasternack/liblinear-java.svg?branch=master)](https://api.travis-ci.org/jeffpasternack/liblinear-java.svg?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.jeffreypasternack/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/com.jeffreypasternack/liblinear/)
+[![BSD 3-Clause License](https://img.shields.io/github/license/jeffpasternack/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
+This is a fork of the Java port of LIBLINEAR, adding multithreading for logistic regression with L2 regularization (L2_LR).  In informal testing on a MacBook using 4 threads, a wall clock speedup of ~2.4x was observed in a problem with 100K examples in 5 dimensions.
+
+The multithreading strategy is: 
+1. Break up lists of examples into "chunks", small subsets of the examples
+2. Process each chunk independently via the thread pool, accumulating results (e.g. the partial gradients) into a thread-local array where applicable
+3. When each thread completes, it acquires a lock and adds the thread-local array into a global accumulator array.
+
+Key changes from the original port:
+- Added threadCount param and associated command-line argument. This argument is ignored unless L2_LR solver is used.
+- Added the LLThreadPool class, a wrapper around a ThreadPoolExecutor with accompanying helper classes.
+- Changed the package from de.bwaldvogel.liblinear to com.jeffreypasternack.liblinear; this is to avoid conflicts when (possibly transitively) depending on both the original and multithreaded libraries.
+
+Original README
+---
 
 This is the Java version of LIBLINEAR.
 
