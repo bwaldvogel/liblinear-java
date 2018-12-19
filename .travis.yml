@@ -5,13 +5,19 @@ matrix:
     - os: linux
       dist: precise
       jdk: oraclejdk7
+      install: ./gradlew assemble -x signArchives
     - os: linux
       jdk: oraclejdk8
+      install: ./gradlew assemble -x signArchives
     - os: linux
       jdk: openjdk8
+      install: ./gradlew assemble -x signArchives
     - os: linux
       jdk: oraclejdk9
+      install: ./gradlew assemble -x signArchives
     - os: linux
       jdk: openjdk10
+      install: ./gradlew assemble -x signArchives
     - os: linux
       jdk: openjdk11
+      install: ./gradlew assemble -x signArchives
