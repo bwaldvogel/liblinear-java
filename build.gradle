@@ -12,7 +12,7 @@ compileJava.options.encoding = 'UTF-8'
 ext {
     title = 'liblinear'
     description = 'Java port of Liblinear'
-    url = 'https://www.github.com/bwaldvogel/liblinear'
+    url = 'https://github.com/bwaldvogel/liblinear'
 }
 
 jar {
