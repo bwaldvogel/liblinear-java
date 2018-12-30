@@ -14,6 +14,20 @@ The upstream changelog can be found at
 The upstream GitHub project can be found at
        https://github.com/cjlin1/liblinear
 
+## Dependencies ##
+
+The only requirement is Java 8 or later.
+
+## Usage ##
+
+```xml
+<dependency>
+    <groupId>de.bwaldvogel</groupId>
+    <artifactId>liblinear</artifactId>
+    <version>2.21</version>
+</dependency>
+```
+
 Please be aware that the code would be written differently at various places, i.e.
 
 - Java coding style,
