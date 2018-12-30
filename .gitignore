@@ -11,3 +11,5 @@ build/
 out/
 classes/
 data/
+
+src/test/datasets/

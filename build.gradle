@@ -9,6 +9,7 @@ plugins {
     id 'jacoco'
     id 'com.bmuschko.nexus' version '2.3.1'
     id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'de.undercouch.download' version '3.4.3'
 }
 
 group = "de.bwaldvogel"
@@ -36,6 +37,8 @@ ext {
     assertjVersion = '2.9.1'
     powermockVersion = '1.6.5'
     equalsverifierVersion = '2.5.2'
+    slf4jVersion = '1.7.25'
+    logbackVersion = '1.2.3'
 }
 
 modifyPom {
@@ -88,6 +91,61 @@ jacocoTestReport {
     dependsOn test
 }
 
+task downloadDatasetSplice(type: Download) {
+    def baseUrl = 'https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary'
+    src([
+        "${baseUrl}/splice",
+        "${baseUrl}/splice.t"
+    ])
+    dest 'src/test/datasets/splice/'
+    overwrite false
+    acceptAnyCertificate true
+}
+
+task verifyDatasetSpliceTrain(type: Verify, dependsOn: downloadDatasetSplice) {
+    src 'src/test/datasets/splice/splice'
+    algorithm 'SHA-256'
+    checksum 'eee33566cfe8988ec26122460cc712d66c5c5b79b966b259408e803addaa584d'
+}
+
+task verifyDatasetSpliceTest(type: Verify, dependsOn: downloadDatasetSplice) {
+    src 'src/test/datasets/splice/splice.t'
+    algorithm 'SHA-256'
+    checksum 'f40da7cfd17860f3f1a1bb7d118f8e86c306d232ca6ac6ddefbaaef266abaa03'
+}
+
+task downloadDatasetDna(type: Download) {
+    def baseUrl = 'https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/multiclass'
+    src([
+        "${baseUrl}/dna.scale",
+        "${baseUrl}/dna.scale.t"
+    ])
+    dest 'src/test/datasets/dna.scale/'
+    overwrite false
+    acceptAnyCertificate true
+}
+
+task verifyDatasetDnaTrain(type: Verify, dependsOn: downloadDatasetDna) {
+    src 'src/test/datasets/dna.scale/dna.scale'
+    algorithm 'SHA-256'
+    checksum '03d39477c5e48415e9cd18e006efc8f7a3b5c3deaee8289a72511c35070e3cfe'
+}
+
+task verifyDatasetDnaTest(type: Verify, dependsOn: downloadDatasetDna) {
+    src 'src/test/datasets/dna.scale/dna.scale.t'
+    algorithm 'SHA-256'
+    checksum 'd2eeed170e4e38ae2aba6aa4cd27a8ca4ecceb01a7751e8e509bb4e1a6bcef39'
+}
+
+task downloadAndVerifyDatasets {
+    dependsOn 'verifyDatasetSpliceTrain'
+    dependsOn 'verifyDatasetSpliceTest'
+    dependsOn 'verifyDatasetDnaTrain'
+    dependsOn 'verifyDatasetDnaTest'
+}
+
+test.dependsOn downloadAndVerifyDatasets
+
 wrapper {
     gradleVersion = "5.0"
     distributionType = Wrapper.DistributionType.ALL
@@ -95,10 +153,13 @@ wrapper {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: junitVersion
+    testCompile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
     testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
     testCompile group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: equalsverifierVersion
+
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
 }
 
 // vim: set ts=4 sw=4 et:
