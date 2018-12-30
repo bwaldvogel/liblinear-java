@@ -87,7 +87,7 @@ public enum SolverType {
     private final boolean supportVectorRegression;
     private final int     id;
 
-    private SolverType( int id, boolean logisticRegressionSolver, boolean supportVectorRegression ) {
+    SolverType(int id, boolean logisticRegressionSolver, boolean supportVectorRegression) {
         this.id = id;
         this.logisticRegressionSolver = logisticRegressionSolver;
         this.supportVectorRegression = supportVectorRegression;
