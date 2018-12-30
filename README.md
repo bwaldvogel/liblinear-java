@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/bwaldvogel/liblinear-java.png?branch=master)](https://travis-ci.org/bwaldvogel/liblinear-java)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear)
-[![BSD 3-Clause License](https://img.shields.io/github/license/bwaldvogel/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Coverage Status](https://coveralls.io/repos/github/bwaldvogel/liblinear-java/badge.svg?branch=master)](https://coveralls.io/github/bwaldvogel/liblinear-java?branch=master)
+[![BSD 3-Clause License](https://img.shields.io/github/license/bwaldvogel/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 This is the Java version of LIBLINEAR.
 
