@@ -15,3 +15,6 @@ matrix:
       jdk: openjdk10
     - os: linux
       jdk: openjdk11
+
+after_success:
+    - ./gradlew jacocoTestReport coveralls
