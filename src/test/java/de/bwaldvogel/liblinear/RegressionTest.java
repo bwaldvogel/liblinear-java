@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.assertj.core.data.Offset;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -91,13 +92,14 @@ public class RegressionTest {
 
             List<Double> expectedValues = parseExpectedValues(expectedPredictions, i);
 
+            Offset<Double> allowedOffset = Offset.offset(1e-9);
             if (model.getNrClass() == 2) {
                 assertThat(expectedValues).hasSize(1);
-                assertThat(predictedValues[0]).isEqualTo(expectedValues.get(0));
+                assertThat(predictedValues[0]).isEqualTo(expectedValues.get(0), allowedOffset);
             } else {
                 assertThat(expectedValues).hasSameSizeAs(predictedValues);
                 for (int n = 0; n < predictedValues.length; n++) {
-                    assertThat(predictedValues[n]).isEqualTo(expectedValues.get(n));
+                    assertThat(predictedValues[n]).isEqualTo(expectedValues.get(n), allowedOffset);
                 }
             }
         }
