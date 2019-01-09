@@ -2,6 +2,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear)
 [![Coverage Status](https://coveralls.io/repos/github/bwaldvogel/liblinear-java/badge.svg?branch=master)](https://coveralls.io/github/bwaldvogel/liblinear-java?branch=master)
 [![BSD 3-Clause License](https://img.shields.io/github/license/bwaldvogel/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/BenediktWaldvogel)
 
 This is the Java version of LIBLINEAR.
 
@@ -59,6 +60,15 @@ The three most important methods for programmatic usage that you might be intere
 - `Linear.train(…)`
 - `Linear.predict(…)`
 - `Linear.predictProbability(…)`
+
+## Contributing ##
+
+Please read the [contributing guidelines](CONTRIBUTING.md) if you want to contribute code to the project.
+
+If you want to thank the author for this library or want to support the maintenance work,
+we are happy to receive a donation.
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/BenediktWaldvogel)
 
 -------------------------------------------------------------------------------
 
