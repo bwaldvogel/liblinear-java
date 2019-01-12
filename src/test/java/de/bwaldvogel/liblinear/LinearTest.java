@@ -661,4 +661,9 @@ public class LinearTest {
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
     }
 
+    @Test
+    public void testGetVersion() throws Exception {
+        assertThat(Linear.getVersion()).isEqualTo(221);
+    }
+
 }
