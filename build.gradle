@@ -32,15 +32,6 @@ jar {
     }
 }
 
-ext {
-    junitVersion = '4.12'
-    assertjVersion = '2.9.1'
-    powermockVersion = '1.6.5'
-    equalsverifierVersion = '2.5.2'
-    slf4jVersion = '1.7.25'
-    logbackVersion = '1.2.3'
-}
-
 modifyPom {
     project {
         groupId        'de.bwaldvogel'
@@ -101,13 +92,22 @@ wrapper {
 }
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: junitVersion
-    testImplementation group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: assertjVersion
-    testImplementation group: 'org.powermock', name: 'powermock-api-mockito', version: powermockVersion
-    testImplementation group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: equalsverifierVersion
+    testImplementation group: 'junit', name: 'junit', version: 'latest.release'
+    testImplementation group: 'org.slf4j', name: 'slf4j-api', version: 'latest.release'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: 'latest.release'
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito', version: 'latest.release'
+    testImplementation group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: 'latest.release'
 
-    testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
+    testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
+
+    components.all { ComponentMetadataDetails details ->
+        details.statusScheme = ['candidate', 'release']
+        if (details.id.version =~ /(?i).+([-.])(CANDIDATE|RC|BETA|ALPHA).*/) {
+            details.status = 'candidate'
+        } else {
+            details.status = 'release'
+        }
+    }
 }
 
 dependencyLocking {
