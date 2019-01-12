@@ -95,7 +95,7 @@ dependencies {
     testImplementation group: 'junit', name: 'junit', version: 'latest.release'
     testImplementation group: 'org.slf4j', name: 'slf4j-api', version: 'latest.release'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: 'latest.release'
-    testImplementation group: 'org.powermock', name: 'powermock-api-mockito', version: 'latest.release'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: 'latest.release'
     testImplementation group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: 'latest.release'
 
     testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'

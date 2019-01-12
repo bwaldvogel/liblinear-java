@@ -3,9 +3,10 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.TestUtils.repeat;
 import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.offset;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -24,8 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.api.mockito.PowerMockito;
-
 
 public class LinearTest {
 
@@ -385,7 +384,7 @@ public class LinearTest {
     public void testSaveModelWithIOException() throws Exception {
         Model model = createRandomModel();
 
-        Writer out = PowerMockito.mock(Writer.class);
+        Writer out = mock(Writer.class);
 
         IOException ioException = new IOException("some reason");
 
