@@ -21,7 +21,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @RunWith(Parameterized.class)
 public class RegressionTest {
 
@@ -32,23 +31,72 @@ public class RegressionTest {
         List<TestParams> params = new ArrayList<>();
         for (String dataset : new String[] {"splice", "dna.scale"}) {
             for (SolverType solverType : SolverType.values()) {
-                params.add(new TestParams(dataset, solverType));
+                params.add(new TestParams(dataset, solverType, getExpectedAccuracy(dataset, solverType)));
             }
         }
         return params;
     }
 
-    private final TestParams params;
+    private static Double getExpectedAccuracy(String dataset, SolverType solverType) {
+        if (solverType.isSupportVectorRegression()) {
+            return null;
+        }
+        switch (dataset) {
+            case "splice":
+                switch (solverType) {
+                    case L2R_LR:
+                        return 0.8423;
+                    case L2R_L2LOSS_SVC_DUAL:
+                        return 0.8386;
+                    case L2R_L2LOSS_SVC:
+                        return 0.8432;
+                    case L2R_L1LOSS_SVC_DUAL:
+                        return 0.8382;
+                    case MCSVM_CS:
+                        return 0.8377;
+                    case L1R_L2LOSS_SVC:
+                        return 0.8478;
+                    case L1R_LR:
+                        return 0.8473;
+                    case L2R_LR_DUAL:
+                        return 0.8423;
+                }
+            case "dna.scale":
+                switch (solverType) {
+                    case L2R_LR:
+                        return 0.9511;
+                    case L2R_L2LOSS_SVC_DUAL:
+                        return 0.9452;
+                    case L2R_L2LOSS_SVC:
+                        return 0.9469;
+                    case L2R_L1LOSS_SVC_DUAL:
+                        return 0.9477;
+                    case MCSVM_CS:
+                        return 0.9292;
+                    case L1R_L2LOSS_SVC:
+                        return 0.9553;
+                    case L1R_LR:
+                        return 0.9536;
+                    case L2R_LR_DUAL:
+                        return 0.9486;
+                }
+            default:
+                throw new IllegalArgumentException("Unknown expectation: " + dataset + ", " + solverType);
+        }
+    }
 
+    private final TestParams params;
 
     private static class TestParams {
 
         private final String     dataset;
         private final SolverType solverType;
+        private final Double     expectedAccuracy;
 
-        private TestParams(String dataset, SolverType solverType) {
+        private TestParams(String dataset, SolverType solverType, Double expectedAccuracy) {
             this.dataset = dataset;
             this.solverType = solverType;
+            this.expectedAccuracy = expectedAccuracy;
         }
 
         @Override
@@ -63,10 +111,10 @@ public class RegressionTest {
 
     @Test
     public void regressionTest() throws Exception {
-        runRegressionTest(params.dataset, params.solverType);
+        runRegressionTest(params.dataset, params.solverType, params.expectedAccuracy);
     }
 
-    private void runRegressionTest(String dataset, SolverType solverType) throws Exception {
+    private void runRegressionTest(String dataset, SolverType solverType, Double expectedAccuracy) throws Exception {
         Linear.resetRandom();
         log.info("Running regression test for '{}'", params);
         File trainingFile = Paths.get("src/test/datasets", dataset, dataset).toFile();
@@ -81,13 +129,24 @@ public class RegressionTest {
         assertThat(expectedPredictions).hasSize(testProblem.l);
         assertThat(testProblem.x).hasSameSizeAs(expectedPredictions);
 
+        int correctPredictions = 0;
+
         for (int i = 0; i < testProblem.l; i++) {
             Feature[] x = testProblem.x[i];
             double[] predictedValues = new double[model.getNrClass()];
+            final double prediction;
             if (solverType.isLogisticRegressionSolver()) {
-                Linear.predictProbability(model, x, predictedValues);
+                prediction = Linear.predictProbability(model, x, predictedValues);
             } else {
-                Linear.predictValues(model, x, predictedValues);
+                prediction = Linear.predictValues(model, x, predictedValues);
+            }
+
+            if (expectedAccuracy != null) {
+                int expectation = (int) testProblem.y[i];
+                int actual = (int) prediction;
+                if (actual == expectation) {
+                    correctPredictions++;
+                }
             }
 
             List<Double> expectedValues = parseExpectedValues(expectedPredictions, i);
@@ -102,6 +161,11 @@ public class RegressionTest {
                     assertThat(predictedValues[n]).isEqualTo(expectedValues.get(n), allowedOffset);
                 }
             }
+        }
+
+        if (expectedAccuracy != null) {
+            double accuracy = correctPredictions / (double) testProblem.l;
+            assertThat(accuracy).isEqualTo(expectedAccuracy.doubleValue(), Offset.offset(1e-4));
         }
     }
 
