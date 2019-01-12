@@ -110,4 +110,8 @@ dependencies {
     testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 // vim: set ts=4 sw=4 et:
