@@ -10,6 +10,7 @@ plugins {
     id 'com.bmuschko.nexus' version '2.3.1'
     id 'com.github.kt3k.coveralls' version '2.8.2'
     id 'de.undercouch.download' version '3.4.3'
+    id 'me.champeau.gradle.jmh' version '0.4.8'
 }
 
 group = "de.bwaldvogel"
@@ -91,6 +92,13 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
+jmh {
+    include = ['de\\.bwaldvogel\\.liblinear\\.LinearBenchmark.*']
+    jvmArgs = ["-Ddataset.directory=" + projectDir + "/src/test/datasets"]
+}
+
+tasks['jmh'].dependsOn downloadAndVerifyRcv1
+
 dependencies {
     testImplementation group: 'junit', name: 'junit', version: 'latest.release'
     testImplementation group: 'org.slf4j', name: 'slf4j-api', version: 'latest.release'
@@ -99,6 +107,9 @@ dependencies {
     testImplementation group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: 'latest.release'
 
     testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
+
+    jmh group: 'org.apache.commons', name: 'commons-compress', version: 'latest.release'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:latest.release' // for IntelliJ
 
     components.all { ComponentMetadataDetails details ->
         details.statusScheme = ['candidate', 'release']

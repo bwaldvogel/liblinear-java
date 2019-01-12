@@ -44,6 +44,34 @@ task verifyDatasetDnaTest(type: Verify, dependsOn: downloadDatasetDna) {
     checksum 'd2eeed170e4e38ae2aba6aa4cd27a8ca4ecceb01a7751e8e509bb4e1a6bcef39'
 }
 
+task downloadDatasetRcv1(type: Download) {
+    def baseUrl = 'https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary'
+    src([
+        "${baseUrl}/rcv1_train.binary.bz2",
+        "${baseUrl}/rcv1_test.binary.bz2"
+    ])
+    dest 'src/test/datasets/rcv1/'
+    overwrite false
+    acceptAnyCertificate true
+}
+
+task verifyDatasetRcv1Train(type: Verify, dependsOn: downloadDatasetRcv1) {
+    src 'src/test/datasets/rcv1/rcv1_train.binary.bz2'
+    algorithm 'SHA-256'
+    checksum 'dda0c6381811484e284e70dd0641335917debce50948346416fde7fb32fad2e2'
+}
+
+task verifyDatasetRcv1Test(type: Verify, dependsOn: downloadDatasetRcv1) {
+    src 'src/test/datasets/rcv1/rcv1_test.binary.bz2'
+    algorithm 'SHA-256'
+    checksum '975ab6c4fd8ea2a88b82e7ba2659ef21bf980ac61b3d8f13d6991739ec0f7aa7'
+}
+
+task downloadAndVerifyRcv1 {
+    dependsOn 'verifyDatasetRcv1Train'
+    dependsOn 'verifyDatasetRcv1Test'
+}
+
 task downloadAndVerifyDatasets {
     dependsOn 'verifyDatasetSpliceTrain'
     dependsOn 'verifyDatasetSpliceTest'
