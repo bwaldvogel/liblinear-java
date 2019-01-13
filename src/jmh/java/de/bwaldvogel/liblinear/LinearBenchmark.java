@@ -25,16 +25,24 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 @Fork(1)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
 public class LinearBenchmark {
 
-    @Warmup(iterations = 2, time = 3, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
     @Benchmark
-    @BenchmarkMode({Mode.AverageTime})
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void train(BenchmarkState benchmarkState) {
+    public void readProblem(DatasetParameters datasetParameters) throws Exception {
+        Path trainingFile = getTrainingFile(datasetParameters.dataset);
+        try (InputStream inputStream = getInputStream(trainingFile)) {
+            Train.readProblem(inputStream, -1);
+        }
+    }
+
+    @Benchmark
+    public void train(BenchmarkParameters benchmarkParameters) {
         Linear.disableDebugOutput();
-        Linear.train(benchmarkState.problem, new Parameter(benchmarkState.solverType, 1, 1e-3));
+        Linear.train(benchmarkParameters.problem, new Parameter(benchmarkParameters.solverType, 1, 1e-3));
     }
 
     public enum Dataset {
@@ -43,7 +51,7 @@ public class LinearBenchmark {
 
 
     @State(Scope.Benchmark)
-    public static class BenchmarkState {
+    public static class BenchmarkParameters {
 
         @Param
         private Dataset dataset;
@@ -55,33 +63,19 @@ public class LinearBenchmark {
 
         @Setup
         public void loadDataset() throws Exception {
-            Path trainingFile = getTrainingFile();
+            Path trainingFile = getTrainingFile(dataset);
             try (InputStream inputStream = getInputStream(trainingFile)) {
                 problem = Train.readProblem(inputStream, -1);
             }
         }
 
-        private InputStream getInputStream(Path path) throws IOException {
-            InputStream inputStream = Files.newInputStream(path);
-            if (path.toString().endsWith(".bz2")) {
-                return new BZip2CompressorInputStream(inputStream);
-            }
-            return inputStream;
-        }
+    }
 
-        private Path getTrainingFile() {
-            Path datasetDirectory = Paths.get(System.getProperty("dataset.directory", "src/test/datasets"));
-            switch (dataset) {
-                case RCV1:
-                    return datasetDirectory.resolve("rcv1").resolve("rcv1_train.binary.bz2");
-                case Splice:
-                    return datasetDirectory.resolve("splice").resolve("splice");
-                case DnaScale:
-                    return datasetDirectory.resolve("dna.scale").resolve("dna.scale");
-                default:
-                    throw new IllegalArgumentException("Unknown dataset: " + dataset);
-            }
-        }
+    @State(Scope.Benchmark)
+    public static class DatasetParameters {
+
+        @Param
+        private Dataset dataset;
 
     }
 
@@ -91,6 +85,28 @@ public class LinearBenchmark {
                 .build();
 
         new Runner(opt).run();
+    }
+
+    private static InputStream getInputStream(Path path) throws IOException {
+        InputStream inputStream = Files.newInputStream(path);
+        if (path.toString().endsWith(".bz2")) {
+            return new BZip2CompressorInputStream(inputStream);
+        }
+        return inputStream;
+    }
+
+    private static Path getTrainingFile(Dataset dataset) {
+        Path datasetDirectory = Paths.get(System.getProperty("dataset.directory", "src/test/datasets"));
+        switch (dataset) {
+            case RCV1:
+                return datasetDirectory.resolve("rcv1").resolve("rcv1_train.binary.bz2");
+            case Splice:
+                return datasetDirectory.resolve("splice").resolve("splice");
+            case DnaScale:
+                return datasetDirectory.resolve("dna.scale").resolve("dna.scale");
+            default:
+                throw new IllegalArgumentException("Unknown dataset: " + dataset);
+        }
     }
 
 }
