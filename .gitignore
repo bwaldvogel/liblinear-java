@@ -6,6 +6,7 @@
 
 !.gitignore
 !.travis.yml
+!.editorconfig
 
 build/
 out/
