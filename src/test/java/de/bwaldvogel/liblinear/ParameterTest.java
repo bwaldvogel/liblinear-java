@@ -1,5 +1,7 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.SolverType.L1R_LR;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -13,12 +15,12 @@ public class ParameterTest {
 
     @Before
     public void setUp() {
-        _param = new Parameter(SolverType.L2R_L1LOSS_SVC_DUAL, 100, 1e-3);
+        _param = new Parameter(L2R_L1LOSS_SVC_DUAL, 100, 1e-3);
     }
 
     @Test
     public void testDefaults() {
-        Parameter parameters = new Parameter(SolverType.L1R_LR, 1, 0.1);
+        Parameter parameters = new Parameter(L1R_LR, 1, 0.1);
         assertThat(parameters.getP()).isEqualTo(0.1);
         assertThat(parameters.getMaxIters()).isEqualTo(1000);
     }

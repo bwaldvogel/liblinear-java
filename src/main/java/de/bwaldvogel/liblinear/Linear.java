@@ -1,5 +1,12 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVR_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
+import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.EOFException;
@@ -412,7 +419,7 @@ public class Linear {
         if (model.bias >= 0) w_size++;
 
         int nr_w = model.nr_class;
-        if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
+        if (model.nr_class == 2 && model.solverType != MCSVM_CS) nr_w = 1;
 
         model.w = new double[w_size * nr_w];
         int[] buffer = new int[128];
@@ -513,7 +520,7 @@ public class Linear {
         double[] w = model.w;
 
         int nr_w;
-        if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS)
+        if (model.nr_class == 2 && model.solverType != MCSVM_CS)
             nr_w = 1;
         else
             nr_w = model.nr_class;
@@ -563,7 +570,7 @@ public class Linear {
         if (model.bias >= 0) w_size++;
 
         int nr_w = model.nr_class;
-        if (model.nr_class == 2 && model.solverType != SolverType.MCSVM_CS) nr_w = 1;
+        if (model.nr_class == 2 && model.solverType != MCSVM_CS) nr_w = 1;
 
         try (Formatter formatter = new Formatter(modelOutput, DEFAULT_LOCALE)) {
             printf(formatter, "solver_type %s\n", model.solverType.name());
@@ -666,7 +673,7 @@ public class Linear {
         // default solver_type: L2R_L2LOSS_SVC_DUAL
         double diag[] = new double[] {0.5 / Cn, 0, 0.5 / Cp};
         double upper_bound[] = new double[] {Double.POSITIVE_INFINITY, 0, Double.POSITIVE_INFINITY};
-        if (solver_type == SolverType.L2R_L1LOSS_SVC_DUAL) {
+        if (solver_type == L2R_L1LOSS_SVC_DUAL) {
             diag[0] = 0;
             diag[2] = 0;
             upper_bound[0] = Cn;
@@ -841,7 +848,7 @@ public class Linear {
         double[] lambda = new double[] {0.5 / C};
         double[] upper_bound = new double[] {Double.POSITIVE_INFINITY};
 
-        if (param.solverType == SolverType.L2R_L1LOSS_SVR_DUAL) {
+        if (param.solverType == L2R_L1LOSS_SVR_DUAL) {
             lambda[0] = 0;
             upper_bound[0] = C;
         }
@@ -1738,7 +1745,7 @@ public class Linear {
             }
         }
 
-        if (param.init_sol != null && param.getSolverType() != SolverType.L2R_LR && param.getSolverType() != SolverType.L2R_L2LOSS_SVC) {
+        if (param.init_sol != null && param.getSolverType() != L2R_LR && param.getSolverType() != L2R_L2LOSS_SVC) {
             throw new IllegalArgumentException("Initial-solution specification supported only for solver L2R_LR and L2R_L2LOSS_SVC");
         }
 
@@ -1810,7 +1817,7 @@ public class Linear {
                 sub_prob.x[k] = x[k];
 
             // multi-class svm by Crammer and Singer
-            if (param.solverType == SolverType.MCSVM_CS) {
+            if (param.solverType == MCSVM_CS) {
                 model.w = new double[n * nr_class];
                 for (int i = 0; i < nr_class; i++) {
                     for (int j = start[i]; j < start[i] + count[i]; j++) {
@@ -1925,10 +1932,10 @@ public class Linear {
                 break;
             }
             case L2R_L2LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L2LOSS_SVC_DUAL, param.max_iters);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L2LOSS_SVC_DUAL, param.max_iters);
                 break;
             case L2R_L1LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, SolverType.L2R_L1LOSS_SVC_DUAL, param.max_iters);
+                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L1LOSS_SVC_DUAL, param.max_iters);
                 break;
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
@@ -1979,9 +1986,9 @@ public class Linear {
         }
 
         double min_C = 1.0;
-        if (param.getSolverType() == SolverType.L2R_LR)
+        if (param.getSolverType() == L2R_LR)
             min_C = 1.0 / (prob.l * max_xTx);
-        else if (param.getSolverType() == SolverType.L2R_L2LOSS_SVC)
+        else if (param.getSolverType() == L2R_L2LOSS_SVC)
             min_C = 1.0 / (2 * prob.l * max_xTx);
 
         return Math.pow(2, Math.floor(Math.log(min_C) / Math.log(2.0)));

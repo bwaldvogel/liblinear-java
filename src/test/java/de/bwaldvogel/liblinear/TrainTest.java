@@ -1,5 +1,7 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
+import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
 import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -75,7 +77,7 @@ public class TrainTest {
         assertThat(train.isFindC()).isTrue();
         assertThat(train.getNumFolds()).isEqualTo(5);
         Parameter param = train.getParameter();
-        assertThat(param.solverType).isEqualTo(SolverType.L2R_L2LOSS_SVC);
+        assertThat(param.solverType).isEqualTo(L2R_L2LOSS_SVC);
         // check default eps
         assertThat(param.eps).isEqualTo(0.01);
         assertThat(param.p).isEqualTo(0.1);
@@ -89,7 +91,7 @@ public class TrainTest {
         assertThat(train.isFindC()).isTrue();
         assertThat(train.getNumFolds()).isEqualTo(10);
         Parameter param = train.getParameter();
-        assertThat(param.solverType).isEqualTo(SolverType.L2R_LR);
+        assertThat(param.solverType).isEqualTo(L2R_LR);
         assertThat(param.eps).isEqualTo(0.01);
         assertThat(param.p).isEqualTo(0.1);
     }

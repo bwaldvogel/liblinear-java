@@ -1,5 +1,12 @@
 package de.bwaldvogel.liblinear;
 
+import static de.bwaldvogel.liblinear.SolverType.L1R_L2LOSS_SVC;
+import static de.bwaldvogel.liblinear.SolverType.L1R_LR;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVR;
+import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
+import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
 import static de.bwaldvogel.liblinear.TestUtils.repeat;
 import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +50,7 @@ public class LinearTest {
 
     static Model createRandomModel() {
         Model model = new Model();
-        model.solverType = SolverType.L2R_LR;
+        model.solverType = L2R_LR;
         model.bias = 2;
         model.label = new int[] {1, Integer.MAX_VALUE, 2};
         model.w = new double[model.label.length * 300];
@@ -124,8 +131,8 @@ public class LinearTest {
             for (double C = 0.1; C <= 100.; C *= 1.2) {
 
                 // compared the behavior with the C version
-                if (C < 0.2) if (solver == SolverType.L1R_L2LOSS_SVC) continue;
-                if (C < 0.7) if (solver == SolverType.L1R_LR) continue;
+                if (C < 0.2) if (solver == L1R_L2LOSS_SVC) continue;
+                if (C < 0.7) if (solver == L1R_LR) continue;
 
                 if (solver.isSupportVectorRegression()) {
                     continue;
@@ -135,7 +142,7 @@ public class LinearTest {
                 Model model = Linear.train(prob, param);
 
                 double[] featureWeights = model.getFeatureWeights();
-                if (solver == SolverType.MCSVM_CS) {
+                if (solver == MCSVM_CS) {
                     assertThat(featureWeights.length).isEqualTo(8);
                 } else {
                     assertThat(featureWeights.length).isEqualTo(4);
@@ -169,7 +176,7 @@ public class LinearTest {
 
         Problem prob = createRandomProblem(numClasses);
 
-        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.01);
+        Parameter param = new Parameter(L2R_LR, 10, 0.01);
         int nr_fold = 10;
         double[] target = new double[prob.l];
         Linear.crossValidation(prob, param, nr_fold, target);
@@ -207,7 +214,7 @@ public class LinearTest {
         writeToFile(file, lines);
 
         Model model = Model.load(file);
-        assertThat(model.getSolverType()).isEqualTo(SolverType.L2R_LR);
+        assertThat(model.getSolverType()).isEqualTo(L2R_LR);
         assertThat(model.getLabels()).containsExactly(1, 2);
         assertThat(model.getNrClass()).isEqualTo(2);
         assertThat(model.getNrFeature()).isEqualTo(0);
@@ -230,7 +237,7 @@ public class LinearTest {
         writeToFile(file, lines);
 
         Model model = Model.load(file);
-        assertThat(model.getSolverType()).isEqualTo(SolverType.L2R_L2LOSS_SVR);
+        assertThat(model.getSolverType()).isEqualTo(L2R_L2LOSS_SVR);
         assertThat(model.getLabels()).containsExactly(1, 2);
         assertThat(model.getNrClass()).isEqualTo(2);
         assertThat(model.getNrFeature()).isEqualTo(6);
@@ -277,7 +284,7 @@ public class LinearTest {
         prob.y = new double[4];
         prob.y[0] = 0;
 
-        Parameter param = new Parameter(SolverType.L2R_LR, 10, 0.1);
+        Parameter param = new Parameter(L2R_LR, 10, 0.1);
         try {
             Linear.train(prob, param);
             fail("IllegalArgumentException expected");
@@ -322,7 +329,7 @@ public class LinearTest {
             prob.y[i] = i;
         }
 
-        SolverType solverType = SolverType.L2R_L1LOSS_SVC_DUAL;
+        SolverType solverType = L2R_L1LOSS_SVC_DUAL;
         Parameter param = new Parameter(solverType, 10, 0.1);
         Model model = Linear.train(prob, param);
         try {
@@ -666,7 +673,7 @@ public class LinearTest {
     @Test
     public void testFindBestParameterCOnIrisDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
-        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
         assertThat(result.getBestC()).isEqualTo(4);
         assertThat(result.getBestRate()).isEqualTo(0.88);
@@ -676,7 +683,7 @@ public class LinearTest {
     public void testFindBestParameterC_IllegalSolver() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
 
-        EnumSet<SolverType> supportedSolvers = EnumSet.of(SolverType.L2R_LR, SolverType.L2R_L2LOSS_SVC);
+        EnumSet<SolverType> supportedSolvers = EnumSet.of(L2R_LR, L2R_L2LOSS_SVC);
         for (SolverType illegalSolver : EnumSet.complementOf(supportedSolvers)) {
             Parameter param = new Parameter(illegalSolver, 1, 0.001, 0.1);
             assertThatExceptionOfType(IllegalArgumentException.class)
@@ -688,7 +695,7 @@ public class LinearTest {
     @Test
     public void testFindBestParameterCOnSpliceDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
-        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
         assertThat(result.getBestC()).isEqualTo(0.001953125);
         assertThat(result.getBestRate()).isEqualTo(0.811);
@@ -697,7 +704,7 @@ public class LinearTest {
     @Test
     public void testFindBestParameterCOnSpliceDataSet_L2R_LR() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
-        Parameter param = new Parameter(SolverType.L2R_LR, 1, 0.001, 0.1);
+        Parameter param = new Parameter(L2R_LR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
         assertThat(result.getBestC()).isEqualTo(0.015625);
         assertThat(result.getBestRate()).isEqualTo(0.813);
@@ -706,7 +713,7 @@ public class LinearTest {
     @Test
     public void testFindBestParameterCOnDnaScaleDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
-        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
         assertThat(result.getBestC()).isEqualTo(0.0078125);
         assertThat(result.getBestRate()).isEqualTo(0.9475);

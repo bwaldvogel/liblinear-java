@@ -2,6 +2,9 @@ package de.bwaldvogel.liblinear;
 
 import static de.bwaldvogel.liblinear.Linear.atof;
 import static de.bwaldvogel.liblinear.Linear.atoi;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -137,7 +140,7 @@ public class Train {
         int i;
 
         // eps: see setting below
-        param = new Parameter(SolverType.L2R_L2LOSS_SVC_DUAL, 1, Double.POSITIVE_INFINITY, 0.1);
+        param = new Parameter(L2R_L2LOSS_SVC_DUAL, 1, Double.POSITIVE_INFINITY, 0.1);
         // default values
         bias = -1;
         cross_validation = false;
@@ -212,8 +215,8 @@ public class Train {
                 nr_fold = 5;
             if (!solver_specified) {
                 System.err.printf("Solver not specified. Using -s 2%n");
-                param.setSolverType(SolverType.L2R_L2LOSS_SVC);
-            } else if (param.getSolverType() != SolverType.L2R_LR && param.getSolverType() != SolverType.L2R_L2LOSS_SVC) {
+                param.setSolverType(L2R_L2LOSS_SVC);
+            } else if (param.getSolverType() != L2R_LR && param.getSolverType() != L2R_L2LOSS_SVC) {
                 System.err.printf("Warm-start parameter search only available for -s 0 and -s 2%n");
                 exit_with_help();
             }

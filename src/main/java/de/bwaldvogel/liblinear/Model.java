@@ -1,6 +1,7 @@
 package de.bwaldvogel.liblinear;
 
 import static de.bwaldvogel.liblinear.Linear.copyOf;
+import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +104,7 @@ public final class Model implements Serializable {
             if (label_idx < 0 || label_idx >= nr_class) {
                 return 0;
             }
-            if (nr_class == 2 && solverType != SolverType.MCSVM_CS) {
+            if (nr_class == 2 && solverType != MCSVM_CS) {
                 if (label_idx == 0) {
                     return w[idx];
                 } else {
