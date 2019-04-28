@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "de.bwaldvogel"
-version = '2.21'
+version = '2.30'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

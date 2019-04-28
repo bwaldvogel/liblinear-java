@@ -746,7 +746,7 @@ public class LinearTest {
 
     @Test
     public void testGetVersion() throws Exception {
-        assertThat(Linear.getVersion()).isEqualTo(221);
+        assertThat(Linear.getVersion()).isEqualTo(230);
     }
 
 }
