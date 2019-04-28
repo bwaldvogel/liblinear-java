@@ -3,6 +3,7 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.TestUtils.repeat;
 import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.offset;
 import static org.mockito.Mockito.doThrow;
@@ -16,6 +17,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -659,6 +661,55 @@ public class LinearTest {
 
         assertThat(transposed.x[3][0]).isEqualTo(new FeatureNode(1, 3));
         assertThat(transposed.x[3][1]).isEqualTo(new FeatureNode(2, 3));
+    }
+
+    @Test
+    public void testFindBestParameterCOnIrisDataSet() throws Exception {
+        Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
+        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
+        assertThat(result.getBestC()).isEqualTo(4);
+        assertThat(result.getBestRate()).isEqualTo(0.88);
+    }
+
+    @Test
+    public void testFindBestParameterC_IllegalSolver() throws Exception {
+        Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
+
+        EnumSet<SolverType> supportedSolvers = EnumSet.of(SolverType.L2R_LR, SolverType.L2R_L2LOSS_SVC);
+        for (SolverType illegalSolver : EnumSet.complementOf(supportedSolvers)) {
+            Parameter param = new Parameter(illegalSolver, 1, 0.001, 0.1);
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> Linear.findParameterC(problem, param, 5, -1, 1024))
+                .withMessage("Initial-solution specification supported only for solver L2R_LR and L2R_L2LOSS_SVC");
+        }
+    }
+
+    @Test
+    public void testFindBestParameterCOnSpliceDataSet() throws Exception {
+        Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
+        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
+        assertThat(result.getBestC()).isEqualTo(0.001953125);
+        assertThat(result.getBestRate()).isEqualTo(0.811);
+    }
+
+    @Test
+    public void testFindBestParameterCOnSpliceDataSet_L2R_LR() throws Exception {
+        Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
+        Parameter param = new Parameter(SolverType.L2R_LR, 1, 0.001, 0.1);
+        ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
+        assertThat(result.getBestC()).isEqualTo(0.015625);
+        assertThat(result.getBestRate()).isEqualTo(0.813);
+    }
+
+    @Test
+    public void testFindBestParameterCOnDnaScaleDataSet() throws Exception {
+        Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
+        Parameter param = new Parameter(SolverType.L2R_L2LOSS_SVC, 1, 0.001, 0.1);
+        ParameterSearchResult result = Linear.findParameterC(problem, param, 5, -1, 1024);
+        assertThat(result.getBestC()).isEqualTo(0.0078125);
+        assertThat(result.getBestRate()).isEqualTo(0.9475);
     }
 
     @Test
