@@ -43,12 +43,22 @@ public class TrainTest {
     }
 
     @Test
+    public void testFindBestCOnIrisDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
+        Train.main(new String[] {"-s", "11", "-C", "src/test/resources/iris.scale"});
+    }
+
+    @Test
+    public void testFindBestCOnSpliceDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
+        Train.main(new String[] {"-s", "11", "-C", "src/test/datasets/splice/splice"});
+    }
+
+    @Test
     public void testParseCommandLine() {
         Train train = new Train();
 
         for (SolverType solver : SolverType.values()) {
             train.parse_command_line(new String[] {"-B", "5.3", "-s", "" + solver.getId(), "-p", "0.01", "model-filename"});
-            assertThat(train.isFindC()).isFalse();
+            assertThat(train.isFindParameters()).isFalse();
             assertThat(train.getNumFolds()).isEqualTo(0);
             Parameter param = train.getParameter();
             assertThat(param.solverType).isEqualTo(solver);
@@ -59,7 +69,7 @@ public class TrainTest {
             } else if (solver.getId() == 7) {
                 assertThat(param.eps).isEqualTo(0.1);
             } else if (solver.getId() == 11) {
-                assertThat(param.eps).isEqualTo(0.001);
+                assertThat(param.eps).isEqualTo(0.0001);
             } else {
                 assertThat(param.eps).isEqualTo(0.1);
             }
@@ -74,7 +84,7 @@ public class TrainTest {
         Train train = new Train();
 
         train.parse_command_line(new String[] {"-C", "model-filename"});
-        assertThat(train.isFindC()).isTrue();
+        assertThat(train.isFindParameters()).isTrue();
         assertThat(train.getNumFolds()).isEqualTo(5);
         Parameter param = train.getParameter();
         assertThat(param.solverType).isEqualTo(L2R_L2LOSS_SVC);
@@ -88,7 +98,7 @@ public class TrainTest {
         Train train = new Train();
 
         train.parse_command_line(new String[] {"-s", "0", "-v", "10", "-C", "model-filename"});
-        assertThat(train.isFindC()).isTrue();
+        assertThat(train.isFindParameters()).isTrue();
         assertThat(train.getNumFolds()).isEqualTo(10);
         Parameter param = train.getParameter();
         assertThat(param.solverType).isEqualTo(L2R_LR);

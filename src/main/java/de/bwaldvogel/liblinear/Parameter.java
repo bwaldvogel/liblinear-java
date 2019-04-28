@@ -3,7 +3,7 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.Linear.copyOf;
 
 
-public final class Parameter {
+public final class Parameter implements Cloneable {
 
     double     C;
 
@@ -77,6 +77,9 @@ public final class Parameter {
      * @see #setWeights(double[], int[])
      */
     public double[] getWeights() {
+        if (weight == null) {
+            return null;
+        }
         return copyOf(weight, weight.length);
     }
 
@@ -84,6 +87,9 @@ public final class Parameter {
      * @see #setWeights(double[], int[])
      */
     public int[] getWeightLabels() {
+        if (weightLabel == null) {
+            return null;
+        }
         return copyOf(weightLabel, weightLabel.length);
     }
 
@@ -150,4 +156,14 @@ public final class Parameter {
     public double getP() {
         return p;
     }
+
+    @Override
+    public Parameter clone() {
+        Parameter clone = new Parameter(solverType, C, eps, max_iters, p);
+        clone.weight = weight == null ? null : weight.clone();
+        clone.weightLabel = weightLabel == null ? null : weightLabel.clone();
+        clone.init_sol = init_sol;
+        return clone;
+    }
+
 }

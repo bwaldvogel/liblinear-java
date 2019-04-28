@@ -130,4 +130,31 @@ public class ParameterTest {
         }
     }
 
+    @Test
+    public void testClone_Simple() throws Exception {
+        Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123);
+        Parameter clone = parameter.clone();
+        assertThat(clone.getSolverType()).isEqualTo(L1R_LR);
+        assertThat(clone.getC()).isEqualTo(123.456);
+        assertThat(clone.getEps()).isEqualTo(0.123);
+        assertThat(clone.getWeights()).isNull();
+        assertThat(clone.getWeightLabels()).isNull();
+        assertThat(clone.getNumWeights()).isEqualTo(0);
+    }
+
+    @Test
+    public void testClone_Full() throws Exception {
+        Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123, 9000, 1.2);
+        parameter.setWeights(new double[] {1, 2}, new int[] {3, 4});
+        Parameter clone = parameter.clone();
+        assertThat(clone.getSolverType()).isEqualTo(L1R_LR);
+        assertThat(clone.getC()).isEqualTo(123.456);
+        assertThat(clone.getEps()).isEqualTo(0.123);
+        assertThat(clone.getMaxIters()).isEqualTo(9000);
+        assertThat(clone.getP()).isEqualTo(1.2);
+        assertThat(clone.getWeights()).containsExactly(1, 2);
+        assertThat(clone.getWeightLabels()).containsExactly(3, 4);
+        assertThat(clone.getNumWeights()).isEqualTo(2);
+    }
+
 }

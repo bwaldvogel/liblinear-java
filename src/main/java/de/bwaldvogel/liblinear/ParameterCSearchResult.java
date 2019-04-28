@@ -1,15 +1,13 @@
 package de.bwaldvogel.liblinear;
 
-public class ParameterSearchResult {
+public class ParameterCSearchResult {
 
     private final double bestC;
     private final double bestScore;
-    private final double bestP;
 
-    public ParameterSearchResult(double bestC, double bestScore, double bestP) {
+    public ParameterCSearchResult(double bestC, double bestScore) {
         this.bestC = bestC;
         this.bestScore = bestScore;
-        this.bestP = bestP;
     }
 
     public double getBestC() {
@@ -20,7 +18,4 @@ public class ParameterSearchResult {
         return bestScore;
     }
 
-    public double getBestP() {
-        return bestP;
-    }
 }

@@ -4,6 +4,7 @@ import static de.bwaldvogel.liblinear.Linear.atof;
 import static de.bwaldvogel.liblinear.Linear.atoi;
 import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
 import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC_DUAL;
+import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVR;
 import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
 
 import java.io.BufferedReader;
@@ -26,8 +27,9 @@ public class Train {
     }
 
     private double    bias             = 1;
-    private boolean   find_C           = false;
+    private boolean   find_parameters  = false;
     private boolean   C_specified      = false;
+    private boolean   P_specified      = false;
     private boolean   solver_specified = false;
     private boolean   cross_validation = false;
     private String    inputFilename;
@@ -36,16 +38,23 @@ public class Train {
     private Parameter param            = null;
     private Problem   prob             = null;
 
-    private void do_find_parameter_C() {
-        double start_C;
-        double max_C = 1024;
+    private void do_find_parameters() {
+        double start_C, start_p;
         if (C_specified)
             start_C = param.C;
         else
             start_C = -1.0;
+        if (P_specified)
+            start_p = param.p;
+        else
+            start_p = -1.0;
+
         System.out.printf("Doing parameter search with %d-fold cross validation.%n", nr_fold);
-        ParameterSearchResult result = Linear.findParameterC(prob, param, nr_fold, start_C, max_C);
-        System.out.printf("Best C = %g  CV accuracy = %g%%%n", result.getBestC(), 100.0 * result.getBestRate());
+        ParameterSearchResult result = Linear.findParameters(prob, param, nr_fold, start_C, start_p);
+        if (param.getSolverType() == L2R_LR || param.getSolverType() == L2R_L2LOSS_SVC)
+            System.out.printf("Best C = %g  CV accuracy = %g%%\n", result.getBestC(), 100.0 * result.getBestScore());
+        else if (param.getSolverType() == L2R_L2LOSS_SVR)
+            System.out.printf("Best C = %g Best p = %g  CV MSE = %g\n", result.getBestC(), result.getBestP(), result.getBestScore());
     }
 
     private void do_cross_validation() {
@@ -107,7 +116,7 @@ public class Train {
             + "   -s 0 and 2%n" + "       |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
             + "       where f is the primal function and pos/neg are # of%n"
             + "       positive/negative data (default 0.01)%n" + "   -s 11%n"
-            + "       |f'(w)|_2 <= eps*|f'(w0)|_2 (default 0.001)%n"
+            + "       |f'(w)|_2 <= eps*|f'(w0)|_2 (default 0.0001)%n"
             + "   -s 1, 3, 4 and 7%n" + "       Dual maximal violation <= eps; similar to libsvm (default 0.1)%n"
             + "   -s 5 and 6%n"
             + "       |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,%n"
@@ -118,11 +127,10 @@ public class Train {
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
-            + "-C : find parameter C (only for -s 0 and 2)%n"
+            + "-C : find parameters (C for -s 0, 2 and C, p for -s 11)%n"
             + "-q : quiet mode (no outputs)%n");
         System.exit(1);
     }
-
 
     public Problem getProblem() {
         return prob;
@@ -159,6 +167,7 @@ public class Train {
                     C_specified = true;
                     break;
                 case 'p':
+                    P_specified = true;
                     param.setP(atof(argv[i]));
                     break;
                 case 'e':
@@ -186,7 +195,7 @@ public class Train {
                     Linear.disableDebugOutput();
                     break;
                 case 'C':
-                    find_C = true;
+                    find_parameters = true;
                     i--;
                     break;
                 default:
@@ -210,14 +219,14 @@ public class Train {
         }
 
         // default solver for parameter selection is L2R_L2LOSS_SVC
-        if (find_C) {
+        if (find_parameters) {
             if (!cross_validation)
                 nr_fold = 5;
             if (!solver_specified) {
                 System.err.printf("Solver not specified. Using -s 2%n");
                 param.setSolverType(L2R_L2LOSS_SVC);
-            } else if (param.getSolverType() != L2R_LR && param.getSolverType() != L2R_L2LOSS_SVC) {
-                System.err.printf("Warm-start parameter search only available for -s 0 and -s 2%n");
+            } else if (param.getSolverType() != L2R_LR && param.getSolverType() != L2R_L2LOSS_SVC && param.getSolverType() != L2R_L2LOSS_SVR) {
+                System.err.printf("Warm-start parameter search only available for -s 0, -s 2 and -s 11%n");
                 exit_with_help();
             }
         }
@@ -229,7 +238,7 @@ public class Train {
                     param.setEps(0.01);
                     break;
                 case L2R_L2LOSS_SVR:
-                    param.setEps(0.001);
+                    param.setEps(0.0001);
                     break;
                 case L2R_L2LOSS_SVC_DUAL:
                 case L2R_L1LOSS_SVC_DUAL:
@@ -398,8 +407,8 @@ public class Train {
     private void run(String[] args) throws IOException, InvalidInputDataException {
         parse_command_line(args);
         readProblem(inputFilename);
-        if (find_C) {
-            do_find_parameter_C();
+        if (find_parameters) {
+            do_find_parameters();
         } else if (cross_validation)
             do_cross_validation();
         else {
@@ -408,8 +417,8 @@ public class Train {
         }
     }
 
-    boolean isFindC() {
-        return find_C;
+    boolean isFindParameters() {
+        return find_parameters;
     }
 
     int getNumFolds() {
