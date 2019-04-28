@@ -26,14 +26,14 @@ title: liblinear-java
 {% highlight xml %}<dependency>
     <groupId>de.bwaldvogel</groupId>
     <artifactId>liblinear</artifactId>
-    <version>2.21</version>
+    <version>2.30</version>
 </dependency>{% endhighlight %}
 
 				<h3>Usage</h3>
 				<p>The usage is pretty similar to the <code>C++</code> library version.</p>
 
 				<h4>Standalone</h4>
-<pre><code>$ java -cp liblinear-java-2.21.jar de.bwaldvogel.liblinear.Train -v 5 rcv1_train.binary
+<pre><code>$ java -cp liblinear-java-2.30.jar de.bwaldvogel.liblinear.Train -v 5 rcv1_train.binary
 nSV = 6020
 time: 935 ms
 correct: 19637
@@ -63,11 +63,6 @@ double prediction = Linear.predict(model, instance);{% endhighlight %}
 
 				<h3>Weka</h3>
 				<p>There is a <a href="https://github.com/bwaldvogel/liblinear-weka">Weka wrapper</a> that can be installed using the Weka Package Manager.</p>
-
-				<footer>
-				Maintained by <a href="https://github.com/bwaldvogel">Benedikt Waldvogel</a><br>
-				</footer>
-
 			</div>
 		</div>
 		<a href="https://github.com/bwaldvogel/liblinear-java"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
