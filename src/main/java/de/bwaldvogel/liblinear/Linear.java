@@ -178,7 +178,9 @@ public class Linear {
                 else
                     start_C_tmp = start_C;
                 start_C_tmp = Math.min(start_C_tmp, max_C);
+
                 ParameterCSearchResult best_tmp = find_parameter_C(prob, param_tmp, start_C_tmp, max_C, fold_start, perm, subprob, nr_fold);
+
                 if (best_tmp.getBestScore() < best_score) {
                     best_p = param_tmp.p;
                     best_C = best_tmp.getBestC();
