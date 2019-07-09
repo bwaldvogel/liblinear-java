@@ -9,7 +9,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'jacoco'
-    id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'com.github.kt3k.coveralls' version '2.8.4'
     id 'de.undercouch.download' version '3.4.3'
     id 'me.champeau.gradle.jmh' version '0.4.8'
 }
