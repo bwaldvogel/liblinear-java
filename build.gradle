@@ -124,7 +124,7 @@ apply from: 'datasets.gradle'
 test.dependsOn downloadAndVerifyDatasets
 
 wrapper {
-    gradleVersion = "5.5"
+    gradleVersion = "6.3"
     distributionType = Wrapper.DistributionType.ALL
 }
 
