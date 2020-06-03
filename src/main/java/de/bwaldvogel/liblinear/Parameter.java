@@ -156,6 +156,24 @@ public final class Parameter implements Cloneable {
     public double getP() {
         return p;
     }
+    
+    /*
+    * Sets the initial-solution specification.
+    * Only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC}.
+    */
+    public void setInitSol(double[] init_sol) {
+        if (init_sol == null) this.init_sol = null;
+        else {
+            this.init_sol = copyOf(init_sol, init_sol.length);
+        }
+    }
+
+    public double[] getInitSol() {
+        if (init_sol == null) {
+            return null;
+        }
+        return copyOf(init_sol, init_sol.length);
+    }
 
     @Override
     public Parameter clone() {
