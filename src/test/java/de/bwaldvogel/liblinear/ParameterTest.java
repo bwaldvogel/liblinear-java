@@ -131,6 +131,31 @@ public class ParameterTest {
     }
 
     @Test
+    public void testSetInitSol() {
+        assertThat(_param.init_sol).isNull();
+
+        double[] init_sol = new double[] {0, 1, 2, 3, 4, 5};
+        _param.setInitSol(init_sol);
+
+        // assert parameter uses a copy
+        init_sol[0]++;
+        assertThat(_param.getInitSol()[0]).isEqualTo(0);
+    }
+
+    @Test
+    public void testGetInitSol() {
+        assertThat(_param.getInitSol()).isNull();
+
+        double[] init_sol = new double[] {0, 1, 2, 3, 4, 5};
+        _param.setInitSol(init_sol);
+
+        assertThat(_param.getInitSol()).isNotNull();
+        assertThat(_param.getInitSol()).isEqualTo(init_sol);
+        _param.getInitSol()[0]++; // shouldn't change the parameter as we should get a copy
+        assertThat(_param.getInitSol()).isEqualTo(init_sol);
+    }
+
+    @Test
     public void testClone_Simple() throws Exception {
         Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123);
         Parameter clone = parameter.clone();
