@@ -51,7 +51,7 @@ public class Problem {
      * If bias &gt;= 0, we assume that one additional feature is added
      * to the end of each data instance
      */
-    public double      bias;
+    public double      bias = -1;
 
     /**
      * see {@link Train#readProblem(File, double)}
