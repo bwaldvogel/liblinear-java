@@ -133,7 +133,8 @@ public final class Model implements Serializable {
      */
     // feat_idx: starting from 1 to nr_feature
     // label_idx: starting from 0 to nr_class-1 for classification models;
-    //            for regression models, label_idx is ignored.
+    //            for regression and one-class SVM models, label_idx is
+    //            ignored.
     public double getDecfunCoef(int featIdx, int labelIdx) {
         if (featIdx > nr_feature) {
             return 0;
