@@ -116,8 +116,8 @@ class L2R_LrFunction implements Function {
             M[i] = 1;
 
         for (int i = 0; i < l; i++) {
-            for (Feature s : x[i]) {
-                M[s.getIndex() - 1] += s.getValue() * s.getValue() * C[i] * D[i];
+            for (Feature xi : x[i]) {
+                M[xi.getIndex() - 1] += xi.getValue() * xi.getValue() * C[i] * D[i];
             }
         }
     }
