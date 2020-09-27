@@ -10,7 +10,7 @@ public final class Parameter implements Cloneable {
     /** stopping criteria */
     double     eps;
 
-    int max_iters = 1000; // maximal iterations
+    int        max_iters = 1000; // maximal iterations
 
     SolverType solverType;
 
@@ -19,6 +19,8 @@ public final class Parameter implements Cloneable {
     int[]      weightLabel = null;
 
     double     p = 0.1;
+
+    double     nu = 0.5;
 
     /**
      * Initial-solution specification (only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC})
@@ -175,12 +177,24 @@ public final class Parameter implements Cloneable {
         return Arrays.copyOf(init_sol, init_sol.length);
     }
 
+    public void setNu(double nu) {
+        if (nu <= 0) throw new IllegalArgumentException("nu must not be <=0");
+        if (nu >= 1) throw new IllegalArgumentException("nu must not be >=1");
+        this.nu = nu;
+    }
+
+    public double getNu() {
+        return nu;
+    }
+
     @Override
     public Parameter clone() {
         Parameter clone = new Parameter(solverType, C, eps, max_iters, p);
         clone.weight = weight == null ? null : weight.clone();
         clone.weightLabel = weightLabel == null ? null : weightLabel.clone();
         clone.init_sol = init_sol;
+        clone.p = p;
+        clone.nu = nu;
         return clone;
     }
 

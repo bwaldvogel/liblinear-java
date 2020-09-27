@@ -2,11 +2,17 @@ package de.bwaldvogel.liblinear;
 
 public class FeatureNode implements Feature {
 
-    public final int index;
-    public double    value;
+    public final int    index;
+    public       double value;
 
-    public FeatureNode(final int index, final double value) {
-        if (index <= 0) throw new IllegalArgumentException("index must be > 0");
+    public FeatureNode(int index, double value) {
+        this(index, value, true);
+    }
+
+    FeatureNode(int index, double value, boolean validateIndex) {
+        if (validateIndex && index <= 0) {
+            throw new IllegalArgumentException("index must be > 0");
+        }
         this.index = index;
         this.value = value;
     }

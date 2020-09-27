@@ -81,6 +81,13 @@ public enum SolverType {
      */
     L2R_L1LOSS_SVR_DUAL(13, false, true),
 
+    /**
+     * one-class support vector machine (dual)
+     *
+     * @since 2.40
+     */
+    ONECLASS_SVM(21, false, false),
+
     ;
 
     private final boolean logisticRegressionSolver;
@@ -93,7 +100,7 @@ public enum SolverType {
         this.supportVectorRegression = supportVectorRegression;
     }
 
-    private static Map<Integer, SolverType> SOLVERS_BY_ID = new HashMap<>();
+    private static final Map<Integer, SolverType> SOLVERS_BY_ID = new HashMap<>();
     static {
         for (SolverType solverType : SolverType.values()) {
             SolverType old = SOLVERS_BY_ID.put(Integer.valueOf(solverType.getId()), solverType);
@@ -126,4 +133,12 @@ public enum SolverType {
     public boolean isSupportVectorRegression() {
         return supportVectorRegression;
     }
+
+    /**
+     * @since 2.40
+     */
+    public boolean isOneClass() {
+        return equals(ONECLASS_SVM);
+    }
+
 }

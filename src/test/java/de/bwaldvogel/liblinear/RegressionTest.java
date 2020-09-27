@@ -6,13 +6,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.data.Offset;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
@@ -23,10 +28,14 @@ class RegressionTest {
 
     private static final Logger log = LoggerFactory.getLogger(RegressionTest.class);
 
+    protected static final List<SolverType> SOLVERS = Stream.of(SolverType.values())
+        .filter(solver -> !solver.isOneClass())
+        .collect(Collectors.toList());
+
     private static Collection<TestParams> data() {
         List<TestParams> params = new ArrayList<>();
         for (String dataset : new String[] {"splice", "dna.scale"}) {
-            for (SolverType solverType : SolverType.values()) {
+            for (SolverType solverType : SOLVERS) {
                 params.add(new TestParams(dataset, solverType, getExpectedAccuracy(dataset, solverType)));
             }
         }
@@ -34,7 +43,7 @@ class RegressionTest {
     }
 
     private static Double getExpectedAccuracy(String dataset, SolverType solverType) {
-        if (solverType.isSupportVectorRegression()) {
+        if (solverType.isSupportVectorRegression() || solverType.isOneClass()) {
             return null;
         }
         switch (dataset) {
@@ -115,10 +124,15 @@ class RegressionTest {
         Problem testProblem = Train.readProblem(testFile, -1);
 
         Path expectedFile = Paths.get("src/test/resources/regression", dataset, "predictions_" + solverType.name());
-        List<String> expectedPredictions = Files.readAllLines(expectedFile, StandardCharsets.UTF_8);
-
-        assertThat(expectedPredictions).hasSize(testProblem.l);
-        assertThat(testProblem.x.length).isEqualTo(expectedPredictions.size());
+        final List<String> expectedPredictions;
+        if (!Files.exists(expectedFile)) {
+            expectedPredictions = Collections.emptyList();
+            log.warn("Recording predictions to {}", expectedFile);
+        } else {
+            expectedPredictions = Files.readAllLines(expectedFile, StandardCharsets.UTF_8);
+            assertThat(expectedPredictions).hasSize(testProblem.l);
+            assertThat(testProblem.x.length).isEqualTo(expectedPredictions.size());
+        }
 
         int correctPredictions = 0;
 
@@ -140,6 +154,20 @@ class RegressionTest {
                 }
             }
 
+            if (expectedPredictions.isEmpty()) {
+                final String line;
+                if (model.getNrClass() == 2) {
+                    line = predictedValues[0] + "\n";
+                } else {
+                    line = Arrays.stream(predictedValues)
+                        .mapToObj(Double::toString)
+                        .collect(Collectors.joining(" ")) + " \n";
+                }
+                Files.createDirectories(expectedFile.getParent());
+                Files.write(expectedFile, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                continue;
+            }
+
             List<Double> expectedValues = parseExpectedValues(expectedPredictions, i);
 
             Offset<Double> allowedOffset = Offset.offset(1e-9);
@@ -158,6 +186,50 @@ class RegressionTest {
             double accuracy = correctPredictions / (double)testProblem.l;
             assertThat(accuracy).isEqualTo(expectedAccuracy.doubleValue(), Offset.offset(1e-4));
         }
+    }
+
+    @Test
+    void testOneClass(@TempDir Path tempDir) throws Exception {
+        Linear.resetRandom();
+        Path trainingFile = Paths.get("src/test/datasets/splice/splice");
+
+        Path spliceClass1 = tempDir.resolve("splice-class-1");
+        Path spliceClass2 = tempDir.resolve("splice-class-2");
+
+        for (String line : Files.readAllLines(trainingFile, StandardCharsets.ISO_8859_1)) {
+            final Path targetFile;
+            if (line.startsWith("+1")) {
+                targetFile = spliceClass1;
+            } else {
+                targetFile = spliceClass2;
+            }
+            Files.write(targetFile, Arrays.asList(line), StandardCharsets.UTF_8, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+        }
+
+        Problem problem1 = Train.readProblem(spliceClass1, StandardCharsets.UTF_8, -1);
+        Parameter param = new Parameter(SolverType.ONECLASS_SVM, 1, 0.01);
+        param.setNu(0.1);
+        Model model = Linear.train(problem1, param);
+
+        Model expectedModel = Model.load(Paths.get("src/test/resources/regression/splice/one_class_model"));
+        assertThat(expectedModel).isEqualTo(model);
+
+        Problem problem2 = Train.readProblem(spliceClass2, StandardCharsets.UTF_8, -1);
+
+        // expected values determined with C-version of liblinear (v2.41)
+        assertThat(calculatePredictionAccuracy(model, problem1)).isEqualTo(0.897485, Offset.strictOffset(1e-6));
+        assertThat(calculatePredictionAccuracy(model, problem2)).isEqualTo(0.0703934, Offset.strictOffset(1e-6));
+    }
+
+    private static double calculatePredictionAccuracy(Model model, Problem problem) {
+        int correct = 0;
+        for (Feature[] x : problem.x) {
+            double prediction = Linear.predict(model, x);
+            if (prediction == problem.y[0]) {
+                correct++;
+            }
+        }
+        return (double)correct / problem.l;
     }
 
     private List<Double> parseExpectedValues(List<String> expectedPredictions, int i) {

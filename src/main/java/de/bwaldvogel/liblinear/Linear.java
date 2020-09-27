@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import de.bwaldvogel.liblinear.Heap.HeapType;
+
 
 /**
  * <h2>Java port of <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">liblinear</a></h2>
@@ -334,7 +336,7 @@ public class Linear {
             reader = new BufferedReader(inputReader);
         }
 
-        String line = null;
+        String line;
         while ((line = reader.readLine()) != null) {
             String[] split = whitespace.split(line);
             if (split[0].equals("solver_type")) {
@@ -345,6 +347,8 @@ public class Linear {
                 model.nr_feature = atoi(split[1]);
             } else if (split[0].equals("bias")) {
                 model.bias = atof(split[1]);
+            } else if (split[0].equals("rho")) {
+                model.rho = atof(split[1]);
             } else if (split[0].equals("w")) {
                 break;
             } else if (split[0].equals("label")) {
@@ -489,10 +493,15 @@ public class Linear {
                 }
             }
         }
+        if (model.solverType.isOneClass()) {
+            dec_values[0] -= model.rho;
+        }
 
         if (model.nr_class == 2) {
             if (model.solverType.isSupportVectorRegression())
                 return dec_values[0];
+            else if (model.solverType.isOneClass())
+                return (dec_values[0] > 0) ? 1 : -1;
             else
                 return (dec_values[0] > 0) ? model.label[0] : model.label[1];
         } else {
@@ -542,6 +551,9 @@ public class Linear {
 
             printf(formatter, "nr_feature %d\n", nr_feature);
             printf(formatter, "bias %.17g\n", model.bias);
+
+            if (model.solverType.isOneClass())
+                printf(formatter, "rho %.17g\n", model.rho);
 
             printf(formatter, "w\n");
             for (int i = 0; i < w_size; i++) {
@@ -1669,6 +1681,237 @@ public class Linear {
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
+    /*
+     * A two-level coordinate descent algorithm for
+     * a scaled one-class SVM dual problem
+     *
+     *  min_\alpha  0.5(\alpha^T Q \alpha),
+     *    s.t.      0 <= \alpha_i <= 1 and
+     *              e^T \alpha = \nu l
+     *
+     *  where Qij = xi^T xj
+     *
+     * Given:
+     * x, nu
+     * eps is the stopping tolerance
+     *
+     * solution will be put in w and rho
+     *
+     * See Algorithm 7 in supplementary materials of Chou et al., SDM 2020.
+     *
+     * @since 2.40
+     */
+    static void solve_oneclass_svm(Problem prob, double[] w, MutableDouble rho, double eps, double nu, int max_iter) {
+        int l = prob.l;
+        int w_size = prob.n;
+        int i, j, s, iter = 0;
+        double Gi, Gj;
+        double Qij, quad_coef, delta, sum;
+        double old_alpha_i;
+        double[] QD = new double[l];
+        double[] G = new double[l];
+        int[] index = new int[l];
+        double[] alpha = new double[l];
+        int max_inner_iter;
+        int active_size = l;
+
+        double negGmax;            // max { -grad(f)_i | alpha_i < 1 }
+        double negGmin;            // min { -grad(f)_i | alpha_i > 0 }
+
+        int[] most_violating_i = new int[l];
+        int[] most_violating_j = new int[l];
+
+        int n = (int)(nu * l);        // # of alpha's at upper bound
+        for (i = 0; i < n; i++)
+            alpha[i] = 1;
+        if (n < l)
+            alpha[i] = nu * l - n;
+        for (i = n + 1; i < l; i++)
+            alpha[i] = 0;
+
+        for (i = 0; i < w_size; i++)
+            w[i] = 0;
+        for (i = 0; i < l; i++) {
+            Feature[] xi = prob.x[i];
+            QD[i] = SparseOperator.nrm2_sq(xi);
+            SparseOperator.axpy(alpha[i], xi, w);
+
+            index[i] = i;
+        }
+
+        while (iter < max_iter) {
+            negGmax = Double.NEGATIVE_INFINITY;
+            negGmin = Double.POSITIVE_INFINITY;
+
+            for (s = 0; s < active_size; s++) {
+                i = index[s];
+                Feature[] xi = prob.x[i];
+                G[i] = SparseOperator.dot(w, xi);
+                if (alpha[i] < 1)
+                    negGmax = Math.max(negGmax, -G[i]);
+                if (alpha[i] > 0)
+                    negGmin = Math.min(negGmin, -G[i]);
+            }
+
+            if (negGmax - negGmin < eps) {
+                if (active_size == l)
+                    break;
+                else {
+                    active_size = l;
+                    info("*");
+                    continue;
+                }
+            }
+
+            for (s = 0; s < active_size; s++) {
+                i = index[s];
+                if ((alpha[i] == 1 && -G[i] > negGmax) ||
+                    (alpha[i] == 0 && -G[i] < negGmin)) {
+                    active_size--;
+                    Linear.swap(index, s, active_size);
+                    s--;
+                }
+            }
+
+            max_inner_iter = Math.max(active_size / 10, 1);
+            Heap min_heap = new Heap(max_inner_iter, HeapType.MIN);
+            Heap max_heap = new Heap(max_inner_iter, HeapType.MAX);
+
+            for (s = 0; s < active_size; s++) {
+                i = index[s];
+                FeatureNode node = new FeatureNode(i, -G[i], false);
+
+                if (alpha[i] < 1) {
+                    if (min_heap.size() < max_inner_iter)
+                        min_heap.push(node);
+                    else if (min_heap.top().getValue() < node.getValue()) {
+                        min_heap.pop();
+                        min_heap.push(node);
+                    }
+                }
+
+                if (alpha[i] > 0) {
+                    if (max_heap.size() < max_inner_iter)
+                        max_heap.push(node);
+                    else if (max_heap.top().getValue() > node.getValue()) {
+                        max_heap.pop();
+                        max_heap.push(node);
+                    }
+                }
+            }
+            max_inner_iter = Math.min(min_heap.size(), max_heap.size());
+            while (max_heap.size() > max_inner_iter)
+                max_heap.pop();
+            while (min_heap.size() > max_inner_iter)
+                min_heap.pop();
+
+            for (s = max_inner_iter - 1; s >= 0; s--) {
+                most_violating_i[s] = min_heap.top().getIndex();
+                most_violating_j[s] = max_heap.top().getIndex();
+                min_heap.pop();
+                max_heap.pop();
+            }
+
+            for (s = 0; s < max_inner_iter; s++) {
+                i = most_violating_i[s];
+                j = most_violating_j[s];
+
+                if ((alpha[i] == 0 && alpha[j] == 0) ||
+                    (alpha[i] == 1 && alpha[j] == 1))
+                    continue;
+
+                Feature[] xi = prob.x[i];
+                Feature[] xj = prob.x[j];
+
+                Gi = SparseOperator.dot(w, xi);
+                Gj = SparseOperator.dot(w, xj);
+
+                int violating_pair = 0;
+                if (alpha[i] < 1 && alpha[j] > 0 && -Gj + 1e-12 < -Gi)
+                    violating_pair = 1;
+                else if (alpha[i] > 0 && alpha[j] < 1 && -Gi + 1e-12 < -Gj)
+                    violating_pair = 1;
+                if (violating_pair == 0)
+                    continue;
+
+                Qij = SparseOperator.sparse_dot(xi, xj);
+                quad_coef = QD[i] + QD[j] - 2 * Qij;
+                if (quad_coef <= 0)
+                    quad_coef = 1e-12;
+                delta = (Gi - Gj) / quad_coef;
+                old_alpha_i = alpha[i];
+                sum = alpha[i] + alpha[j];
+                alpha[i] = alpha[i] - delta;
+                alpha[j] = alpha[j] + delta;
+                if (sum > 1) {
+                    if (alpha[i] > 1) {
+                        alpha[i] = 1;
+                        alpha[j] = sum - 1;
+                    }
+                } else {
+                    if (alpha[j] < 0) {
+                        alpha[j] = 0;
+                        alpha[i] = sum;
+                    }
+                }
+                if (sum > 1) {
+                    if (alpha[j] > 1) {
+                        alpha[j] = 1;
+                        alpha[i] = sum - 1;
+                    }
+                } else {
+                    if (alpha[i] < 0) {
+                        alpha[i] = 0;
+                        alpha[j] = sum;
+                    }
+                }
+                delta = alpha[i] - old_alpha_i;
+                SparseOperator.axpy(delta, xi, w);
+                SparseOperator.axpy(-delta, xj, w);
+            }
+            iter++;
+            if (iter % 10 == 0)
+                info(".");
+        }
+        info("%noptimization finished, #iter = %d%n", iter);
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%n%n");
+
+        // calculate object value
+        double v = 0;
+        for (i = 0; i < w_size; i++)
+            v += w[i] * w[i];
+        int nSV = 0;
+        for (i = 0; i < l; i++) {
+            if (alpha[i] > 0)
+                ++nSV;
+        }
+        info("Objective value = %f%n", v / 2);
+        info("nSV = %d%n", nSV);
+
+        // calculate rho
+        double nr_free = 0;
+        double ub = Double.POSITIVE_INFINITY, lb = Double.NEGATIVE_INFINITY, sum_free = 0;
+        for (i = 0; i < l; i++) {
+            double G_ = SparseOperator.dot(w, prob.x[i]);
+            if (alpha[i] == 0)
+                lb = Math.max(lb, G_);
+            else if (alpha[i] == 1)
+                ub = Math.min(ub, G_);
+            else {
+                ++nr_free;
+                sum_free += G_;
+            }
+        }
+
+        if (nr_free > 0)
+            rho.set(sum_free / nr_free);
+        else
+            rho.set((ub + lb) / 2);
+
+        info("rho = %f%n", rho.get());
+    }
+
     // transpose matrix X from row format to column format
     static Problem transpose(Problem prob) {
         int l = prob.l;
@@ -1724,15 +1967,31 @@ public class Linear {
         array.set(idxB, temp);
     }
 
+    static void swap(Feature[] array, int idxA, int idxB) {
+        Feature temp = array[idxA];
+        array[idxA] = array[idxB];
+        array[idxB] = temp;
+    }
+
     /**
      * @throws IllegalArgumentException if the feature nodes of prob are not sorted in ascending order
      */
     public static Model train(Problem prob, Parameter param) {
-
-        if (prob == null)
+        if (prob == null) {
             throw new IllegalArgumentException("problem must not be null");
-        if (param == null)
+        }
+        if (param == null) {
             throw new IllegalArgumentException("parameter must not be null");
+        }
+        if (param.eps <= 0) {
+            throw new IllegalArgumentException("eps <= 0");
+        }
+        if (param.C <= 0) {
+            throw new IllegalArgumentException("C <= 0");
+        }
+        if (param.p < 0) {
+            throw new IllegalArgumentException("p < 0");
+        }
 
         if (prob.n == 0)
             throw new IllegalArgumentException("problem has zero features");
@@ -1747,6 +2006,10 @@ public class Linear {
                 }
                 indexBefore = n.getIndex();
             }
+        }
+
+        if (prob.bias >= 0 && param.solverType.isOneClass()) {
+            throw new IllegalArgumentException("prob->bias >=0, but this is ignored in ONECLASS_SVM");
         }
 
         if (param.init_sol != null
@@ -1783,6 +2046,13 @@ public class Linear {
             checkProblemSize(n, model.nr_class);
 
             train_one(prob, param, model.w, 0, 0);
+        } else if (param.solverType.isOneClass()) {
+            model.w = new double[w_size];
+            model.nr_class = 2;
+            model.label = null;
+            MutableDouble rho = new MutableDouble();
+            solve_oneclass_svm(prob, model.w, rho, param.eps, param.nu, param.max_iters);
+            model.rho = rho.get();
         } else {
             int[] perm = new int[l];
 
@@ -2107,7 +2377,7 @@ public class Linear {
                     best_score = current_rate;
                 }
 
-                info("log2c=%7.2f\trate=%g\n", Math.log(param_tmp.C) / Math.log(2.0), 100.0 * current_rate);
+                info("log2c=%7.2f\trate=%g%n", Math.log(param_tmp.C) / Math.log(2.0), 100.0 * current_rate);
             } else if (param_tmp.getSolverType() == L2R_L2LOSS_SVR) {
                 double total_error = 0.0;
                 for (i = 0; i < prob.l; i++) {
@@ -2121,7 +2391,7 @@ public class Linear {
                     best_score = current_error;
                 }
 
-                info("log2c=%7.2f\tp=%7.2f\tMean squared error=%g\n", Math.log(param_tmp.C) / Math.log(2.0), param_tmp.p, current_error);
+                info("log2c=%7.2f\tp=%7.2f\tMean squared error=%g%n", Math.log(param_tmp.C) / Math.log(2.0), param_tmp.p, current_error);
             }
 
             num_unchanged_w++;
@@ -2131,7 +2401,7 @@ public class Linear {
         }
 
         if (param_tmp.C > max_C)
-            info("WARNING: maximum C reached.\n");
+            info("WARNING: maximum C reached.%n");
         return new ParameterCSearchResult(best_C, best_score);
     }
 

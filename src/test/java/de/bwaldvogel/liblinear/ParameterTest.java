@@ -127,6 +127,32 @@ class ParameterTest {
     }
 
     @Test
+    void testSetP() throws Exception {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->  param.setP(-1))
+            .withMessage("p must not be less than 0");
+    }
+
+    @Test
+    void testSetNu() throws Exception {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->  param.setNu(-0.1))
+            .withMessage("nu must not be <=0");
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->  param.setNu(0.0))
+            .withMessage("nu must not be <=0");
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->  param.setNu(1.0))
+            .withMessage("nu must not be >=1");
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->  param.setNu(1.5))
+            .withMessage("nu must not be >=1");
+    }
+
+    @Test
     void testGetInitSol() {
         assertThat(param.getInitSol()).isNull();
 

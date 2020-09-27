@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 /**
@@ -33,6 +34,9 @@ public final class Model implements Serializable {
 
     /** feature weight array */
     double[]                  w;
+
+    /** one-class SVM only */
+    double                    rho;
 
     /**
      * @return number of classes
@@ -98,7 +102,7 @@ public final class Model implements Serializable {
         if (idx < 0 || idx > nr_feature) {
             return 0;
         }
-        if (solverType.isSupportVectorRegression()) {
+        if (solverType.isSupportVectorRegression() || solverType.isOneClass()) {
             return w[idx];
         } else {
             if (label_idx < 0 || label_idx >= nr_class) {
@@ -146,6 +150,9 @@ public final class Model implements Serializable {
      * @since 1.95
      */
     public double getDecfunBias(int labelIdx) {
+        if (solverType.isOneClass()) {
+            throw new IllegalArgumentException("Can not be called for a one-class SVM model");
+        }
         int biasIdx = nr_feature;
         if (bias <= 0) {
             return 0;
@@ -154,6 +161,19 @@ public final class Model implements Serializable {
         }
     }
 
+    /**
+     * This function gives rho, the bias term used in one-class SVM only.
+     *
+     * This function can only be called for a one-class SVM model.
+     *
+     * @since 2.40
+     */
+    public double getDecfunRho() {
+        if (!solverType.isOneClass()) {
+            throw new IllegalArgumentException("Can be called only for a one-class SVM model");
+        }
+        return rho;
+    }
 
     @Override
     public String toString() {
@@ -167,48 +187,28 @@ public final class Model implements Serializable {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        long temp;
-        temp = Double.doubleToLongBits(bias);
-        result = prime * result + (int)(temp ^ (temp >>> 32));
-        result = prime * result + Arrays.hashCode(label);
-        result = prime * result + nr_class;
-        result = prime * result + nr_feature;
-        result = prime * result + ((solverType == null) ? 0 : solverType.hashCode());
-        result = prime * result + arrayHashCode(w);
+        int result = Objects.hash(getBias(), nr_class, nr_feature, getSolverType(), rho);
+        result = 31 * result + Arrays.hashCode(label);
+        result = 31 * result + arrayHashCode(w);
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) {
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Model other = (Model)obj;
-        if (Double.doubleToLongBits(bias) != Double.doubleToLongBits(other.bias)){
-            return false;
-        }
-        if (!Arrays.equals(label, other.label)) {
-            return false;
-        }
-        if (nr_class != other.nr_class) {
-            return false;
-        }
-        if (nr_feature != other.nr_feature) {
-            return false;
-        }
-        if (solverType == null) {
-            if (other.solverType != null) {
-                return false;
-            }
-        } else if (!solverType.equals(other.solverType)) {
-            return false;
-        }
-        if (!arrayEquals(w, other.w)) return false;
-        return true;
+        Model model = (Model)o;
+        return Double.compare(model.getBias(), getBias()) == 0
+            && nr_class == model.nr_class
+            && nr_feature == model.nr_feature
+            && Double.compare(model.rho, rho) == 0
+            && Arrays.equals(label, model.label)
+            && getSolverType() == model.getSolverType()
+            && arrayEquals(w, model.w);
     }
 
     /**
@@ -217,14 +217,18 @@ public final class Model implements Serializable {
      * @see Linear#saveModel(java.io.Writer, Model)
      */
     private static boolean arrayEquals(double[] a, double[] a2) {
-        if (a == a2) return true;
-        if (a == null || a2 == null) return false;
+        if (a == a2)
+            return true;
+        if (a == null || a2 == null)
+            return false;
 
         int length = a.length;
-        if (a2.length != length) return false;
+        if (a2.length != length)
+            return false;
 
         for (int i = 0; i < length; i++)
-            if (a[i] != a2[i]) return false;
+            if (a[i] != a2[i])
+                return false;
 
         return true;
     }

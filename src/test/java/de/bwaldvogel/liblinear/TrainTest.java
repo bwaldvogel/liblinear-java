@@ -28,6 +28,9 @@ class TrainTest {
     @Test
     void testDoCrossValidationOnIrisDataSet() throws Exception {
         for (SolverType solver : SolverType.values()) {
+            if (solver.isOneClass()) {
+                continue;
+            }
             Train.main(new String[] {"-v", "5", "-s", "" + solver.getId(), "src/test/resources/iris.scale"});
         }
     }
@@ -64,7 +67,9 @@ class TrainTest {
             } else if (solver.getId() == 7) {
                 assertThat(param.eps).isEqualTo(0.1);
             } else if (solver.getId() == 11) {
-                assertThat(param.eps).isEqualTo(0.0001);
+                assertThat(param.eps).isEqualTo(0.0001);}
+            else if (solver.getId() == 21) {
+                assertThat(param.eps).isEqualTo(0.01);
             } else {
                 assertThat(param.eps).isEqualTo(0.1);
             }

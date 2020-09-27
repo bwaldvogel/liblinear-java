@@ -35,8 +35,12 @@ class LinearTest {
     }
 
     static Model createRandomModel() {
+        return createRandomModel(L2R_LR);
+    }
+
+    static Model createRandomModel(SolverType solverType) {
         Model model = new Model();
-        model.solverType = L2R_LR;
+        model.solverType = solverType;
         model.bias = 2;
         model.label = new int[] {1, Integer.MAX_VALUE, 2};
         model.w = new double[model.label.length * 300];
@@ -51,6 +55,9 @@ class LinearTest {
 
         model.nr_feature = model.w.length / model.label.length - 1;
         model.nr_class = model.label.length;
+        if (solverType.isOneClass()) {
+            model.rho = random.nextDouble();
+        }
         return model;
     }
 
@@ -114,8 +121,10 @@ class LinearTest {
         prob.y[3] = 0;
 
         for (SolverType solver : SolverType.values()) {
+            if (solver.isOneClass()) {
+                continue;
+            }
             for (double C = 0.1; C <= 100.; C *= 1.2) {
-
                 // compared the behavior with the C version
                 if (C < 0.2)
                     if (solver == L1R_L2LOSS_SVC)
@@ -178,8 +187,7 @@ class LinearTest {
     @Test
     void testLoadSaveModel(@TempDir Path tempDir) throws Exception {
         for (SolverType solverType : SolverType.values()) {
-            Model model = createRandomModel();
-            model.solverType = solverType;
+            Model model = createRandomModel(solverType);
 
             Path tempFile = tempDir.resolve("modeltest-" + solverType);
             Linear.saveModel(tempFile, model);
@@ -290,8 +298,9 @@ class LinearTest {
         }
 
         for (SolverType solverType : SolverType.values()) {
-            if (solverType.isSupportVectorRegression())
+            if (solverType.isSupportVectorRegression() || solverType.isOneClass()) {
                 continue;
+            }
             Parameter param = new Parameter(solverType, 10, 0.1);
 
             assertThatExceptionOfType(IllegalArgumentException.class)
