@@ -1755,8 +1755,11 @@ public class Linear {
             }
         }
 
-        if (param.init_sol != null && param.getSolverType() != L2R_LR && param.getSolverType() != L2R_L2LOSS_SVC && param.getSolverType() != L2R_L2LOSS_SVR) {
-            throw new IllegalArgumentException("Initial-solution specification supported only for solver L2R_LR, L2R_L2LOSS_SVC, and L2R_L2LOSS_SVR");
+        if (param.init_sol != null
+            && param.getSolverType() != L2R_LR
+            && param.getSolverType() != L2R_L2LOSS_SVC
+            && param.getSolverType() != L2R_L2LOSS_SVR) {
+            throw new IllegalArgumentException("Initial-solution specification supported only for solvers L2R_LR, L2R_L2LOSS_SVC, and L2R_L2LOSS_SVR");
         }
 
         int l = prob.l;
@@ -2134,7 +2137,7 @@ public class Linear {
         }
 
         if (param_tmp.C > max_C)
-            info("warning: maximum C reached.\n");
+            info("WARNING: maximum C reached.\n");
         return new ParameterCSearchResult(best_C, best_score);
     }
 
