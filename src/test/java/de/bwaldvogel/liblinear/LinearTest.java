@@ -310,6 +310,59 @@ class LinearTest {
     }
 
     @Test
+    void testTrain_IllegalParameters_BiasWithOneClassSvm() {
+        Problem prob = createRandomProblem(2);
+        prob.bias = 1;
+
+        Parameter param = new Parameter(ONECLASS_SVM, 10, 0.1);
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessage("prob->bias >=0, but this is ignored in ONECLASS_SVM");
+    }
+
+    @Test
+    void testTrain_IllegalParameters_RegularizeBias() {
+        Problem prob = createRandomProblem(2);
+        prob.bias = -1;
+
+        Parameter param = new Parameter(L2R_L1LOSS_SVR_DUAL, 10, 0.1);
+        param.setRegularizeBias(false);
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessage("To not regularize bias, must specify -B 1 along with -R");
+
+        prob.bias = 1;
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessage("-R option supported only for solver L2R_LR, L2R_L2LOSS_SVC, L1R_L2LOSS_SVC, L1R_LR, and L2R_L2LOSS_SVR");
+
+        param.setSolverType(L1R_LR);
+
+        Model model = Linear.train(prob, param);
+        assertThat(model.bias).isEqualTo(1.0);
+    }
+
+    @Test
+    void testTrain_IllegalParameters_InitialSol() {
+        Problem prob = createRandomProblem(2);
+
+        Parameter param = new Parameter(L2R_L1LOSS_SVR_DUAL, 10, 0.1);
+        param.setInitSol(new double[prob.n]);
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessage("Initial-solution specification supported only for solvers L2R_LR, L2R_L2LOSS_SVC, and L2R_L2LOSS_SVR");
+
+        param.setSolverType(L2R_LR);
+
+        Model model = Linear.train(prob, param);
+        assertThat(model).isNotNull();
+    }
+
+    @Test
     void testPredictProbabilityWrongSolver() throws Exception {
         Problem prob = new Problem();
         prob.l = 1;
@@ -321,8 +374,7 @@ class LinearTest {
             prob.y[i] = i;
         }
 
-        SolverType solverType = L2R_L1LOSS_SVC_DUAL;
-        Parameter param = new Parameter(solverType, 10, 0.1);
+        Parameter param = new Parameter(L2R_L1LOSS_SVC_DUAL, 10, 0.1);
         Model model = Linear.train(prob, param);
 
         assertThatExceptionOfType(IllegalArgumentException.class)

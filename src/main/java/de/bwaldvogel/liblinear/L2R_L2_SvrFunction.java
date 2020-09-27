@@ -5,11 +5,11 @@ package de.bwaldvogel.liblinear;
  */
 public class L2R_L2_SvrFunction extends L2R_L2_SvcFunction {
 
-    private double p;
+    private final double p;
 
-    public L2R_L2_SvrFunction(Problem prob, double[] C, double p) {
-        super(prob, C);
-        this.p = p;
+    public L2R_L2_SvrFunction(Problem prob, Parameter param, double[] C) {
+        super(prob, param, C);
+        this.p = param.p;
     }
 
     @Override
@@ -24,6 +24,8 @@ public class L2R_L2_SvrFunction extends L2R_L2_SvcFunction {
 
         for (int i = 0; i < w_size; i++)
             f += w[i] * w[i];
+        if (!regularize_bias)
+            f -= w[w_size - 1] * w[w_size - 1];
         f /= 2;
         for (int i = 0; i < l; i++) {
             d = z[i] - y[i];
@@ -61,7 +63,8 @@ public class L2R_L2_SvrFunction extends L2R_L2_SvcFunction {
 
         for (int i = 0; i < w_size; i++)
             g[i] = w[i] + 2 * g[i];
-
+        if (!regularize_bias)
+            g[w_size - 1] -= w[w_size - 1];
     }
 
 }

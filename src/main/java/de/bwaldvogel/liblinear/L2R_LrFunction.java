@@ -5,9 +5,10 @@ class L2R_LrFunction implements Function {
     private final double[] C;
     private final double[] z;
     private final double[] D;
-    private final Problem  prob;
+    private final Problem prob;
+    private final boolean regularize_bias;
 
-    public L2R_LrFunction(Problem prob, double[] C) {
+    L2R_LrFunction(Problem prob, Parameter parameter, double[] C) {
         int l = prob.l;
 
         this.prob = prob;
@@ -15,6 +16,7 @@ class L2R_LrFunction implements Function {
         z = new double[l];
         D = new double[l];
         this.C = C;
+        this.regularize_bias = parameter.regularize_bias;
     }
 
     private void Xv(double[] v, double[] Xv) {
@@ -50,6 +52,9 @@ class L2R_LrFunction implements Function {
 
         for (i = 0; i < w_size; i++)
             f += w[i] * w[i];
+        if (!regularize_bias) {
+            f -= w[w_size - 1] * w[w_size - 1];
+        }
         f /= 2.0;
         for (i = 0; i < l; i++) {
             double yz = y[i] * z[i];
@@ -78,6 +83,8 @@ class L2R_LrFunction implements Function {
 
         for (i = 0; i < w_size; i++)
             g[i] = w[i] + g[i];
+        if (!regularize_bias)
+            g[w_size - 1] -= w[w_size - 1];
     }
 
     @Override
@@ -99,6 +106,8 @@ class L2R_LrFunction implements Function {
         }
         for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + Hs[i];
+        if (!regularize_bias)
+            Hs[w_size - 1] -= s[w_size - 1];
     }
 
     @Override
@@ -114,6 +123,8 @@ class L2R_LrFunction implements Function {
 
         for (int i = 0; i < w_size; i++)
             M[i] = 1;
+        if (!regularize_bias)
+            M[w_size - 1] = 0;
 
         for (int i = 0; i < l; i++) {
             for (Feature xi : x[i]) {

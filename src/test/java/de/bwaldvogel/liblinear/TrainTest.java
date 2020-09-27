@@ -108,7 +108,7 @@ class TrainTest {
 
     @Test
     // https://github.com/bwaldvogel/liblinear-java/issues/4
-    public void testParseWeights() throws Exception {
+    void testParseWeights() throws Exception {
         Train train = new Train();
         train.parse_command_line(new String[] {"-v", "10", "-c", "10", "-w1", "1.234", "model-filename"});
         Parameter parameter = train.getParameter();
@@ -119,6 +119,18 @@ class TrainTest {
         parameter = train.getParameter();
         assertThat(parameter.weightLabel).isEqualTo(new int[] {1, 2, 3});
         assertThat(parameter.weight).isEqualTo(new double[] {1.234, 0.12, 7});
+    }
+
+    @Test
+    void testParseCommandLine_regularizeBias() throws Exception {
+        Train train = new Train();
+        train.parse_command_line(new String[] {"-R", "model-filename"});
+        Parameter parameter = train.getParameter();
+        assertThat(parameter.regularize_bias).isFalse();
+
+        train.parse_command_line(new String[] {"model-filename"});
+        parameter = train.getParameter();
+        assertThat(parameter.regularize_bias).isTrue();
     }
 
     @Test

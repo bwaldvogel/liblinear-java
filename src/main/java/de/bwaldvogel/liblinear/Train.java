@@ -126,6 +126,8 @@ public class Train {
             + "       |f'(alpha)|_1 <= eps |f'(alpha0)|,%n"
             + "       where f is the dual function (default 0.1)%n"
             + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
+            + "-R : not regularize the bias; must with -B 1 to have the bias; DON'T use this unless you know what it is%n"
+            + "    (for -s 0, 2, 5, 6, 11)%n"
             + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
             + "-v n: n-fold cross validation mode%n"
             + "-C : find parameters (C for -s 0, 2 and C, p for -s 11)%n"
@@ -202,6 +204,10 @@ public class Train {
                     break;
                 case 'C':
                     find_parameters = true;
+                    i--;
+                    break;
+                case 'R':
+                    param.regularize_bias = false;
                     i--;
                     break;
                 default:

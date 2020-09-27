@@ -1132,11 +1132,15 @@ public class Linear {
      * solution will be put in w
      *
      * See Yuan et al. (2010) and appendix of LIBLINEAR paper, Fan et al. (2008)
+     *
+     * To not regularize the bias (i.e., regularize_bias = 0), a constant feature = 1
+     * must have been added to the original data. (see -B and -R option)
      *</pre>
      *
      * @since 1.5
      */
-    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps, double Cp, double Cn, int max_iter) {
+    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps,
+        double Cp, double Cn, int max_iter, boolean regularize_bias) {
         int l = prob_col.l;
         int w_size = prob_col.n;
         int j, s, iter = 0;
@@ -1213,45 +1217,60 @@ public class Linear {
                 H *= 2;
                 H = Math.max(H, 1e-12);
 
-                double Gp = G + 1;
-                double Gn = G - 1;
                 double violation = 0;
-                if (w[j] == 0) {
-                    if (Gp < 0)
-                        violation = -Gp;
-                    else if (Gn > 0)
-                        violation = Gn;
-                    else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
-                        active_size--;
-                        swap(index, s, active_size);
-                        s--;
-                        continue;
-                    }
-                } else if (w[j] > 0)
-                    violation = Math.abs(Gp);
-                else
-                    violation = Math.abs(Gn);
-
+                double Gp = 0, Gn = 0;
+                if (j == w_size - 1 && !regularize_bias)
+                    violation = Math.abs(G);
+                else {
+                    Gp = G + 1;
+                    Gn = G - 1;
+                    if (w[j] == 0) {
+                        if (Gp < 0)
+                            violation = -Gp;
+                        else if (Gn > 0)
+                            violation = Gn;
+                        else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
+                            active_size--;
+                            swap(index, s, active_size);
+                            s--;
+                            continue;
+                        }
+                    } else if (w[j] > 0)
+                        violation = Math.abs(Gp);
+                    else
+                        violation = Math.abs(Gn);
+                }
                 Gmax_new = Math.max(Gmax_new, violation);
                 Gnorm1_new += violation;
 
                 // obtain Newton direction d
-                if (Gp < H * w[j])
-                    d = -Gp / H;
-                else if (Gn > H * w[j])
-                    d = -Gn / H;
-                else
-                    d = -w[j];
+                if (j == w_size - 1 && !regularize_bias)
+                    d = -G / H;
+                else {
+                    if (Gp < H * w[j])
+                        d = -Gp / H;
+                    else if (Gn > H * w[j])
+                        d = -Gn / H;
+                    else
+                        d = -w[j];
+                }
 
                 if (Math.abs(d) < 1.0e-12)
                     continue;
 
-                double delta = Math.abs(w[j] + d) - Math.abs(w[j]) + G * d;
+                double delta;
+                if (j == w_size - 1 && !regularize_bias)
+                    delta = G * d;
+                else
+                    delta = Math.abs(w[j] + d) - Math.abs(w[j]) + G * d;
                 d_old = 0;
                 int num_linesearch;
                 for (num_linesearch = 0; num_linesearch < max_num_linesearch; num_linesearch++) {
                     d_diff = d_old - d;
-                    cond = Math.abs(w[j] + d) - Math.abs(w[j]) - sigma * delta;
+                    if (j == w_size - 1 && !regularize_bias)
+                        cond = -sigma * delta;
+                    else
+                        cond = Math.abs(w[j] + d) - Math.abs(w[j]) - sigma * delta;
 
                     appxcond = xj_sq[j] * d * d + G_loss * d + cond;
                     if (appxcond <= 0) {
@@ -1351,6 +1370,8 @@ public class Linear {
                 nnz++;
             }
         }
+        if (!regularize_bias)
+            v -= Math.abs(w[w_size - 1]);
         for (j = 0; j < l; j++)
             if (b[j] > 0)
                 v += C[GETI(y, j)] * b[j] * b[j];
@@ -1373,11 +1394,15 @@ public class Linear {
      * solution will be put in w
      *
      * See Yuan et al. (2011) and appendix of LIBLINEAR paper, Fan et al. (2008)
+     *
+     * To not regularize the bias (i.e., regularize_bias = 0), a constant feature = 1
+     * must have been added to the original data. (see -B and -R option)
      *</pre>
      *
      * @since 1.5
      */
-    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps, double Cp, double Cn, int max_iter) {
+    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps,
+        double Cp, double Cn, int max_iter, boolean regularize_bias) {
         int l = prob_col.l;
         int w_size = prob_col.n;
         int j, s, newton_iter = 0, iter = 0;
@@ -1440,6 +1465,9 @@ public class Linear {
                 }
             }
         }
+        if (!regularize_bias)
+            w_norm -= Math.abs(w[w_size - 1]);
+
         for (j = 0; j < l; j++) {
             exp_wTx[j] = Math.exp(exp_wTx[j]);
             double tau_tmp = 1 / (1 + exp_wTx[j]);
@@ -1465,26 +1493,29 @@ public class Linear {
                 }
                 Grad[j] = -tmp + xjneg_sum[j];
 
-                double Gp = Grad[j] + 1;
-                double Gn = Grad[j] - 1;
                 double violation = 0;
-                if (w[j] == 0) {
-                    if (Gp < 0)
-                        violation = -Gp;
-                    else if (Gn > 0)
-                        violation = Gn;
-                        //outer-level shrinking
-                    else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
-                        active_size--;
-                        swap(index, s, active_size);
-                        s--;
-                        continue;
-                    }
-                } else if (w[j] > 0)
-                    violation = Math.abs(Gp);
-                else
-                    violation = Math.abs(Gn);
-
+                if (j == w_size - 1 && !regularize_bias)
+                    violation = Math.abs(Grad[j]);
+                else {
+                    double Gp = Grad[j] + 1;
+                    double Gn = Grad[j] - 1;
+                    if (w[j] == 0) {
+                        if (Gp < 0)
+                            violation = -Gp;
+                        else if (Gn > 0)
+                            violation = Gn;
+                            //outer-level shrinking
+                        else if (Gp > Gmax_old / l && Gn < -Gmax_old / l) {
+                            active_size--;
+                            swap(index, s, active_size);
+                            s--;
+                            continue;
+                        }
+                    } else if (w[j] > 0)
+                        violation = Math.abs(Gp);
+                    else
+                        violation = Math.abs(Gn);
+                }
                 Gmax_new = Math.max(Gmax_new, violation);
                 Gnorm1_new += violation;
             }
@@ -1522,39 +1553,45 @@ public class Linear {
                         G += x.getValue() * D[ind] * xTd[ind];
                     }
 
-                    double Gp = G + 1;
-                    double Gn = G - 1;
                     double violation = 0;
-                    if (wpd[j] == 0) {
-                        if (Gp < 0)
-                            violation = -Gp;
-                        else if (Gn > 0)
-                            violation = Gn;
-                            //inner-level shrinking
-                        else if (Gp > QP_Gmax_old / l && Gn < -QP_Gmax_old / l) {
-                            QP_active_size--;
-                            swap(index, s, QP_active_size);
-                            s--;
-                            continue;
-                        }
-                    } else if (wpd[j] > 0)
-                        violation = Math.abs(Gp);
-                    else
-                        violation = Math.abs(Gn);
+                    if (j == w_size - 1 && !regularize_bias) {
+                        // bias term not shrunken
+                        violation = Math.abs(G);
+                        z = -G / H;
+                    } else {
+                        double Gp = G + 1;
+                        double Gn = G - 1;
+                        if (wpd[j] == 0) {
+                            if (Gp < 0)
+                                violation = -Gp;
+                            else if (Gn > 0)
+                                violation = Gn;
+                                //inner-level shrinking
+                            else if (Gp > QP_Gmax_old / l && Gn < -QP_Gmax_old / l) {
+                                QP_active_size--;
+                                swap(index, s, QP_active_size);
+                                s--;
+                                continue;
+                            }
+                        } else if (wpd[j] > 0)
+                            violation = Math.abs(Gp);
+                        else
+                            violation = Math.abs(Gn);
 
+                        // obtain solution of one-variable problem
+                        if (Gp < H * wpd[j])
+                            z = -Gp / H;
+                        else if (Gn > H * wpd[j])
+                            z = -Gn / H;
+                        else
+                            z = -wpd[j];
+                    }
                     QP_Gmax_new = Math.max(QP_Gmax_new, violation);
                     QP_Gnorm1_new += violation;
 
-                    // obtain solution of one-variable problem
-                    if (Gp < H * wpd[j])
-                        z = -Gp / H;
-                    else if (Gn > H * wpd[j])
-                        z = -Gn / H;
-                    else
-                        z = -wpd[j];
-
-                    if (Math.abs(z) < 1.0e-12)
+                    if (Math.abs(z) < 1.0e-12) {
                         continue;
+                    }
                     z = Math.min(Math.max(z, -10.0), 10.0);
 
                     wpd[j] += z;
@@ -1580,8 +1617,9 @@ public class Linear {
                 QP_Gmax_old = QP_Gmax_new;
             }
 
-            if (iter >= max_iter)
+            if (iter >= max_iter) {
                 info("WARNING: reaching max number of inner iterations%n");
+            }
 
             delta = 0;
             w_norm_new = 0;
@@ -1590,6 +1628,8 @@ public class Linear {
                 if (wpd[j] != 0)
                     w_norm_new += Math.abs(wpd[j]);
             }
+            if (!regularize_bias)
+                w_norm_new -= Math.abs(wpd[w_size - 1]);
             delta += (w_norm_new - w_norm);
 
             negsum_xTd = 0;
@@ -1625,6 +1665,8 @@ public class Linear {
                         if (wpd[j] != 0)
                             w_norm_new += Math.abs(wpd[j]);
                     }
+                    if (!regularize_bias)
+                        w_norm_new -= Math.abs(wpd[w_size - 1]);
                     delta *= 0.5;
                     negsum_xTd *= 0.5;
                     for (int i = 0; i < l; i++)
@@ -1659,8 +1701,9 @@ public class Linear {
 
         info("=========================%n");
         info("optimization finished, #iter = %d%n", newton_iter);
-        if (newton_iter >= max_newton_iter)
+        if (newton_iter >= max_newton_iter) {
             info("WARNING: reaching max number of iterations%n");
+        }
 
         // calculate objective value
 
@@ -1671,6 +1714,8 @@ public class Linear {
                 v += Math.abs(w[j]);
                 nnz++;
             }
+        if (!regularize_bias)
+            v -= Math.abs(w[w_size - 1]);
         for (j = 0; j < l; j++)
             if (y[j] == 1)
                 v += C[GETI(y, j)] * Math.log(1 + 1 / exp_wTx[j]);
@@ -2012,6 +2057,18 @@ public class Linear {
             throw new IllegalArgumentException("prob->bias >=0, but this is ignored in ONECLASS_SVM");
         }
 
+        if (!param.regularize_bias) {
+            if (prob.bias != 1.0)
+                throw new IllegalArgumentException("To not regularize bias, must specify -B 1 along with -R");
+
+            if (param.solverType != L2R_LR
+                && param.solverType != L2R_L2LOSS_SVC
+                && param.solverType != L1R_L2LOSS_SVC
+                && param.solverType != L1R_LR
+                && param.solverType != L2R_L2LOSS_SVR)
+                throw new IllegalArgumentException("-R option supported only for solver L2R_LR, L2R_L2LOSS_SVC, L1R_L2LOSS_SVC, L1R_LR, and L2R_L2LOSS_SVR");
+        }
+
         if (param.init_sol != null
             && param.getSolverType() != L2R_LR
             && param.getSolverType() != L2R_L2LOSS_SVC
@@ -2186,7 +2243,7 @@ public class Linear {
         int neg = prob.l - pos;
         double primal_solver_tol = eps * Math.max(Math.min(pos, neg), 1) / prob.l;
 
-        Function fun_obj = null;
+        Function fun_obj;
         switch (param.solverType) {
             case L2R_LR: {
                 double[] C = new double[prob.l];
@@ -2196,7 +2253,7 @@ public class Linear {
                     else
                         C[i] = Cn;
                 }
-                fun_obj = new L2R_LrFunction(prob, C);
+                fun_obj = new L2R_LrFunction(prob, param, C);
                 Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters, eps_cg);
                 tron_obj.tron(w);
                 break;
@@ -2209,7 +2266,7 @@ public class Linear {
                     else
                         C[i] = Cn;
                 }
-                fun_obj = new L2R_L2_SvcFunction(prob, C);
+                fun_obj = new L2R_L2_SvcFunction(prob, param, C);
                 Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters, eps_cg);
                 tron_obj.tron(w);
                 break;
@@ -2222,12 +2279,12 @@ public class Linear {
                 break;
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters);
+                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters, param.regularize_bias);
                 break;
             }
             case L1R_LR: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters);
+                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters, param.regularize_bias);
                 break;
             }
             case L2R_LR_DUAL:
@@ -2238,7 +2295,7 @@ public class Linear {
                 for (int i = 0; i < prob.l; i++)
                     C[i] = param.C;
 
-                fun_obj = new L2R_L2_SvrFunction(prob, C, param.p);
+                fun_obj = new L2R_L2_SvrFunction(prob, param, C);
                 Tron tron_obj = new Tron(fun_obj, param.eps, param.max_iters, eps_cg);
                 tron_obj.tron(w);
                 break;

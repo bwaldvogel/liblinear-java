@@ -27,6 +27,8 @@ public final class Parameter implements Cloneable {
      */
     double[]   init_sol = null;
 
+    boolean    regularize_bias = true;
+
     public Parameter(SolverType solver, double C, double eps) {
         setSolverType(solver);
         setC(C);
@@ -146,7 +148,6 @@ public final class Parameter implements Cloneable {
         return solverType;
     }
 
-
     /**
      * set the epsilon in loss function of epsilon-SVR (default 0.1)
      */
@@ -187,6 +188,14 @@ public final class Parameter implements Cloneable {
         return nu;
     }
 
+    public void setRegularizeBias(boolean regularizeBias) {
+        this.regularize_bias = regularizeBias;
+    }
+
+    public boolean isRegularizeBias() {
+        return regularize_bias;
+    }
+
     @Override
     public Parameter clone() {
         Parameter clone = new Parameter(solverType, C, eps, max_iters, p);
@@ -195,6 +204,7 @@ public final class Parameter implements Cloneable {
         clone.init_sol = init_sol;
         clone.p = p;
         clone.nu = nu;
+        clone.regularize_bias = regularize_bias;
         return clone;
     }
 

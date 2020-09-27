@@ -6,10 +6,11 @@ class L2R_L2_SvcFunction implements Function {
     protected final double[] C;
     protected final int[]    I;
     protected final double[] z;
+    protected final boolean  regularize_bias;
 
     protected int            sizeI;
 
-    public L2R_L2_SvcFunction(Problem prob, double[] C) {
+    public L2R_L2_SvcFunction(Problem prob, Parameter param, double[] C) {
         int l = prob.l;
 
         this.prob = prob;
@@ -17,6 +18,7 @@ class L2R_L2_SvcFunction implements Function {
         z = new double[l];
         I = new int[l];
         this.C = C;
+        this.regularize_bias = param.regularize_bias;
     }
 
     @Override
@@ -31,6 +33,8 @@ class L2R_L2_SvcFunction implements Function {
 
         for (i = 0; i < w_size; i++)
             f += w[i] * w[i];
+        if (!regularize_bias)
+            f -= w[w_size - 1] * w[w_size - 1];
         f /= 2.0;
         for (i = 0; i < l; i++) {
             z[i] = y[i] * z[i];
@@ -64,6 +68,8 @@ class L2R_L2_SvcFunction implements Function {
 
         for (int i = 0; i < w_size; i++)
             g[i] = w[i] + 2 * g[i];
+        if (!regularize_bias)
+            g[w_size - 1] -= w[w_size - 1];
     }
 
     @Override
@@ -83,6 +89,8 @@ class L2R_L2_SvcFunction implements Function {
         }
         for (i = 0; i < w_size; i++)
             Hs[i] = s[i] + 2 * Hs[i];
+        if (!regularize_bias)
+            Hs[w_size - 1] -= s[w_size - 1];
     }
 
     protected void subXTv(double[] v, double[] XTv) {
@@ -111,6 +119,8 @@ class L2R_L2_SvcFunction implements Function {
 
         for (int i = 0; i < w_size; i++)
             M[i] = 1;
+        if (!regularize_bias)
+            M[w_size - 1] = 0;
 
         for (int i = 0; i < sizeI; i++) {
             int idx = I[i];
