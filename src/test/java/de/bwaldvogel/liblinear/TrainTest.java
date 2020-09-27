@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +18,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 
 public class TrainTest {
 
@@ -144,7 +144,7 @@ public class TrainTest {
         assertThat(prob.y).isEqualTo(new double[] { 1, 2, 1, 1, 2 });
         assertThat(prob.n).isEqualTo(8);
         assertThat(prob.l).isEqualTo(prob.y.length);
-        assertThat(prob.x).hasSize(prob.y.length);
+        assertThat(prob.x.length).isEqualTo(prob.y.length);
 
         validate(prob);
     }
@@ -157,14 +157,14 @@ public class TrainTest {
             + "1 1:1  4:1  7:1\n"
             + "2 4:1  5:1  7:1\n";
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         Problem prob = Train.readProblem(new ByteArrayInputStream(data.getBytes(charset)), charset, 1);
         assertThat(prob.bias).isEqualTo(1);
         assertThat(prob.y).hasSize(5);
         assertThat(prob.y).isEqualTo(new double[] {1, 2, 1, 1, 2});
         assertThat(prob.n).isEqualTo(8);
         assertThat(prob.l).isEqualTo(prob.y.length);
-        assertThat(prob.x).hasSize(prob.y.length);
+        assertThat(prob.x.length).isEqualTo(prob.y.length);
 
         validate(prob);
     }
@@ -189,7 +189,7 @@ public class TrainTest {
         assertThat(prob.y).isEqualTo(new double[] {1, 2});
         assertThat(prob.n).isEqualTo(6);
         assertThat(prob.l).isEqualTo(prob.y.length);
-        assertThat(prob.x).hasSize(prob.y.length);
+        assertThat(prob.x.length).isEqualTo(prob.y.length);
 
         assertThat(prob.x[0]).hasSize(4);
         assertThat(prob.x[1]).hasSize(0);

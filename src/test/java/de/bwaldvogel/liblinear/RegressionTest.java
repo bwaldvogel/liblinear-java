@@ -127,7 +127,7 @@ public class RegressionTest {
         List<String> expectedPredictions = Files.readAllLines(expectedFile, StandardCharsets.UTF_8);
 
         assertThat(expectedPredictions).hasSize(testProblem.l);
-        assertThat(testProblem.x).hasSameSizeAs(expectedPredictions);
+        assertThat(testProblem.x.length).isEqualTo(expectedPredictions.size());
 
         int correctPredictions = 0;
 

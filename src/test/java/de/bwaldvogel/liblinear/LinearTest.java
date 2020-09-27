@@ -628,7 +628,6 @@ public class LinearTest {
      */
     @Test
     public void testTranspose3() throws Exception {
-
         Problem prob = new Problem();
         prob.l = 3;
         prob.n = 4;
@@ -652,11 +651,7 @@ public class LinearTest {
         prob.x[3][0] = new FeatureNode(3, 2);
 
         Problem transposed = Linear.transpose(prob);
-        assertThat(transposed.x).hasSize(4);
-        assertThat(transposed.x[0]).hasSize(2);
-        assertThat(transposed.x[1]).hasSize(2);
-        assertThat(transposed.x[2]).hasSize(2);
-        assertThat(transposed.x[3]).hasSize(2);
+        assertThat(transposed.x).hasDimensions(4, 2);
 
         assertThat(transposed.x[0][0]).isEqualTo(new FeatureNode(1, 2));
         assertThat(transposed.x[0][1]).isEqualTo(new FeatureNode(2, 9));
