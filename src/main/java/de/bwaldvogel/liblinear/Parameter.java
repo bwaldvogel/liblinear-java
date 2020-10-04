@@ -156,7 +156,7 @@ public final class Parameter implements Cloneable {
     public double getP() {
         return p;
     }
-    
+
     /*
     * Sets the initial-solution specification.
     * Only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC}.

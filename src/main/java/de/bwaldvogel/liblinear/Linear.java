@@ -118,7 +118,8 @@ public class Linear {
             System.err.println("WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)");
         }
         int[] fold_start = new int[nr_fold + 1];
-        for (i = 0; i < l; i++) perm[i] = i;
+        for (i = 0; i < l; i++)
+            perm[i] = i;
         for (i = 0; i < l; i++) {
             int j = i + random.nextInt(l - i);
             swap(perm, i, j);
@@ -169,7 +170,7 @@ public class Linear {
             best_score = Double.POSITIVE_INFINITY;
             i = num_p_steps - 1;
             if (start_p > 0)
-                i = Math.min((int) (start_p / (max_p / num_p_steps)), i);
+                i = Math.min((int)(start_p / (max_p / num_p_steps)), i);
             for (; i >= 0; i--) {
                 param_tmp.p = i * max_p / num_p_steps;
                 double start_C_tmp;
@@ -222,7 +223,7 @@ public class Linear {
         int i;
 
         for (i = 0; i < l; i++) {
-            int this_label = (int) prob.y[i];
+            int this_label = (int)prob.y[i];
             int j;
             for (j = 0; j < nr_class; j++) {
                 if (this_label == label[j]) {
@@ -276,7 +277,8 @@ public class Linear {
 
     static void info(String message) {
         synchronized (OUTPUT_MUTEX) {
-            if (DEBUG_OUTPUT == null) return;
+            if (DEBUG_OUTPUT == null)
+                return;
             DEBUG_OUTPUT.printf(message);
             DEBUG_OUTPUT.flush();
         }
@@ -284,7 +286,8 @@ public class Linear {
 
     static void info(String format, Object... args) {
         synchronized (OUTPUT_MUTEX) {
-            if (DEBUG_OUTPUT == null) return;
+            if (DEBUG_OUTPUT == null)
+                return;
             DEBUG_OUTPUT.printf(format, args);
             DEBUG_OUTPUT.flush();
         }
@@ -296,7 +299,8 @@ public class Linear {
      * @throws NumberFormatException see {@link Double#parseDouble(String)}
      */
     static double atof(String s) {
-        if (s == null || s.length() < 1) throw new IllegalArgumentException("Can't convert empty string to integer");
+        if (s == null || s.length() < 1)
+            throw new IllegalArgumentException("Can't convert empty string to integer");
         double d = Double.parseDouble(s);
         if (Double.isNaN(d) || Double.isInfinite(d)) {
             throw new IllegalArgumentException("NaN or Infinity in input: " + s);
@@ -310,9 +314,11 @@ public class Linear {
      * @throws NumberFormatException see {@link Integer#parseInt(String)}
      */
     static int atoi(String s) throws NumberFormatException {
-        if (s == null || s.length() < 1) throw new IllegalArgumentException("Can't convert empty string to integer");
+        if (s == null || s.length() < 1)
+            throw new IllegalArgumentException("Can't convert empty string to integer");
         // Integer.parseInt doesn't accept '+' prefixed strings
-        if (s.charAt(0) == '+') s = s.substring(1);
+        if (s.charAt(0) == '+')
+            s = s.substring(1);
         return Integer.parseInt(s);
     }
 
@@ -349,7 +355,7 @@ public class Linear {
 
         BufferedReader reader = null;
         if (inputReader instanceof BufferedReader) {
-            reader = (BufferedReader) inputReader;
+            reader = (BufferedReader)inputReader;
         } else {
             reader = new BufferedReader(inputReader);
         }
@@ -383,10 +389,12 @@ public class Linear {
         }
 
         int w_size = model.nr_feature;
-        if (model.bias >= 0) w_size++;
+        if (model.bias >= 0)
+            w_size++;
 
         int nr_w = model.nr_class;
-        if (model.nr_class == 2 && model.solverType != MCSVM_CS) nr_w = 1;
+        if (model.nr_class == 2 && model.solverType != MCSVM_CS)
+            nr_w = 1;
 
         model.w = new double[w_size * nr_w];
         int[] buffer = new int[128];
@@ -405,8 +413,8 @@ public class Linear {
                     } else {
                         if (b >= buffer.length) {
                             throw new RuntimeException("illegal weight in model file at index " + (i * nr_w + j) + ", with string content '" +
-                                    new String(buffer, 0, buffer.length) + "', is not terminated " +
-                                    "with a whitespace character, or is longer than expected (" + buffer.length + " characters max).");
+                                new String(buffer, 0, buffer.length) + "', is not terminated " +
+                                "with a whitespace character, or is longer than expected (" + buffer.length + " characters max).");
                         }
                         buffer[b++] = ch;
                     }
@@ -513,7 +521,8 @@ public class Linear {
         } else {
             int dec_max_idx = 0;
             for (int i = 1; i < model.nr_class; i++) {
-                if (dec_values[i] > dec_values[dec_max_idx]) dec_max_idx = i;
+                if (dec_values[i] > dec_values[dec_max_idx])
+                    dec_max_idx = i;
             }
             return model.label[dec_max_idx];
         }
@@ -522,7 +531,8 @@ public class Linear {
     static void printf(Formatter formatter, String format, Object... args) throws IOException {
         formatter.format(format, args);
         IOException ioException = formatter.ioException();
-        if (ioException != null) throw ioException;
+        if (ioException != null)
+            throw ioException;
     }
 
     /**
@@ -534,10 +544,12 @@ public class Linear {
     public static void saveModel(Writer modelOutput, Model model) throws IOException {
         int nr_feature = model.nr_feature;
         int w_size = nr_feature;
-        if (model.bias >= 0) w_size++;
+        if (model.bias >= 0)
+            w_size++;
 
         int nr_w = model.nr_class;
-        if (model.nr_class == 2 && model.solverType != MCSVM_CS) nr_w = 1;
+        if (model.nr_class == 2 && model.solverType != MCSVM_CS)
+            nr_w = 1;
 
         try (Formatter formatter = new Formatter(modelOutput, DEFAULT_LOCALE)) {
             printf(formatter, "solver_type %s\n", model.solverType.name());
@@ -571,7 +583,8 @@ public class Linear {
 
             formatter.flush();
             IOException ioException = formatter.ioException();
-            if (ioException != null) throw ioException;
+            if (ioException != null)
+                throw ioException;
         }
     }
 
@@ -726,7 +739,8 @@ public class Linear {
             }
 
             iter++;
-            if (iter % 10 == 0) info(".");
+            if (iter % 10 == 0)
+                info(".");
 
             if (PGmax_new - PGmin_new <= eps) {
                 if (active_size == l)
@@ -741,12 +755,15 @@ public class Linear {
             }
             PGmax_old = PGmax_new;
             PGmin_old = PGmin_new;
-            if (PGmax_old <= 0) PGmax_old = Double.POSITIVE_INFINITY;
-            if (PGmin_old >= 0) PGmin_old = Double.NEGATIVE_INFINITY;
+            if (PGmax_old <= 0)
+                PGmax_old = Double.POSITIVE_INFINITY;
+            if (PGmin_old >= 0)
+                PGmin_old = Double.NEGATIVE_INFINITY;
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -756,7 +773,8 @@ public class Linear {
             v += w[i] * w[i];
         for (i = 0; i < l; i++) {
             v += alpha[i] * (alpha[i] * diag[GETI(y, i)] - 2);
-            if (alpha[i] > 0) ++nSV;
+            if (alpha[i] > 0)
+                ++nSV;
         }
         info("Objective value = %g%n", v / 2);
         info("nSV = %d%n", nSV);
@@ -900,7 +918,8 @@ public class Linear {
                 else
                     d = -beta[i];
 
-                if (Math.abs(d) < 1.0e-12) continue;
+                if (Math.abs(d) < 1.0e-12)
+                    continue;
 
                 double beta_old = beta[i];
                 beta[i] = Math.min(Math.max(beta[i] + d, -upper_bound[GETI_SVR(i)]), upper_bound[GETI_SVR(i)]);
@@ -910,9 +929,11 @@ public class Linear {
                     SparseOperator.axpy(d, xi, w);
             }
 
-            if (iter == 0) Gnorm1_init = Gnorm1_new;
+            if (iter == 0)
+                Gnorm1_init = Gnorm1_new;
             iter++;
-            if (iter % 10 == 0) info(".");
+            if (iter % 10 == 0)
+                info(".");
 
             if (Gnorm1_new <= eps * Gnorm1_init) {
                 if (active_size == l)
@@ -929,7 +950,8 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
 
         // calculate objective value
         double v = 0;
@@ -939,7 +961,8 @@ public class Linear {
         v = 0.5 * v;
         for (i = 0; i < l; i++) {
             v += p * Math.abs(beta[i]) - y[i] * beta[i] + 0.5 * lambda[GETI_SVR(i)] * beta[i] * beta[i];
-            if (beta[i] != 0) nSV++;
+            if (beta[i] != 0)
+                nSV++;
         }
 
         info("Objective value = %g%n", v);
@@ -1033,7 +1056,8 @@ public class Linear {
                 //  g_t(z) = z*log(z) + (C-z)*log(C-z) + 0.5a(z-alpha_old)^2 + sign*b(z-alpha_old)
                 double alpha_old = alpha[ind1];
                 double z = alpha_old;
-                if (C - z < 0.5 * C) z = 0.1 * z;
+                if (C - z < 0.5 * C)
+                    z = 0.1 * z;
                 double gp = a * (z - alpha_old) + sign * b + Math.log(z / (C - z));
                 Gmax = Math.max(Gmax, Math.abs(gp));
 
@@ -1041,7 +1065,8 @@ public class Linear {
                 final double eta = 0.1; // xi in the paper
                 int inner_iter = 0;
                 while (inner_iter <= max_inner_iter) {
-                    if (Math.abs(gp) < innereps) break;
+                    if (Math.abs(gp) < innereps)
+                        break;
                     double gpp = a + C / (C - z) / z;
                     double tmpz = z - gp / gpp;
                     if (tmpz <= 0)
@@ -1063,9 +1088,11 @@ public class Linear {
             }
 
             iter++;
-            if (iter % 10 == 0) info(".");
+            if (iter % 10 == 0)
+                info(".");
 
-            if (Gmax < eps) break;
+            if (Gmax < eps)
+                break;
 
             if (newton_iter <= l / 10) {
                 innereps = Math.max(innereps_min, 0.1 * innereps);
@@ -1074,7 +1101,8 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 0 may be faster (also see FAQ)%n%n");
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%nUsing -s 0 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -1084,7 +1112,7 @@ public class Linear {
         v *= 0.5;
         for (i = 0; i < l; i++)
             v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
-                    * Math.log(upper_bound[GETI(y, i)]);
+                * Math.log(upper_bound[GETI(y, i)]);
         info("Objective value = %g%n", v);
     }
 
@@ -1213,7 +1241,8 @@ public class Linear {
                 else
                     d = -w[j];
 
-                if (Math.abs(d) < 1.0e-12) continue;
+                if (Math.abs(d) < 1.0e-12)
+                    continue;
 
                 double delta = Math.abs(w[j] + d) - Math.abs(w[j]) + G * d;
                 d_old = 0;
@@ -1274,7 +1303,8 @@ public class Linear {
                         b[i] = 1;
 
                     for (int i = 0; i < w_size; i++) {
-                        if (w[i] == 0) continue;
+                        if (w[i] == 0)
+                            continue;
                         Feature[] x = prob_col.x[i];
                         SparseOperator.axpy(-w[i], x, b);
                     }
@@ -1285,7 +1315,8 @@ public class Linear {
                 Gnorm1_init = Gnorm1_new;
             }
             iter++;
-            if (iter % 10 == 0) info(".");
+            if (iter % 10 == 0)
+                info(".");
 
             if (Gnorm1_new <= eps * Gnorm1_init) {
                 if (active_size == w_size)
@@ -1302,7 +1333,8 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
 
@@ -1318,7 +1350,8 @@ public class Linear {
             }
         }
         for (j = 0; j < l; j++)
-            if (b[j] > 0) v += C[GETI(y, j)] * b[j] * b[j];
+            if (b[j] > 0)
+                v += C[GETI(y, j)] * b[j] * b[j];
 
         info("Objective value = %g%n", v);
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
@@ -1454,9 +1487,11 @@ public class Linear {
                 Gnorm1_new += violation;
             }
 
-            if (newton_iter == 0) Gnorm1_init = Gnorm1_new;
+            if (newton_iter == 0)
+                Gnorm1_init = Gnorm1_new;
 
-            if (Gnorm1_new <= eps * Gnorm1_init) break;
+            if (Gnorm1_new <= eps * Gnorm1_init)
+                break;
 
             iter = 0;
             QP_Gmax_old = Double.POSITIVE_INFINITY;
@@ -1516,7 +1551,8 @@ public class Linear {
                     else
                         z = -wpd[j];
 
-                    if (Math.abs(z) < 1.0e-12) continue;
+                    if (Math.abs(z) < 1.0e-12)
+                        continue;
                     z = Math.min(Math.max(z, -10.0), 10.0);
 
                     wpd[j] += z;
@@ -1542,19 +1578,22 @@ public class Linear {
                 QP_Gmax_old = QP_Gmax_new;
             }
 
-            if (iter >= max_iter) info("WARNING: reaching max number of inner iterations%n");
+            if (iter >= max_iter)
+                info("WARNING: reaching max number of inner iterations%n");
 
             delta = 0;
             w_norm_new = 0;
             for (j = 0; j < w_size; j++) {
                 delta += Grad[j] * (wpd[j] - w[j]);
-                if (wpd[j] != 0) w_norm_new += Math.abs(wpd[j]);
+                if (wpd[j] != 0)
+                    w_norm_new += Math.abs(wpd[j]);
             }
             delta += (w_norm_new - w_norm);
 
             negsum_xTd = 0;
             for (int i = 0; i < l; i++)
-                if (y[i] == -1) negsum_xTd += C[GETI(y, i)] * xTd[i];
+                if (y[i] == -1)
+                    negsum_xTd += C[GETI(y, i)] * xTd[i];
 
             int num_linesearch;
             for (num_linesearch = 0; num_linesearch < max_num_linesearch; num_linesearch++) {
@@ -1581,7 +1620,8 @@ public class Linear {
                     w_norm_new = 0;
                     for (j = 0; j < w_size; j++) {
                         wpd[j] = (w[j] + wpd[j]) * 0.5;
-                        if (wpd[j] != 0) w_norm_new += Math.abs(wpd[j]);
+                        if (wpd[j] != 0)
+                            w_norm_new += Math.abs(wpd[j]);
                     }
                     delta *= 0.5;
                     negsum_xTd *= 0.5;
@@ -1596,7 +1636,8 @@ public class Linear {
                     exp_wTx[i] = 0;
 
                 for (int i = 0; i < w_size; i++) {
-                    if (w[i] == 0) continue;
+                    if (w[i] == 0)
+                        continue;
                     Feature[] x = prob_col.x[i];
                     SparseOperator.axpy(w[i], x, exp_wTx);
                 }
@@ -1605,7 +1646,8 @@ public class Linear {
                     exp_wTx[i] = Math.exp(exp_wTx[i]);
             }
 
-            if (iter == 1) inner_eps *= 0.25;
+            if (iter == 1)
+                inner_eps *= 0.25;
 
             newton_iter++;
             Gmax_old = Gmax_new;
@@ -1615,7 +1657,8 @@ public class Linear {
 
         info("=========================%n");
         info("optimization finished, #iter = %d%n", newton_iter);
-        if (newton_iter >= max_newton_iter) info("WARNING: reaching max number of iterations%n");
+        if (newton_iter >= max_newton_iter)
+            info("WARNING: reaching max number of iterations%n");
 
         // calculate objective value
 
@@ -1696,11 +1739,15 @@ public class Linear {
      */
     public static Model train(Problem prob, Parameter param) {
 
-        if (prob == null) throw new IllegalArgumentException("problem must not be null");
-        if (param == null) throw new IllegalArgumentException("parameter must not be null");
+        if (prob == null)
+            throw new IllegalArgumentException("problem must not be null");
+        if (param == null)
+            throw new IllegalArgumentException("parameter must not be null");
 
-        if (prob.n == 0) throw new IllegalArgumentException("problem has zero features");
-        if (prob.l == 0) throw new IllegalArgumentException("problem has zero instances");
+        if (prob.n == 0)
+            throw new IllegalArgumentException("problem has zero features");
+        if (prob.l == 0)
+            throw new IllegalArgumentException("problem has zero instances");
 
         for (Feature[] nodes : prob.x) {
             int indexBefore = 0;
@@ -1767,9 +1814,11 @@ public class Linear {
             for (int i = 0; i < param.getNumWeights(); i++) {
                 int j;
                 for (j = 0; j < nr_class; j++)
-                    if (param.weightLabel[i] == label[j]) break;
+                    if (param.weightLabel[i] == label[j])
+                        break;
 
-                if (j == nr_class) throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
+                if (j == nr_class)
+                    throw new IllegalArgumentException("class label " + param.weightLabel[i] + " specified in weight is not found");
                 weighted_C[j] *= param.weight[i];
             }
 
@@ -2059,7 +2108,7 @@ public class Linear {
                 for (i = 0; i < prob.l; i++)
                     if (target[i] == prob.y[i])
                         ++total_correct;
-                double current_rate = (double) total_correct / prob.l;
+                double current_rate = (double)total_correct / prob.l;
                 if (current_rate > best_score) {
                     best_C = param_tmp.C;
                     best_score = current_rate;
