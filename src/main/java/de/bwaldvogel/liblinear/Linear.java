@@ -1,12 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVR_DUAL;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC_DUAL;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVR;
-import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
-import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
+import static de.bwaldvogel.liblinear.SolverType.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -810,7 +804,7 @@ public class Linear {
      *
      * See Algorithm 4 of Ho and Lin, 2012
      */
-    private static void solve_l2r_l1l2_svr(Problem prob, double[] w, Parameter param) {
+    private static void solve_l2r_l1l2_svr(Problem prob, double[] w, Parameter param, SolverType solverType) {
         int l = prob.l;
         double C = param.C;
         double p = param.p;
@@ -833,9 +827,11 @@ public class Linear {
         double[] lambda = new double[] {0.5 / C};
         double[] upper_bound = new double[] {Double.POSITIVE_INFINITY};
 
-        if (param.solverType == L2R_L1LOSS_SVR_DUAL) {
+        if (solverType == L2R_L1LOSS_SVR_DUAL) {
             lambda[0] = 0;
             upper_bound[0] = C;
+        } else {
+            assert solverType == L2R_L2LOSS_SVR_DUAL;
         }
 
         // Initial beta can be set here. Note that
@@ -1982,7 +1978,7 @@ public class Linear {
             }
             case L2R_L1LOSS_SVR_DUAL:
             case L2R_L2LOSS_SVR_DUAL:
-                solve_l2r_l1l2_svr(prob, w, param);
+                solve_l2r_l1l2_svr(prob, w, param, param.solverType);
                 break;
 
             default:
