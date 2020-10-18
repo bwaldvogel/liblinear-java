@@ -5,10 +5,10 @@ import static de.bwaldvogel.liblinear.TestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -181,7 +181,7 @@ class LinearTest {
             Model model = createRandomModel();
             model.solverType = solverType;
 
-            File tempFile = tempDir.resolve("modeltest-" + solverType).toFile();
+            Path tempFile = tempDir.resolve("modeltest-" + solverType);
             Linear.saveModel(tempFile, model);
 
             Model loadedModel = Linear.loadModel(tempFile);
@@ -191,7 +191,7 @@ class LinearTest {
 
     @Test
     void testLoadEmptyModel(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("empty-model").toFile();
+        Path modelPath = tempDir.resolve("empty-model");
 
         List<String> lines = Arrays.asList("solver_type L2R_LR",
             "nr_class 2",
@@ -199,9 +199,9 @@ class LinearTest {
             "nr_feature 0",
             "bias -1.0",
             "w");
-        writeToFile(file, lines);
+        writeToFile(modelPath, lines);
 
-        Model model = Model.load(file);
+        Model model = Model.load(modelPath);
         assertThat(model.getSolverType()).isEqualTo(L2R_LR);
         assertThat(model.getLabels()).containsExactly(1, 2);
         assertThat(model.getNrClass()).isEqualTo(2);
@@ -212,7 +212,7 @@ class LinearTest {
 
     @Test
     void testLoadSimpleModel(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("simple-model").toFile();
+        Path modelPath = tempDir.resolve("simple-model");
 
         List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
             "nr_class 2",
@@ -222,9 +222,9 @@ class LinearTest {
             "w",
             "0.1 0.2 0.3 ",
             "0.4 0.5 0.6 ");
-        writeToFile(file, lines);
+        writeToFile(modelPath, lines);
 
-        Model model = Model.load(file);
+        Model model = Model.load(modelPath);
         assertThat(model.getSolverType()).isEqualTo(L2R_L2LOSS_SVR);
         assertThat(model.getLabels()).containsExactly(1, 2);
         assertThat(model.getNrClass()).isEqualTo(2);
@@ -235,7 +235,7 @@ class LinearTest {
 
     @Test
     void testLoadIllegalModel(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("illegal-model").toFile();
+        Path file = tempDir.resolve("illegal-model");
 
         List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
             "nr_class 2",
@@ -654,7 +654,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnIrisDataSet() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/resources/iris.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(4);
@@ -664,7 +664,7 @@ class LinearTest {
 
     @Test
     void testFindBestParameterC_IllegalSolver() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/resources/iris.scale"), -1);
 
         EnumSet<SolverType> supportedSolvers = EnumSet.of(L2R_LR, L2R_L2LOSS_SVC, L2R_L2LOSS_SVR);
         for (SolverType illegalSolver : EnumSet.complementOf(supportedSolvers)) {
@@ -677,7 +677,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnSpliceDataSet() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.001953125);
@@ -687,7 +687,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnSpliceDataSet_L2R_LR() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_LR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.015625);
@@ -697,7 +697,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnSpliceDataSet_L2R_L2LOSS_SVR() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.00390625);
@@ -707,7 +707,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnDnaScaleDataSet() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/datasets/dna.scale/dna.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.0078125);
@@ -717,7 +717,7 @@ class LinearTest {
 
     @Test
     void testFindBestParametersOnDnaScaleDataSet_L2R_L2LOSS_SVR() throws Exception {
-        Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
+        Problem problem = Train.readProblem(Paths.get("src/test/datasets/dna.scale/dna.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.0001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.015625);

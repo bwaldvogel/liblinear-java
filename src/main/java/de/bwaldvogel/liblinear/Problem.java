@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 
 /**
@@ -54,17 +55,31 @@ public class Problem {
     public double      bias = -1;
 
     /**
-     * see {@link Train#readProblem(File, double)}
+     * @deprecated use {@link Problem#readFromFile(Path, double)} instead
      */
     public static Problem readFromFile(File file, double bias) throws IOException, InvalidInputDataException {
-        return Train.readProblem(file, bias);
+        return readFromFile(file.toPath(), bias);
     }
 
     /**
-     * see {@link Train#readProblem(File, Charset, double)}
+     * see {@link Train#readProblem(Path, double)}
+     */
+    public static Problem readFromFile(Path path, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(path, bias);
+    }
+
+    /**
+     * @deprecated use {@link Problem#readFromFile(Path, Charset, double)} instead
      */
     public static Problem readFromFile(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
-        return Train.readProblem(file, charset, bias);
+        return readFromFile(file.toPath(), charset, bias);
+    }
+
+    /**
+     * see {@link Train#readProblem(Path, Charset, double)}
+     */
+    public static Problem readFromFile(Path path, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        return Train.readProblem(path, charset, bias);
     }
 
     /**

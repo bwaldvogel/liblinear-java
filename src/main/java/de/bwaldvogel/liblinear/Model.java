@@ -1,13 +1,14 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.copyOf;
-import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
+import static de.bwaldvogel.liblinear.Linear.*;
+import static de.bwaldvogel.liblinear.SolverType.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 
@@ -216,10 +217,17 @@ public final class Model implements Serializable {
     }
 
     /**
-     * see {@link Linear#saveModel(java.io.File, Model)}
+     * @deprecated use {@link Model#save(Path)} instead
      */
-    public void save(File file) throws IOException {
-        Linear.saveModel(file, this);
+    public void save(File modelFile) throws IOException {
+        save(modelFile.toPath());
+    }
+
+    /**
+     * see {@link Linear#saveModel(Path, Model)}
+     */
+    public void save(Path modelPath) throws IOException {
+        Linear.saveModel(modelPath, this);
     }
 
     /**
@@ -230,10 +238,17 @@ public final class Model implements Serializable {
     }
 
     /**
-     * see {@link Linear#loadModel(File)}
+     * @deprecated use {@link Model#load(Path)} instead
      */
-    public static Model load(File file) throws IOException {
-        return Linear.loadModel(file);
+    public static Model load(File modelFile) throws IOException {
+        return load(modelFile.toPath());
+    }
+
+    /**
+     * see {@link Linear#loadModel(Path)}
+     */
+    public static Model load(Path modelPath) throws IOException {
+        return Linear.loadModel(modelPath);
     }
 
     /**

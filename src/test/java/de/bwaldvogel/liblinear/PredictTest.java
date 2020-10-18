@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -78,9 +77,9 @@ class PredictTest {
         String modelFile = tempDir.resolve("model").toString();
         Train.main(new String[] {"-s", "0", "src/test/datasets/dna.scale/dna.scale", modelFile});
 
-        File predictionsFile = tempDir.resolve("predictions").toFile();
+        Path predictionsFile = tempDir.resolve("predictions");
         Predict.main(new String[] {"-b", "1", "src/test/datasets/dna.scale/dna.scale.t", modelFile, predictionsFile.toString()});
-        List<String> predictions = Files.readAllLines(predictionsFile.toPath(), Linear.FILE_CHARSET);
+        List<String> predictions = Files.readAllLines(predictionsFile, Linear.FILE_CHARSET);
         assertThat(predictions).hasSize(1187);
         assertThat(predictions.get(0)).isEqualTo("labels 3 1 2");
 

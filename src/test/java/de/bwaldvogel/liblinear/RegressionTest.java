@@ -2,7 +2,6 @@ package de.bwaldvogel.liblinear;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -109,10 +108,10 @@ class RegressionTest {
 
     private void runRegressionTest(String dataset, SolverType solverType, Double expectedAccuracy) throws Exception {
         Linear.resetRandom();
-        File trainingFile = Paths.get("src/test/datasets", dataset, dataset).toFile();
+        Path trainingFile = Paths.get("src/test/datasets", dataset, dataset);
         Problem problem = Train.readProblem(trainingFile, -1);
         Model model = Linear.train(problem, new Parameter(solverType, 1, 0.1));
-        File testFile = Paths.get("src/test/datasets", dataset, dataset + ".t").toFile();
+        Path testFile = Paths.get("src/test/datasets", dataset, dataset + ".t");
         Problem testProblem = Train.readProblem(testFile, -1);
 
         Path expectedFile = Paths.get("src/test/resources/regression", dataset, "predictions_" + solverType.name());

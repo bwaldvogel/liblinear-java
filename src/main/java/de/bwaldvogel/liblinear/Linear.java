@@ -3,20 +3,16 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.SolverType.*;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.Random;
@@ -422,12 +418,20 @@ public class Linear {
 
     /**
      * Loads the model from the file with ISO-8859-1 charset.
-     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
+     * It uses {@link Locale#ENGLISH} for number formatting.
+     *
+     * @deprecated use {@link Linear#loadModel(Path)} instead
      */
     public static Model loadModel(File modelFile) throws IOException {
-        try (FileInputStream in = new FileInputStream(modelFile);
-             InputStreamReader inputStreamReader = new InputStreamReader(in, FILE_CHARSET);
-             BufferedReader inputReader = new BufferedReader(inputStreamReader)) {
+        return loadModel(modelFile.toPath());
+    }
+
+    /**
+     * Loads the model from the file with ISO-8859-1 charset.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
+     */
+    public static Model loadModel(Path modelPath) throws IOException {
+        try (Reader inputReader = Files.newBufferedReader(modelPath, FILE_CHARSET)) {
             return loadModel(inputReader);
         }
     }
@@ -585,12 +589,20 @@ public class Linear {
 
     /**
      * Writes the model to the file with ISO-8859-1 charset.
-     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
+     * It uses {@link Locale#ENGLISH} for number formatting.
+     *
+     * @deprecated use {@link Linear#saveModel(Path, Model)} instead
      */
     public static void saveModel(File modelFile, Model model) throws IOException {
-        try (OutputStream outputStream = new FileOutputStream(modelFile);
-             OutputStreamWriter out = new OutputStreamWriter(outputStream, FILE_CHARSET);
-             BufferedWriter modelWriter = new BufferedWriter(out)) {
+        saveModel(modelFile.toPath(), model);
+    }
+
+    /**
+     * Writes the model to the file with ISO-8859-1 charset.
+     * It uses {@link java.util.Locale#ENGLISH} for number formatting.
+     */
+    public static void saveModel(Path modelPath, Model model) throws IOException {
+        try (Writer modelWriter = Files.newBufferedWriter(modelPath, FILE_CHARSET)) {
             saveModel(modelWriter, model);
         }
     }

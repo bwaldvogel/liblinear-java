@@ -1,19 +1,17 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.atof;
-import static de.bwaldvogel.liblinear.Linear.atoi;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC_DUAL;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVR;
-import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
+import static de.bwaldvogel.liblinear.Linear.*;
+import static de.bwaldvogel.liblinear.SolverType.*;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -86,7 +84,8 @@ public class Train {
         } else {
             int total_correct = 0;
             for (int i = 0; i < prob.l; i++)
-                if (target[i] == prob.y[i]) ++total_correct;
+                if (target[i] == prob.y[i])
+                    ++total_correct;
 
             System.out.printf("correct: %d%n", total_correct);
             System.out.printf("Cross Validation Accuracy = %g%%%n", 100.0 * total_correct / prob.l);
@@ -155,8 +154,10 @@ public class Train {
 
         // parse options
         for (i = 0; i < argv.length; i++) {
-            if (argv[i].charAt(0) != '-') break;
-            if (++i >= argv.length) exit_with_help();
+            if (argv[i].charAt(0) != '-')
+                break;
+            if (++i >= argv.length)
+                exit_with_help();
             switch (argv[i - 1].charAt(1)) {
                 case 's':
                     param.solverType = SolverType.getById(atoi(argv[i]));
@@ -206,7 +207,8 @@ public class Train {
 
         // determine filenames
 
-        if (i >= argv.length) exit_with_help();
+        if (i >= argv.length)
+            exit_with_help();
 
         inputFilename = argv[i];
 
@@ -265,15 +267,32 @@ public class Train {
      * @param file the SVM file
      * @throws IOException obviously in case of any I/O exception ;)
      * @throws InvalidInputDataException if the input file is not correctly formatted
+     * @deprecated use {@link Train#readProblem(Path, double)} instead
      */
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
-        try (InputStream inputStream = new FileInputStream(file)) {
+        return readProblem(file.toPath(), bias);
+    }
+
+    /**
+     * reads a problem from LibSVM format
+     * @throws IOException obviously in case of any I/O exception ;)
+     * @throws InvalidInputDataException if the input file is not correctly formatted
+     */
+    public static Problem readProblem(Path path, double bias) throws IOException, InvalidInputDataException {
+        try (InputStream inputStream = Files.newInputStream(path)) {
             return readProblem(inputStream, bias);
         }
     }
 
+    /**
+     * @deprecated use {@link Train#readProblem(Path, Charset, double)} instead
+     */
     public static Problem readProblem(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
-        try (InputStream inputStream = new FileInputStream(file)) {
+        return readProblem(file.toPath(), charset, bias);
+    }
+
+    public static Problem readProblem(Path path, Charset charset, double bias) throws IOException, InvalidInputDataException {
+        try (InputStream inputStream = Files.newInputStream(path)) {
             return readProblem(inputStream, charset, bias);
         }
     }
@@ -292,7 +311,8 @@ public class Train {
 
         while (true) {
             String line = fp.readLine();
-            if (line == null) break;
+            if (line == null)
+                break;
             lineNr++;
 
             StringTokenizer st = new StringTokenizer(line, " \t\n\r\f:");
@@ -328,7 +348,8 @@ public class Train {
                 }
 
                 // assert that indices are valid and sorted
-                if (index <= 0) throw new InvalidInputDataException("invalid index: " + index, lineNr);
+                if (index <= 0)
+                    throw new InvalidInputDataException("invalid index: " + index, lineNr);
                 if (index <= indexBefore)
                     throw new InvalidInputDataException("indices must be sorted in ascending order", lineNr);
                 indexBefore = index;
@@ -351,12 +372,16 @@ public class Train {
         return constructProblem(vy, vx, max_index, bias);
     }
 
+    public void readProblem(Path path) throws IOException, InvalidInputDataException {
+        prob = Train.readProblem(path, bias);
+    }
+
     public void readProblem(String filename) throws IOException, InvalidInputDataException {
         readProblem(filename, bias);
     }
 
     public void readProblem(String filename, double bias) throws IOException, InvalidInputDataException {
-        prob = Train.readProblem(new File(filename), bias);
+        prob = Train.readProblem(Paths.get(filename), bias);
     }
 
     private static int[] addToArray(int[] array, int newElement) {
@@ -413,7 +438,7 @@ public class Train {
             do_cross_validation();
         else {
             Model model = Linear.train(prob, param);
-            Linear.saveModel(new File(modelFilename), model);
+            Linear.saveModel(Paths.get(modelFilename), model);
         }
     }
 

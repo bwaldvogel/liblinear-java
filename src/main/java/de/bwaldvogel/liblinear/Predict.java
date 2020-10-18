@@ -1,19 +1,16 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.atof;
-import static de.bwaldvogel.liblinear.Linear.atoi;
-import static de.bwaldvogel.liblinear.Linear.printf;
-import static de.bwaldvogel.liblinear.Linear.info;
+import static de.bwaldvogel.liblinear.Linear.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -183,7 +180,7 @@ public class Predict {
              BufferedReader reader = new BufferedReader(new InputStreamReader(in, Linear.FILE_CHARSET));
              FileOutputStream out = new FileOutputStream(argv[i + 2]);
              Writer writer = new BufferedWriter(new OutputStreamWriter(out, Linear.FILE_CHARSET))) {
-            Model model = Linear.loadModel(new File(argv[i + 1]));
+            Model model = Linear.loadModel(Paths.get(argv[i + 1]));
             doPredict(reader, writer, model);
         }
     }

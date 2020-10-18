@@ -5,7 +5,6 @@ import static de.bwaldvogel.liblinear.TestUtils.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -119,7 +118,7 @@ class TrainTest {
 
     @Test
     void testReadProblem(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path problemPath = tempDir.resolve("problem");
 
         List<String> lines = Arrays.asList(
             "1 1:1  3:1  4:1   6:1",
@@ -128,10 +127,10 @@ class TrainTest {
             "1 1:1  4:1  7:1",
             "2 4:1  5:1  7:1");
 
-        writeToFile(file, lines);
+        writeToFile(problemPath, lines);
 
         Train train = new Train();
-        train.readProblem(file.getAbsolutePath());
+        train.readProblem(problemPath);
 
         Problem prob = train.getProblem();
         assertThat(prob.bias).isEqualTo(1);
@@ -169,7 +168,7 @@ class TrainTest {
      */
     @Test
     void testReadProblemEmptyLine(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path file = tempDir.resolve("problem");
 
         List<String> lines = Arrays.asList(
             "1 1:1  3:1  4:1   6:1",
@@ -191,7 +190,7 @@ class TrainTest {
 
     @Test
     void testReadUnsortedProblem(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path file = tempDir.resolve("problem");
 
         List<String> lines = Arrays.asList(
             "1 1:1  3:1  4:1   6:1",
@@ -201,17 +200,15 @@ class TrainTest {
         writeToFile(file, lines);
 
         Train train = new Train();
-        try {
-            train.readProblem(file.getAbsolutePath());
-            fail("InvalidInputDataException expected");
-        } catch (InvalidInputDataException e) {
-            assertThat(e).hasMessage("indices must be sorted in ascending order");
-        }
+
+        assertThatExceptionOfType(InvalidInputDataException.class)
+            .isThrownBy(() -> train.readProblem(file))
+            .withMessage("indices must be sorted in ascending order");
     }
 
     @Test
     void testReadProblemWithInvalidIndex(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path file = tempDir.resolve("problem");
 
         List<String> lines = Arrays.asList(
             "1 1:1  3:1  4:1   6:1",
@@ -220,34 +217,30 @@ class TrainTest {
         writeToFile(file, lines);
 
         Train train = new Train();
-        try {
-            train.readProblem(file.getAbsolutePath());
-            fail("InvalidInputDataException expected");
-        } catch (InvalidInputDataException e) {
-            assertThat(e).hasMessage("invalid index: -4");
-        }
+
+        assertThatExceptionOfType(InvalidInputDataException.class)
+            .isThrownBy(() -> train.readProblem(file))
+            .withMessage("invalid index: -4");
     }
 
     @Test
     void testReadProblemWithZeroIndex(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path file = tempDir.resolve("problem");
 
         List<String> lines = Collections.singletonList("1 0:1  1:1");
 
         writeToFile(file, lines);
 
         Train train = new Train();
-        try {
-            train.readProblem(file.getAbsolutePath());
-            fail("InvalidInputDataException expected");
-        } catch (InvalidInputDataException e) {
-            assertThat(e).hasMessage("invalid index: 0");
-        }
+
+        assertThatExceptionOfType(InvalidInputDataException.class)
+            .isThrownBy(() -> train.readProblem(file))
+            .withMessage("invalid index: 0");
     }
 
     @Test
     void testReadWrongProblem(@TempDir Path tempDir) throws Exception {
-        File file = tempDir.resolve("problem").toFile();
+        Path file = tempDir.resolve("problem");
 
         List<String> lines = Arrays.asList(
             "1 1:1  3:1  4:1   6:1",
@@ -257,12 +250,10 @@ class TrainTest {
         writeToFile(file, lines);
 
         Train train = new Train();
-        try {
-            train.readProblem(file.getAbsolutePath());
-            fail("InvalidInputDataException expected");
-        } catch (InvalidInputDataException e) {
-            assertThat(e).hasMessage("invalid value: a");
-        }
+
+        assertThatExceptionOfType(InvalidInputDataException.class)
+            .isThrownBy(() -> train.readProblem(file))
+            .withMessage("invalid value: a");
     }
 
     private void validate(Problem prob) {
