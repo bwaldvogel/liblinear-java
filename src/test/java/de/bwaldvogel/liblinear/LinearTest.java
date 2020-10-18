@@ -1,26 +1,14 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.SolverType.L1R_L2LOSS_SVC;
-import static de.bwaldvogel.liblinear.SolverType.L1R_LR;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVR;
-import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
-import static de.bwaldvogel.liblinear.SolverType.MCSVM_CS;
-import static de.bwaldvogel.liblinear.TestUtils.repeat;
-import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.offset;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static de.bwaldvogel.liblinear.SolverType.*;
+import static de.bwaldvogel.liblinear.TestUtils.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,19 +19,16 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.assertj.core.data.Offset;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-public class LinearTest {
 
-    private static Random random = new Random(12345);
+class LinearTest {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private static final Random random = new Random(12345);
 
-    @Before
+    @BeforeEach
     public void reset() throws Exception {
         Linear.resetRandom();
         Linear.disableDebugOutput();
@@ -101,7 +86,7 @@ public class LinearTest {
      * create a very simple problem and check if the clearly separated examples are recognized as such
      */
     @Test
-    public void testTrainPredict() {
+    void testTrainPredict() {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = 4;
@@ -132,8 +117,12 @@ public class LinearTest {
             for (double C = 0.1; C <= 100.; C *= 1.2) {
 
                 // compared the behavior with the C version
-                if (C < 0.2) if (solver == L1R_L2LOSS_SVC) continue;
-                if (C < 0.7) if (solver == L1R_LR) continue;
+                if (C < 0.2)
+                    if (solver == L1R_L2LOSS_SVC)
+                        continue;
+                if (C < 0.7)
+                    if (solver == L1R_LR)
+                        continue;
 
                 if (solver.isSupportVectorRegression()) {
                     continue;
@@ -171,8 +160,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testCrossValidation() throws Exception {
-
+    void testCrossValidation() throws Exception {
         int numClasses = random.nextInt(10) + 1;
 
         Problem prob = createRandomProblem(numClasses);
@@ -188,13 +176,12 @@ public class LinearTest {
     }
 
     @Test
-    public void testLoadSaveModel() throws Exception {
-
+    void testLoadSaveModel(@TempDir Path tempDir) throws Exception {
         for (SolverType solverType : SolverType.values()) {
             Model model = createRandomModel();
             model.solverType = solverType;
 
-            File tempFile = temporaryFolder.newFile("modeltest-" + solverType);
+            File tempFile = tempDir.resolve("modeltest-" + solverType).toFile();
             Linear.saveModel(tempFile, model);
 
             Model loadedModel = Linear.loadModel(tempFile);
@@ -203,15 +190,15 @@ public class LinearTest {
     }
 
     @Test
-    public void testLoadEmptyModel() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testLoadEmptyModel(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("empty-model").toFile();
 
         List<String> lines = Arrays.asList("solver_type L2R_LR",
-                "nr_class 2",
-                "label 1 2",
-                "nr_feature 0",
-                "bias -1.0",
-                "w");
+            "nr_class 2",
+            "label 1 2",
+            "nr_feature 0",
+            "bias -1.0",
+            "w");
         writeToFile(file, lines);
 
         Model model = Model.load(file);
@@ -224,17 +211,17 @@ public class LinearTest {
     }
 
     @Test
-    public void testLoadSimpleModel() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testLoadSimpleModel(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("simple-model").toFile();
 
         List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
-                "nr_class 2",
-                "label 1 2",
-                "nr_feature 6",
-                "bias -1.0",
-                "w",
-                "0.1 0.2 0.3 ",
-                "0.4 0.5 0.6 ");
+            "nr_class 2",
+            "label 1 2",
+            "nr_feature 6",
+            "bias -1.0",
+            "w",
+            "0.1 0.2 0.3 ",
+            "0.4 0.5 0.6 ");
         writeToFile(file, lines);
 
         Model model = Model.load(file);
@@ -247,17 +234,17 @@ public class LinearTest {
     }
 
     @Test
-    public void testLoadIllegalModel() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testLoadIllegalModel(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("illegal-model").toFile();
 
         List<String> lines = Arrays.asList("solver_type L2R_L2LOSS_SVR",
-                "nr_class 2",
-                "label 1 2",
-                "nr_feature 10",
-                "bias -1.0",
-                "w",
-                "0.1 0.2 0.3 ",
-                "0.4 0.5 " + repeat("0", 1024));
+            "nr_class 2",
+            "label 1 2",
+            "nr_feature 10",
+            "bias -1.0",
+            "w",
+            "0.1 0.2 0.3 ",
+            "0.4 0.5 " + repeat("0", 1024));
         writeToFile(file, lines);
 
         try {
@@ -266,12 +253,12 @@ public class LinearTest {
         } catch (RuntimeException e) {
             String x = repeat("0", 128);
             assertThat(e).hasMessage("illegal weight in model file at index 5, with string content '" + x
-                    + "', is not terminated with a whitespace character, or is longer than expected (128 characters max).");
+                + "', is not terminated with a whitespace character, or is longer than expected (128 characters max).");
         }
     }
 
     @Test
-    public void testTrainUnsortedProblem() {
+    void testTrainUnsortedProblem() {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = 1;
@@ -295,7 +282,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testTrainTooLargeProblem() {
+    void testTrainTooLargeProblem() {
         Problem prob = new Problem();
         prob.l = 1000;
         prob.n = 20000000;
@@ -307,7 +294,8 @@ public class LinearTest {
         }
 
         for (SolverType solverType : SolverType.values()) {
-            if (solverType.isSupportVectorRegression()) continue;
+            if (solverType.isSupportVectorRegression())
+                continue;
             Parameter param = new Parameter(solverType, 10, 0.1);
             try {
                 Linear.train(prob, param);
@@ -319,7 +307,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testPredictProbabilityWrongSolver() throws Exception {
+    void testPredictProbabilityWrongSolver() throws Exception {
         Problem prob = new Problem();
         prob.l = 1;
         prob.n = 1;
@@ -344,7 +332,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testRealloc() {
+    void testRealloc() {
 
         int[] f = new int[] {1, 2, 3};
         f = Linear.copyOf(f, 5);
@@ -354,7 +342,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testAtoi() {
+    void testAtoi() {
         assertThat(Linear.atoi("+25")).isEqualTo(25);
         assertThat(Linear.atoi("-345345")).isEqualTo(-345345);
         assertThat(Linear.atoi("+0")).isEqualTo(0);
@@ -363,35 +351,33 @@ public class LinearTest {
         assertThat(Linear.atoi("-2147483648")).isEqualTo(Integer.MIN_VALUE);
     }
 
-    @Test(expected = NumberFormatException.class)
-    public void testAtoiInvalidData() {
-        Linear.atoi("+");
-    }
+    @Test
+    void testAtoiInvalidData() {
+        assertThatExceptionOfType(NumberFormatException.class)
+            .isThrownBy(() -> Linear.atoi("+"));
 
-    @Test(expected = NumberFormatException.class)
-    public void testAtoiInvalidData2() {
-        Linear.atoi("abc");
-    }
+        assertThatExceptionOfType(NumberFormatException.class)
+            .isThrownBy(() -> Linear.atoi("abc"));
 
-    @Test(expected = NumberFormatException.class)
-    public void testAtoiInvalidData3() {
-        Linear.atoi(" ");
+        assertThatExceptionOfType(NumberFormatException.class)
+            .isThrownBy(() -> Linear.atoi(" "));
     }
 
     @Test
-    public void testAtof() {
+    void testAtof() {
         assertThat(Linear.atof("+25")).isEqualTo(25);
         assertThat(Linear.atof("-25.12345678")).isEqualTo(-25.12345678);
         assertThat(Linear.atof("0.345345299")).isEqualTo(0.345345299);
     }
 
-    @Test(expected = NumberFormatException.class)
-    public void testAtofInvalidData() {
-        Linear.atof("0.5t");
+    @Test
+    void testAtofInvalidData() {
+        assertThatExceptionOfType(NumberFormatException.class)
+            .isThrownBy(() -> Linear.atof("0.5t"));
     }
 
     @Test
-    public void testSaveModelWithIOException() throws Exception {
+    void testSaveModelWithIOException() throws Exception {
         Model model = createRandomModel();
 
         Writer out = mock(Writer.class);
@@ -434,7 +420,7 @@ public class LinearTest {
      * </pre>
      */
     @Test
-    public void testTranspose() throws Exception {
+    void testTranspose() throws Exception {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = 4;
@@ -513,7 +499,7 @@ public class LinearTest {
      * </pre>
      */
     @Test
-    public void testTranspose2() throws Exception {
+    void testTranspose2() throws Exception {
         Problem prob = new Problem();
         prob.bias = -1;
         prob.l = 5;
@@ -627,7 +613,7 @@ public class LinearTest {
      *
      */
     @Test
-    public void testTranspose3() throws Exception {
+    void testTranspose3() throws Exception {
         Problem prob = new Problem();
         prob.l = 3;
         prob.n = 4;
@@ -667,7 +653,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnIrisDataSet() throws Exception {
+    void testFindBestParametersOnIrisDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -677,7 +663,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParameterC_IllegalSolver() throws Exception {
+    void testFindBestParameterC_IllegalSolver() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/resources/iris.scale"), -1);
 
         EnumSet<SolverType> supportedSolvers = EnumSet.of(L2R_LR, L2R_L2LOSS_SVC, L2R_L2LOSS_SVR);
@@ -690,7 +676,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnSpliceDataSet() throws Exception {
+    void testFindBestParametersOnSpliceDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -700,7 +686,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnSpliceDataSet_L2R_LR() throws Exception {
+    void testFindBestParametersOnSpliceDataSet_L2R_LR() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_LR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -710,7 +696,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnSpliceDataSet_L2R_L2LOSS_SVR() throws Exception {
+    void testFindBestParametersOnSpliceDataSet_L2R_L2LOSS_SVR() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/splice/splice"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -720,7 +706,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnDnaScaleDataSet() throws Exception {
+    void testFindBestParametersOnDnaScaleDataSet() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -730,7 +716,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testFindBestParametersOnDnaScaleDataSet_L2R_L2LOSS_SVR() throws Exception {
+    void testFindBestParametersOnDnaScaleDataSet_L2R_L2LOSS_SVR() throws Exception {
         Problem problem = Train.readProblem(new File("src/test/datasets/dna.scale/dna.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.0001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
@@ -740,7 +726,7 @@ public class LinearTest {
     }
 
     @Test
-    public void testGetVersion() throws Exception {
+    void testGetVersion() throws Exception {
         assertThat(Linear.getVersion()).isEqualTo(230);
     }
 

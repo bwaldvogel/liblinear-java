@@ -1,6 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -10,27 +10,24 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 
-public class PredictTest {
+class PredictTest {
 
-    private Model         testModel = LinearTest.createRandomModel();
-    private StringBuilder sb        = new StringBuilder();
-    private Writer        writer    = new StringWriter();
+    private final Model         testModel = LinearTest.createRandomModel();
+    private final StringBuilder sb        = new StringBuilder();
+    private final Writer        writer    = new StringWriter();
 
-    private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-    @Before
+    @BeforeEach
     public void setUp() {
         Linear.resetRandom();
         Linear.setDebugOutput(new PrintStream(byteArrayOutputStream));
@@ -38,7 +35,7 @@ public class PredictTest {
         assertThat(testModel.getNrFeature()).isGreaterThanOrEqualTo(10);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Linear.enableDebugOutput();
     }
@@ -50,20 +47,26 @@ public class PredictTest {
         }
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testDoPredictCorruptLine() throws Exception {
+    @Test
+    void testDoPredictCorruptLine() throws Exception {
         sb.append(testModel.label[0]).append(" abc").append("\n");
-        testWithLines(sb);
-    }
 
-    @Test(expected = RuntimeException.class)
-    public void testDoPredictCorruptLine2() throws Exception {
-        sb.append(testModel.label[0]).append(" 1:").append("\n");
-        testWithLines(sb);
+        assertThatExceptionOfType(RuntimeException.class)
+            .isThrownBy(() -> testWithLines(sb))
+            .withMessage("Wrong input format at line 1");
     }
 
     @Test
-    public void testDoPredict() throws Exception {
+    void testDoPredictCorruptLine2() throws Exception {
+        sb.append(testModel.label[0]).append(" 1:").append("\n");
+
+        assertThatExceptionOfType(RuntimeException.class)
+            .isThrownBy(() -> testWithLines(sb))
+            .withMessage("Can't convert empty string to integer");
+    }
+
+    @Test
+    void testDoPredict() throws Exception {
         sb.append(testModel.label[0]).append(" 1:0.32393").append("\n");
         sb.append(testModel.label[1]).append(" 2:-71.555   9:88223").append("\n");
         testWithLines(sb);
@@ -71,17 +74,17 @@ public class PredictTest {
     }
 
     @Test
-    public void testTrainAndPredict() throws Exception {
-        String modelFile = temporaryFolder.newFile("model").toString();
+    void testTrainAndPredict(@TempDir Path tempDir) throws Exception {
+        String modelFile = tempDir.resolve("model").toString();
         Train.main(new String[] {"-s", "0", "src/test/datasets/dna.scale/dna.scale", modelFile});
 
-        File predictionsFile = temporaryFolder.newFile("predictions");
+        File predictionsFile = tempDir.resolve("predictions").toFile();
         Predict.main(new String[] {"-b", "1", "src/test/datasets/dna.scale/dna.scale.t", modelFile, predictionsFile.toString()});
         List<String> predictions = Files.readAllLines(predictionsFile.toPath(), Linear.FILE_CHARSET);
         assertThat(predictions).hasSize(1187);
         assertThat(predictions.get(0)).isEqualTo("labels 3 1 2");
 
         String loggedString = byteArrayOutputStream.toString();
-        assertThat(loggedString).contains("Accuracy = 94.9410% (1126/1186)");
+        assertThat(loggedString).containsPattern("Accuracy = 94[.,]9410% \\(1126/1186\\)");
     }
 }

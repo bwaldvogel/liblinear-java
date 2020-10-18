@@ -1,32 +1,30 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.SolverType.L1R_LR;
-import static de.bwaldvogel.liblinear.SolverType.L2R_L1LOSS_SVC_DUAL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static de.bwaldvogel.liblinear.SolverType.*;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
-public class ParameterTest {
+class ParameterTest {
 
     private Parameter _param;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         _param = new Parameter(L2R_L1LOSS_SVC_DUAL, 100, 1e-3);
     }
 
     @Test
-    public void testDefaults() {
+    void testDefaults() {
         Parameter parameters = new Parameter(L1R_LR, 1, 0.1);
         assertThat(parameters.getP()).isEqualTo(0.1);
         assertThat(parameters.getMaxIters()).isEqualTo(1000);
     }
 
     @Test
-    public void testSetWeights() {
+    void testSetWeights() {
 
         assertThat(_param.weight).isNull();
         assertThat(_param.getNumWeights()).isEqualTo(0);
@@ -54,7 +52,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testGetWeights() {
+    void testGetWeights() {
         double[] weights = new double[] {0, 1, 2, 3, 4, 5};
         int[] weightLabels = new int[] {1, 1, 1, 1, 2, 3};
         _param.setWeights(weights, weightLabels);
@@ -69,7 +67,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testSetC() {
+    void testSetC() {
         _param.setC(0.0001);
         assertThat(_param.getC()).isEqualTo(0.0001);
         _param.setC(1);
@@ -93,7 +91,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testSetEps() {
+    void testSetEps() {
         _param.setEps(0.0001);
         assertThat(_param.getEps()).isEqualTo(0.0001);
         _param.setEps(1);
@@ -117,7 +115,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testSetSolverType() {
+    void testSetSolverType() {
         for (SolverType type : SolverType.values()) {
             _param.setSolverType(type);
             assertThat(_param.getSolverType()).isEqualTo(type);
@@ -131,7 +129,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testSetInitSol() {
+    void testSetInitSol() {
         assertThat(_param.init_sol).isNull();
 
         double[] init_sol = new double[] {0, 1, 2, 3, 4, 5};
@@ -143,7 +141,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testGetInitSol() {
+    void testGetInitSol() {
         assertThat(_param.getInitSol()).isNull();
 
         double[] init_sol = new double[] {0, 1, 2, 3, 4, 5};
@@ -156,7 +154,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testClone_Simple() throws Exception {
+    void testClone_Simple() throws Exception {
         Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123);
         Parameter clone = parameter.clone();
         assertThat(clone.getSolverType()).isEqualTo(L1R_LR);
@@ -168,7 +166,7 @@ public class ParameterTest {
     }
 
     @Test
-    public void testClone_Full() throws Exception {
+    void testClone_Full() throws Exception {
         Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123, 9000, 1.2);
         parameter.setWeights(new double[] {1, 2}, new int[] {3, 4});
         Parameter clone = parameter.clone();

@@ -1,14 +1,14 @@
 package de.bwaldvogel.liblinear;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
-public class SparseOperatorTest {
+class SparseOperatorTest {
 
     @Test
-    public void testNrm2Sq() throws Exception {
+    void testNrm2Sq() throws Exception {
         assertThat(SparseOperator.nrm2_sq(features())).isZero();
         assertThat(SparseOperator.nrm2_sq(features(1.0))).isEqualTo(1.0);
         assertThat(SparseOperator.nrm2_sq(features(1.0, 2.0))).isEqualTo(1 + 4);
@@ -16,7 +16,7 @@ public class SparseOperatorTest {
     }
 
     @Test
-    public void testDot() throws Exception {
+    void testDot() throws Exception {
         assertThat(SparseOperator.dot(new double[0], features())).isEqualTo(0.0);
         assertThat(SparseOperator.dot(new double[] {1.0}, features(1.0))).isEqualTo(1.0);
         assertThat(SparseOperator.dot(new double[] {1.0, 2.0}, features(1.0, 2.0))).isEqualTo(1 + 2 * 2);
@@ -24,7 +24,7 @@ public class SparseOperatorTest {
     }
 
     @Test
-    public void testAxpy() throws Exception {
+    void testAxpy() throws Exception {
         assertThat(axpy(1.0, features())).isEmpty();
         assertThat(axpy(1.5, features(2.0))).containsExactly(1.5 * 2.0);
 

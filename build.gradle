@@ -136,7 +136,9 @@ jmh {
 tasks['jmh'].dependsOn downloadAndVerifyRcv1
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: 'latest.release'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: 'latest.release'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: 'latest.release'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: 'latest.release'
     testImplementation group: 'org.slf4j', name: 'slf4j-api', version: 'latest.release'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: 'latest.release'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: 'latest.release'

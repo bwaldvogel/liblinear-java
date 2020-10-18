@@ -1,59 +1,55 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.SolverType.L2R_L2LOSS_SVC;
-import static de.bwaldvogel.liblinear.SolverType.L2R_LR;
-import static de.bwaldvogel.liblinear.TestUtils.writeToFile;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static de.bwaldvogel.liblinear.SolverType.*;
+import static de.bwaldvogel.liblinear.TestUtils.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-public class TrainTest {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class TrainTest {
 
-    @Before
+    @BeforeEach
     public void reset() throws Exception {
         Linear.resetRandom();
         Linear.disableDebugOutput();
     }
 
     @Test
-    public void testDoCrossValidationOnIrisDataSet() throws Exception {
+    void testDoCrossValidationOnIrisDataSet() throws Exception {
         for (SolverType solver : SolverType.values()) {
             Train.main(new String[] {"-v", "5", "-s", "" + solver.getId(), "src/test/resources/iris.scale"});
         }
     }
 
     @Test
-    public void testFindBestCOnIrisDataSet() throws Exception {
+    void testFindBestCOnIrisDataSet() throws Exception {
         Train.main(new String[] {"-C", "src/test/resources/iris.scale"});
     }
 
     @Test
-    public void testFindBestCOnIrisDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
+    void testFindBestCOnIrisDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
         Train.main(new String[] {"-s", "11", "-C", "src/test/resources/iris.scale"});
     }
 
     @Test
-    public void testFindBestCOnSpliceDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
+    void testFindBestCOnSpliceDataSet_L2R_L2LOSS_SVR_DUAL() throws Exception {
         Train.main(new String[] {"-s", "11", "-C", "src/test/datasets/splice/splice"});
     }
 
     @Test
-    public void testParseCommandLine() {
+    void testParseCommandLine() {
         Train train = new Train();
 
         for (SolverType solver : SolverType.values()) {
@@ -80,7 +76,7 @@ public class TrainTest {
     }
 
     @Test
-    public void testParseCommandLine_FindC_NoSolverSpecified() {
+    void testParseCommandLine_FindC_NoSolverSpecified() {
         Train train = new Train();
 
         train.parse_command_line(new String[] {"-C", "model-filename"});
@@ -94,7 +90,7 @@ public class TrainTest {
     }
 
     @Test
-    public void testParseCommandLine_FindC_SolverAndNumFoldsSpecified() {
+    void testParseCommandLine_FindC_SolverAndNumFoldsSpecified() {
         Train train = new Train();
 
         train.parse_command_line(new String[] {"-s", "0", "-v", "10", "-C", "model-filename"});
@@ -122,16 +118,15 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadProblem() throws Exception {
-
-        File file = temporaryFolder.newFile();
+    void testReadProblem(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Arrays.asList(
-                "1 1:1  3:1  4:1   6:1",
-                "2 2:1  3:1  5:1   7:1",
-                "1 3:1  5:1",
-                "1 1:1  4:1  7:1",
-                "2 4:1  5:1  7:1");
+            "1 1:1  3:1  4:1   6:1",
+            "2 2:1  3:1  5:1   7:1",
+            "1 3:1  5:1",
+            "1 1:1  4:1  7:1",
+            "2 4:1  5:1  7:1");
 
         writeToFile(file, lines);
 
@@ -141,7 +136,7 @@ public class TrainTest {
         Problem prob = train.getProblem();
         assertThat(prob.bias).isEqualTo(1);
         assertThat(prob.y).hasSize(lines.size());
-        assertThat(prob.y).isEqualTo(new double[] { 1, 2, 1, 1, 2 });
+        assertThat(prob.y).isEqualTo(new double[] {1, 2, 1, 1, 2});
         assertThat(prob.n).isEqualTo(8);
         assertThat(prob.l).isEqualTo(prob.y.length);
         assertThat(prob.x.length).isEqualTo(prob.y.length);
@@ -150,7 +145,7 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadProblemFromStream() throws Exception {
+    void testReadProblemFromStream() throws Exception {
         String data = "1 1:1  3:1  4:1   6:1\n"
             + "2 2:1  3:1  5:1   7:1\n"
             + "1 3:1  5:1\n"
@@ -173,13 +168,12 @@ public class TrainTest {
      * unit-test for Issue #1 (http://github.com/bwaldvogel/liblinear-java/issues#issue/1)
      */
     @Test
-    public void testReadProblemEmptyLine() throws Exception {
-
-        File file = temporaryFolder.newFile();
+    void testReadProblemEmptyLine(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Arrays.asList(
-                "1 1:1  3:1  4:1   6:1",
-                "2 ");
+            "1 1:1  3:1  4:1   6:1",
+            "2 ");
 
         writeToFile(file, lines);
 
@@ -196,13 +190,13 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadUnsortedProblem() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testReadUnsortedProblem(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Arrays.asList(
-                "1 1:1  3:1  4:1   6:1",
-                "2 2:1  3:1  5:1   7:1",
-                "1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
+            "1 1:1  3:1  4:1   6:1",
+            "2 2:1  3:1  5:1   7:1",
+            "1 3:1  5:1  4:1"); // here's the mistake: not correctly sorted
 
         writeToFile(file, lines);
 
@@ -216,12 +210,12 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadProblemWithInvalidIndex() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testReadProblemWithInvalidIndex(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Arrays.asList(
-                "1 1:1  3:1  4:1   6:1",
-                "2 2:1  3:1  5:1  -4:1");
+            "1 1:1  3:1  4:1   6:1",
+            "2 2:1  3:1  5:1  -4:1");
 
         writeToFile(file, lines);
 
@@ -235,8 +229,8 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadProblemWithZeroIndex() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testReadProblemWithZeroIndex(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Collections.singletonList("1 0:1  1:1");
 
@@ -252,13 +246,13 @@ public class TrainTest {
     }
 
     @Test
-    public void testReadWrongProblem() throws Exception {
-        File file = temporaryFolder.newFile();
+    void testReadWrongProblem(@TempDir Path tempDir) throws Exception {
+        File file = tempDir.resolve("problem").toFile();
 
         List<String> lines = Arrays.asList(
-                "1 1:1  3:1  4:1   6:1",
-                "2 2:1  3:1  5:1   7:1",
-                "1 3:1  5:a"); // here's the mistake: incomplete line
+            "1 1:1  3:1  4:1   6:1",
+            "2 2:1  3:1  5:1   7:1",
+            "1 3:1  5:a"); // here's the mistake: incomplete line
 
         writeToFile(file, lines);
 

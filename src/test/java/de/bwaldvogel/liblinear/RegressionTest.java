@@ -1,6 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -14,20 +14,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.data.Offset;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@RunWith(Parameterized.class)
-public class RegressionTest {
+
+class RegressionTest {
 
     private static final Logger log = LoggerFactory.getLogger(RegressionTest.class);
 
-    @Parameters(name = "{0}")
-    public static Collection<TestParams> data() {
+    private static Collection<TestParams> data() {
         List<TestParams> params = new ArrayList<>();
         for (String dataset : new String[] {"splice", "dna.scale"}) {
             for (SolverType solverType : SolverType.values()) {
@@ -85,8 +82,6 @@ public class RegressionTest {
         }
     }
 
-    private final TestParams params;
-
     private static class TestParams {
 
         private final String     dataset;
@@ -105,18 +100,15 @@ public class RegressionTest {
         }
     }
 
-    public RegressionTest(TestParams params) {
-        this.params = params;
-    }
-
-    @Test
-    public void regressionTest() throws Exception {
+    @ParameterizedTest
+    @MethodSource("data")
+    void regressionTest(TestParams params) throws Exception {
+        log.info("Running regression test for '{}'", params);
         runRegressionTest(params.dataset, params.solverType, params.expectedAccuracy);
     }
 
     private void runRegressionTest(String dataset, SolverType solverType, Double expectedAccuracy) throws Exception {
         Linear.resetRandom();
-        log.info("Running regression test for '{}'", params);
         File trainingFile = Paths.get("src/test/datasets", dataset, dataset).toFile();
         Problem problem = Train.readProblem(trainingFile, -1);
         Model model = Linear.train(problem, new Parameter(solverType, 1, 0.1));
@@ -142,8 +134,8 @@ public class RegressionTest {
             }
 
             if (expectedAccuracy != null) {
-                int expectation = (int) testProblem.y[i];
-                int actual = (int) prediction;
+                int expectation = (int)testProblem.y[i];
+                int actual = (int)prediction;
                 if (actual == expectation) {
                     correctPredictions++;
                 }
@@ -164,16 +156,16 @@ public class RegressionTest {
         }
 
         if (expectedAccuracy != null) {
-            double accuracy = correctPredictions / (double) testProblem.l;
+            double accuracy = correctPredictions / (double)testProblem.l;
             assertThat(accuracy).isEqualTo(expectedAccuracy.doubleValue(), Offset.offset(1e-4));
         }
     }
 
     private List<Double> parseExpectedValues(List<String> expectedPredictions, int i) {
         return Stream.of(expectedPredictions.get(i)
-                .split(" "))
-                .map(Double::parseDouble)
-                .collect(Collectors.toList());
+            .split(" "))
+            .map(Double::parseDouble)
+            .collect(Collectors.toList());
     }
 
 }
