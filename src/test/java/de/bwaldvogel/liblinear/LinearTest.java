@@ -247,14 +247,12 @@ class LinearTest {
             "0.4 0.5 " + repeat("0", 1024));
         writeToFile(file, lines);
 
-        try {
-            Model.load(file);
-            fail("RuntimeException expected");
-        } catch (RuntimeException e) {
-            String x = repeat("0", 128);
-            assertThat(e).hasMessage("illegal weight in model file at index 5, with string content '" + x
+        String x = repeat("0", 128);
+
+        assertThatExceptionOfType(RuntimeException.class)
+            .isThrownBy(() -> Model.load(file))
+            .withMessage("illegal weight in model file at index 5, with string content '" + x
                 + "', is not terminated with a whitespace character, or is longer than expected (128 characters max).");
-        }
     }
 
     @Test
@@ -273,12 +271,10 @@ class LinearTest {
         prob.y[0] = 0;
 
         Parameter param = new Parameter(L2R_LR, 10, 0.1);
-        try {
-            Linear.train(prob, param);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage()).contains("nodes").contains("sorted").contains("ascending").contains("order");
-        }
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessageContainingAll("nodes", "sorted", "ascending", "order");
     }
 
     @Test
@@ -297,12 +293,10 @@ class LinearTest {
             if (solverType.isSupportVectorRegression())
                 continue;
             Parameter param = new Parameter(solverType, 10, 0.1);
-            try {
-                Linear.train(prob, param);
-                fail("IllegalArgumentException expected");
-            } catch (IllegalArgumentException e) {
-                assertThat(e.getMessage()).contains("number of classes").contains("too large");
-            }
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> Linear.train(prob, param))
+                .withMessageContainingAll("number of classes", "too large");
         }
     }
 
@@ -321,14 +315,12 @@ class LinearTest {
         SolverType solverType = L2R_L1LOSS_SVC_DUAL;
         Parameter param = new Parameter(solverType, 10, 0.1);
         Model model = Linear.train(prob, param);
-        try {
-            Linear.predictProbability(model, prob.x[0], new double[1]);
-            fail("IllegalArgumentException expected");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage()).isEqualTo("probability output is only supported for logistic regression." //
-                + " This is currently only supported by the following solvers:" //
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.predictProbability(model, prob.x[0], new double[1]))
+            .withMessage("probability output is only supported for logistic regression."
+                + " This is currently only supported by the following solvers:"
                 + " L2R_LR, L1R_LR, L2R_LR_DUAL");
-        }
     }
 
     @Test
@@ -376,12 +368,9 @@ class LinearTest {
 
         doThrow(ioException).when(out).flush();
 
-        try {
-            Linear.saveModel(out, model);
-            fail("IOException expected");
-        } catch (IOException e) {
-            assertThat(e).isEqualTo(ioException);
-        }
+        assertThatExceptionOfType(IOException.class)
+            .isThrownBy(() -> Linear.saveModel(out, model))
+            .withMessage("some reason");
 
         verify(out).flush();
         verify(out, times(1)).close();
