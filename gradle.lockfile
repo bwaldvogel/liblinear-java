@@ -3,7 +3,7 @@
 # This file is expected to be part of source control.
 ch.qos.logback:logback-classic:1.2.3=jmhRuntimeClasspath,testRuntimeClasspath
 ch.qos.logback:logback-core:1.2.3=jmhRuntimeClasspath,testRuntimeClasspath
-junit:junit:4.13=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
+junit:junit:4.13.1=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 net.bytebuddy:byte-buddy-agent:1.10.15=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 net.bytebuddy:byte-buddy:1.10.15=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 net.sf.jopt-simple:jopt-simple:4.6=jmh,jmhCompileClasspath,jmhRuntimeClasspath
@@ -18,8 +18,8 @@ org.jacoco:org.jacoco.core:0.8.5=jacocoAnt
 org.jacoco:org.jacoco.report:0.8.5=jacocoAnt
 org.mockito:mockito-core:3.5.13=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.objenesis:objenesis:3.1=jmhRuntimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.openjdk.jmh:jmh-core:1.25.2=jmh,jmhCompileClasspath,jmhRuntimeClasspath
-org.openjdk.jmh:jmh-generator-annprocess:1.25.2=jmh,jmhCompileClasspath,jmhRuntimeClasspath
+org.openjdk.jmh:jmh-core:1.26=jmh,jmhCompileClasspath,jmhRuntimeClasspath
+org.openjdk.jmh:jmh-generator-annprocess:1.26=jmh,jmhCompileClasspath,jmhRuntimeClasspath
 org.openjdk.jmh:jmh-generator-asm:1.25=jmh,jmhCompileClasspath,jmhRuntimeClasspath
 org.openjdk.jmh:jmh-generator-bytecode:1.25=jmh,jmhCompileClasspath,jmhRuntimeClasspath
 org.openjdk.jmh:jmh-generator-reflection:1.25=jmh,jmhCompileClasspath,jmhRuntimeClasspath
