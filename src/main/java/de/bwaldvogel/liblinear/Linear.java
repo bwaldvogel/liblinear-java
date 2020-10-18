@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -587,8 +588,11 @@ public class Linear {
      * It uses {@link java.util.Locale#ENGLISH} for number formatting.
      */
     public static void saveModel(File modelFile, Model model) throws IOException {
-        BufferedWriter modelOutput = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(modelFile), FILE_CHARSET));
-        saveModel(modelOutput, model);
+        try (OutputStream outputStream = new FileOutputStream(modelFile);
+             OutputStreamWriter out = new OutputStreamWriter(outputStream, FILE_CHARSET);
+             BufferedWriter modelWriter = new BufferedWriter(out)) {
+            saveModel(modelWriter, model);
+        }
     }
 
     /*
