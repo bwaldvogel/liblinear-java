@@ -338,14 +338,9 @@ public class Linear {
         while ((line = reader.readLine()) != null) {
             String[] split = whitespace.split(line);
             if (split[0].equals("solver_type")) {
-                SolverType solver = SolverType.valueOf(split[1]);
-                if (solver == null) {
-                    throw new RuntimeException("unknown solver type");
-                }
-                model.solverType = solver;
+                model.solverType = SolverType.valueOf(split[1]);
             } else if (split[0].equals("nr_class")) {
                 model.nr_class = atoi(split[1]);
-                Integer.parseInt(split[1]);
             } else if (split[0].equals("nr_feature")) {
                 model.nr_feature = atoi(split[1]);
             } else if (split[0].equals("bias")) {
