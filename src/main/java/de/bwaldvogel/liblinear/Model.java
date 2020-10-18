@@ -177,7 +177,7 @@ public final class Model implements Serializable {
         result = prime * result + nr_class;
         result = prime * result + nr_feature;
         result = prime * result + ((solverType == null) ? 0 : solverType.hashCode());
-        result = prime * result + Arrays.hashCode(w);
+        result = prime * result + arrayHashCode(w);
         return result;
     }
 
@@ -185,16 +185,30 @@ public final class Model implements Serializable {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         Model other = (Model)obj;
-        if (Double.doubleToLongBits(bias) != Double.doubleToLongBits(other.bias)) return false;
-        if (!Arrays.equals(label, other.label)) return false;
-        if (nr_class != other.nr_class) return false;
-        if (nr_feature != other.nr_feature) return false;
+        if (Double.doubleToLongBits(bias) != Double.doubleToLongBits(other.bias)){
+            return false;
+        }
+        if (!Arrays.equals(label, other.label)) {
+            return false;
+        }
+        if (nr_class != other.nr_class) {
+            return false;
+        }
+        if (nr_feature != other.nr_feature) {
+            return false;
+        }
         if (solverType == null) {
-            if (other.solverType != null) return false;
-        } else if (!solverType.equals(other.solverType)) return false;
-        if (!equals(w, other.w)) return false;
+            if (other.solverType != null) {
+                return false;
+            }
+        } else if (!solverType.equals(other.solverType)) {
+            return false;
+        }
+        if (!arrayEquals(w, other.w)) return false;
         return true;
     }
 
@@ -203,7 +217,7 @@ public final class Model implements Serializable {
      *
      * @see Linear#saveModel(java.io.Writer, Model)
      */
-    protected static boolean equals(double[] a, double[] a2) {
+    private static boolean arrayEquals(double[] a, double[] a2) {
         if (a == a2) return true;
         if (a == null || a2 == null) return false;
 
@@ -214,6 +228,24 @@ public final class Model implements Serializable {
             if (a[i] != a2[i]) return false;
 
         return true;
+    }
+
+    /**
+     * see {@link Arrays#hashCode(double[])} but treat 0.0 and -0.0 the same
+     */
+    private static int arrayHashCode(double[] w) {
+        if (w == null)
+            return 0;
+
+        int result = 1;
+        for (double element : w) {
+            if (element == -0.0) {
+                element = 0.0;
+            }
+            long bits = Double.doubleToLongBits(element);
+            result = 31 * result + (int)(bits ^ (bits >>> 32));
+        }
+        return result;
     }
 
     /**
