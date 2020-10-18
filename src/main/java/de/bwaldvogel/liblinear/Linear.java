@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.Random;
@@ -226,8 +227,8 @@ public class Linear {
             if (j == nr_class) {
                 if (nr_class == max_nr_class) {
                     max_nr_class *= 2;
-                    label = copyOf(label, max_nr_class);
-                    count = copyOf(count, max_nr_class);
+                    label = Arrays.copyOf(label, max_nr_class);
+                    count = Arrays.copyOf(count, max_nr_class);
                 }
                 label[nr_class] = this_label;
                 count[nr_class] = 1;
@@ -311,24 +312,6 @@ public class Linear {
         if (s.charAt(0) == '+')
             s = s.substring(1);
         return Integer.parseInt(s);
-    }
-
-    /**
-     * Java5 'backport' of Arrays.copyOf
-     */
-    public static double[] copyOf(double[] original, int newLength) {
-        double[] copy = new double[newLength];
-        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
-        return copy;
-    }
-
-    /**
-     * Java5 'backport' of Arrays.copyOf
-     */
-    public static int[] copyOf(int[] original, int newLength) {
-        int[] copy = new int[newLength];
-        System.arraycopy(original, 0, copy, 0, Math.min(original.length, newLength));
-        return copy;
     }
 
     /**

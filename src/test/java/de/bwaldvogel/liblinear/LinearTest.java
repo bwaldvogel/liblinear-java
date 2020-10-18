@@ -332,16 +332,6 @@ class LinearTest {
     }
 
     @Test
-    void testRealloc() {
-
-        int[] f = new int[] {1, 2, 3};
-        f = Linear.copyOf(f, 5);
-        f[3] = 4;
-        f[4] = 5;
-        assertThat(f).isEqualTo(new int[] {1, 2, 3, 4, 5});
-    }
-
-    @Test
     void testAtoi() {
         assertThat(Linear.atoi("+25")).isEqualTo(25);
         assertThat(Linear.atoi("-345345")).isEqualTo(-345345);

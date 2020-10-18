@@ -1,8 +1,9 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.copyOf;
 import static de.bwaldvogel.liblinear.Linear.info;
 import static de.bwaldvogel.liblinear.Linear.swap;
+
+import java.util.Arrays;
 
 
 /**
@@ -260,7 +261,7 @@ class SolverMCSVM_CS {
 
         int r;
         assert active_i <= B.length; // no padding
-        double[] D = copyOf(B, active_i);
+        double[] D = Arrays.copyOf(B, active_i);
         // clone(D, B, active_i);
 
         if (yi < active_i) D[yi] += A_i * C_yi;

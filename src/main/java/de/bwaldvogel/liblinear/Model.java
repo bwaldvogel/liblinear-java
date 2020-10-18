@@ -1,6 +1,5 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.*;
 import static de.bwaldvogel.liblinear.SolverType.*;
 
 import java.io.File;
@@ -50,7 +49,7 @@ public final class Model implements Serializable {
     }
 
     public int[] getLabels() {
-        return copyOf(label, nr_class);
+        return Arrays.copyOf(label, nr_class);
     }
 
     public SolverType getSolverType() {
@@ -78,7 +77,7 @@ public final class Model implements Serializable {
      * @return a <b>copy of</b> the feature weight array as described
      */
     public double[] getFeatureWeights() {
-        return Linear.copyOf(w, w.length);
+        return Arrays.copyOf(w, w.length);
     }
 
     /**

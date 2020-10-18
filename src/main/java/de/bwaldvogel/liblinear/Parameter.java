@@ -1,6 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.copyOf;
+import java.util.Arrays;
 
 
 public final class Parameter implements Cloneable {
@@ -69,8 +69,8 @@ public final class Parameter implements Cloneable {
         if (weights == null) throw new IllegalArgumentException("'weight' must not be null");
         if (weightLabels == null || weightLabels.length != weights.length)
             throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
-        this.weightLabel = copyOf(weightLabels, weightLabels.length);
-        this.weight = copyOf(weights, weights.length);
+        this.weightLabel = Arrays.copyOf(weightLabels, weightLabels.length);
+        this.weight = Arrays.copyOf(weights, weights.length);
     }
 
     /**
@@ -80,7 +80,7 @@ public final class Parameter implements Cloneable {
         if (weight == null) {
             return null;
         }
-        return copyOf(weight, weight.length);
+        return Arrays.copyOf(weight, weight.length);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class Parameter implements Cloneable {
         if (weightLabel == null) {
             return null;
         }
-        return copyOf(weightLabel, weightLabel.length);
+        return Arrays.copyOf(weightLabel, weightLabel.length);
     }
 
     /**
@@ -164,7 +164,7 @@ public final class Parameter implements Cloneable {
     public void setInitSol(double[] init_sol) {
         if (init_sol == null) this.init_sol = null;
         else {
-            this.init_sol = copyOf(init_sol, init_sol.length);
+            this.init_sol = Arrays.copyOf(init_sol, init_sol.length);
         }
     }
 
@@ -172,7 +172,7 @@ public final class Parameter implements Cloneable {
         if (init_sol == null) {
             return null;
         }
-        return copyOf(init_sol, init_sol.length);
+        return Arrays.copyOf(init_sol, init_sol.length);
     }
 
     @Override
