@@ -123,6 +123,12 @@ apply from: 'datasets.gradle'
 
 test.dependsOn downloadAndVerifyDatasets
 
+test {
+    useJUnitPlatform()
+
+    maxHeapSize = "256m"
+}
+
 wrapper {
     gradleVersion = "6.7"
     distributionType = Wrapper.DistributionType.ALL
