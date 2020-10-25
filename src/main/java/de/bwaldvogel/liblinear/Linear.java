@@ -1939,9 +1939,9 @@ public class Linear {
         double ub = Double.POSITIVE_INFINITY, lb = Double.NEGATIVE_INFINITY, sum_free = 0;
         for (i = 0; i < l; i++) {
             double G_ = SparseOperator.dot(w, prob.x[i]);
-            if (alpha[i] == 0)
+            if (alpha[i] == 1)
                 lb = Math.max(lb, G_);
-            else if (alpha[i] == 1)
+            else if (alpha[i] == 0)
                 ub = Math.min(ub, G_);
             else {
                 ++nr_free;
