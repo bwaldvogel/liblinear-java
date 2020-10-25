@@ -1,23 +1,20 @@
 package de.bwaldvogel.liblinear;
 
-class MutableDouble {
+class MutableInt {
 
     private boolean initialized;
-    private double  value;
+    private int     value;
 
-    public MutableDouble() {
-    }
-
-    public MutableDouble(double value) {
+    public MutableInt(int value) {
         set(value);
     }
 
-    void set(double value) {
+    void set(int value) {
         this.value = value;
         this.initialized = true;
     }
 
-    double get() {
+    int get() {
         if (!initialized) {
             throw new IllegalStateException("Value not yet initialized");
         }

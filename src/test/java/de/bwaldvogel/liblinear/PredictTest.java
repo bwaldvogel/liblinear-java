@@ -84,6 +84,6 @@ class PredictTest {
         assertThat(predictions.get(0)).isEqualTo("labels 3 1 2");
 
         String loggedString = byteArrayOutputStream.toString();
-        assertThat(loggedString).containsPattern("Accuracy = 94[.,]9410% \\(1126/1186\\)");
+        assertThat(loggedString).containsPattern("Accuracy = 95[.,]0253% \\(1127/1186\\)");
     }
 }

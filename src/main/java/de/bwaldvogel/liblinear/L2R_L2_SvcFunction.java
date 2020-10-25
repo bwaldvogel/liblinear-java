@@ -1,75 +1,64 @@
 package de.bwaldvogel.liblinear;
 
-class L2R_L2_SvcFunction implements Function {
+class L2R_L2_SvcFunction extends L2R_ErmFunction {
 
-    protected final Problem  prob;
-    protected final double[] C;
-    protected final int[]    I;
-    protected final double[] z;
-    protected final boolean  regularize_bias;
-
-    protected int            sizeI;
+    protected final int[] I;
+    protected       int   sizeI;
 
     public L2R_L2_SvcFunction(Problem prob, Parameter param, double[] C) {
-        int l = prob.l;
-
-        this.prob = prob;
-
-        z = new double[l];
-        I = new int[l];
-        this.C = C;
-        this.regularize_bias = param.regularize_bias;
+        super(prob, param, C);
+        I = new int[prob.l];
     }
 
     @Override
-    public double fun(double[] w) {
-        int i;
-        double f = 0;
-        double[] y = prob.y;
-        int l = prob.l;
-        int w_size = get_nr_variable();
-
-        Xv(w, z);
-
-        for (i = 0; i < w_size; i++)
-            f += w[i] * w[i];
-        if (!regularize_bias)
-            f -= w[w_size - 1] * w[w_size - 1];
-        f /= 2.0;
-        for (i = 0; i < l; i++) {
-            z[i] = y[i] * z[i];
-            double d = 1 - z[i];
-            if (d > 0) f += C[i] * d * d;
-        }
-
-        return (f);
-    }
-
-    @Override
-    public int get_nr_variable() {
-        return prob.n;
+    protected double C_times_loss(int i, double wx_i) {
+        double d = 1 - prob.y[i] * wx_i;
+        if (d > 0)
+            return C[i] * d * d;
+        else
+            return 0;
     }
 
     @Override
     public void grad(double[] w, double[] g) {
+        int i;
         double[] y = prob.y;
         int l = prob.l;
         int w_size = get_nr_variable();
 
         sizeI = 0;
-        for (int i = 0; i < l; i++) {
-            if (z[i] < 1) {
-                z[sizeI] = C[i] * y[i] * (z[i] - 1);
+        for (i = 0; i < l; i++) {
+            tmp[i] = wx[i] * y[i];
+            if (tmp[i] < 1) {
+                tmp[sizeI] = C[i] * y[i] * (tmp[i] - 1);
                 I[sizeI] = i;
                 sizeI++;
             }
         }
-        subXTv(z, g);
+        subXTv(tmp, g);
 
-        for (int i = 0; i < w_size; i++)
+        for (i = 0; i < w_size; i++)
             g[i] = w[i] + 2 * g[i];
         if (!regularize_bias)
             g[w_size - 1] -= w[w_size - 1];
+    }
+
+    @Override
+    public void get_diag_preconditioner(double[] M) {
+        int w_size = get_nr_variable();
+        Feature[][] x = prob.x;
+
+        for (int i = 0; i < w_size; i++)
+            M[i] = 1;
+        if (!regularize_bias)
+            M[w_size - 1] = 0;
+
+        for (int i = 0; i < sizeI; i++) {
+            int idx = I[i];
+            for (Feature s : x[idx]) {
+                M[s.getIndex() - 1] += s.getValue() * s.getValue() * C[idx] * 2;
+            }
+        }
     }
 
     @Override
@@ -104,29 +93,4 @@ class L2R_L2_SvcFunction implements Function {
             SparseOperator.axpy(v[i], x[I[i]], XTv);
     }
 
-    protected void Xv(double[] v, double[] Xv) {
-        int l = prob.l;
-        Feature[][] x = prob.x;
-
-        for (int i = 0; i < l; i++)
-            Xv[i] = SparseOperator.dot(v, x[i]);
-    }
-
-    @Override
-    public void get_diag_preconditioner(double[] M) {
-        int w_size = get_nr_variable();
-        Feature[][] x = prob.x;
-
-        for (int i = 0; i < w_size; i++)
-            M[i] = 1;
-        if (!regularize_bias)
-            M[w_size - 1] = 0;
-
-        for (int i = 0; i < sizeI; i++) {
-            int idx = I[i];
-            for (Feature s : x[idx]) {
-                M[s.getIndex() - 1] += s.getValue() * s.getValue() * C[idx] * 2;
-            }
-        }
-    }
 }

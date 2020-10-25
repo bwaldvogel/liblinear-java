@@ -721,7 +721,7 @@ class LinearTest {
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.001953125);
-        assertThat(result.getBestScore()).isEqualTo(0.811);
+        assertThat(result.getBestScore()).isEqualTo(0.81);
         assertThat(result.getBestP()).isEqualTo(-1);
     }
 
@@ -731,7 +731,7 @@ class LinearTest {
         Parameter param = new Parameter(L2R_LR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.015625);
-        assertThat(result.getBestScore()).isEqualTo(0.813);
+        assertThat(result.getBestScore()).isEqualTo(0.812);
         assertThat(result.getBestP()).isEqualTo(-1);
     }
 
@@ -741,7 +741,7 @@ class LinearTest {
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.00390625);
-        assertThat(result.getBestScore()).isEqualTo(0.5699484340061052, Offset.offset(0.0000001));
+        assertThat(result.getBestScore()).isEqualTo(0.5699400237604259, Offset.offset(0.0000001));
         assertThat(result.getBestP()).isEqualTo(0.0);
     }
 
@@ -750,7 +750,7 @@ class LinearTest {
         Problem problem = Train.readProblem(Paths.get("src/test/datasets/dna.scale/dna.scale"), -1);
         Parameter param = new Parameter(L2R_L2LOSS_SVC, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
-        assertThat(result.getBestC()).isEqualTo(0.0078125);
+        assertThat(result.getBestC()).isEqualTo(0.015625);
         assertThat(result.getBestScore()).isEqualTo(0.9475);
         assertThat(result.getBestP()).isEqualTo(-1);
     }
@@ -761,7 +761,7 @@ class LinearTest {
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.0001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.015625);
-        assertThat(result.getBestScore()).isEqualTo(0.2974703954575637, Offset.offset(0.0000001));
+        assertThat(result.getBestScore()).isEqualTo(0.29743037982927906, Offset.offset(0.0000001));
         assertThat(result.getBestP()).isEqualTo(0.15);
     }
 

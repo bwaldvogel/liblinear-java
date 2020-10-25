@@ -67,9 +67,9 @@ class RegressionTest {
                     case L2R_LR:
                         switch (bias) {
                             case -1:
-                                return 0.8423;
+                                return 0.84184;
                             case 1:
-                                return 0.84322;
+                                return regularizeBias ? 0.84552 : 0.84414;
                         }
                     case L2R_L2LOSS_SVC_DUAL:
                         switch (bias) {
@@ -81,9 +81,9 @@ class RegressionTest {
                     case L2R_L2LOSS_SVC:
                         switch (bias) {
                             case -1:
-                                return 0.8432;
+                                return 0.84276;
                             case 1:
-                                return regularizeBias ? 0.85149 : 0.85241;
+                                return regularizeBias ? 0.85057 : 0.85149;
                         }
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {
@@ -126,9 +126,9 @@ class RegressionTest {
                     case L2R_LR:
                         switch (bias) {
                             case -1:
-                                return 0.9511;
-                            case 1:
                                 return 0.94941;
+                            case 1:
+                                return regularizeBias ? 0.950253 : 0.951096;
                         }
                     case L2R_L2LOSS_SVC_DUAL:
                         switch (bias) {
@@ -139,9 +139,9 @@ class RegressionTest {
                     case L2R_L2LOSS_SVC:
                         switch (bias) {
                             case -1:
-                                return 0.9469;
+                                return 0.94941;
                             case 1:
-                                return 0.94604;
+                                return 0.95194;
                         }
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {

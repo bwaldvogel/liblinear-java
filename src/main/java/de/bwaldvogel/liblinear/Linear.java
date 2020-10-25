@@ -2229,21 +2229,17 @@ public class Linear {
     }
 
     private static void train_one(Problem prob, Parameter param, double[] w, double Cp, double Cn) {
-        // inner and outer tolerances for TRON
         double eps = param.eps;
-        double eps_cg = 0.1;
-        if (param.init_sol != null)
-            eps_cg = 0.5;
 
         int pos = 0;
+        int neg = 0;
         for (int i = 0; i < prob.l; i++)
-            if (prob.y[i] > 0) {
+            if (prob.y[i] > 0)
                 pos++;
-            }
-        int neg = prob.l - pos;
+        neg = prob.l - pos;
         double primal_solver_tol = eps * Math.max(Math.min(pos, neg), 1) / prob.l;
 
-        Function fun_obj;
+        Function fun_obj = null;
         switch (param.solverType) {
             case L2R_LR: {
                 double[] C = new double[prob.l];
@@ -2254,8 +2250,8 @@ public class Linear {
                         C[i] = Cn;
                 }
                 fun_obj = new L2R_LrFunction(prob, param, C);
-                Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters, eps_cg);
-                tron_obj.tron(w);
+                Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
+                newton_obj.newton(w);
                 break;
             }
             case L2R_L2LOSS_SVC: {
@@ -2267,8 +2263,8 @@ public class Linear {
                         C[i] = Cn;
                 }
                 fun_obj = new L2R_L2_SvcFunction(prob, param, C);
-                Tron tron_obj = new Tron(fun_obj, primal_solver_tol, param.max_iters, eps_cg);
-                tron_obj.tron(w);
+                Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
+                newton_obj.newton(w);
                 break;
             }
             case L2R_L2LOSS_SVC_DUAL:
@@ -2296,15 +2292,14 @@ public class Linear {
                     C[i] = param.C;
 
                 fun_obj = new L2R_L2_SvrFunction(prob, param, C);
-                Tron tron_obj = new Tron(fun_obj, param.eps, param.max_iters, eps_cg);
-                tron_obj.tron(w);
+                Newton newton_obj = new Newton(fun_obj, param.eps, param.max_iters);
+                newton_obj.newton(w);
                 break;
             }
             case L2R_L1LOSS_SVR_DUAL:
             case L2R_L2LOSS_SVR_DUAL:
                 solve_l2r_l1l2_svr(prob, w, param, param.solverType);
                 break;
-
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }
