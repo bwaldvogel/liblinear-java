@@ -30,11 +30,11 @@ import de.bwaldvogel.liblinear.Heap.HeapType;
  *
  * <p><em>The port was done by Benedikt Waldvogel (mail at bwaldvogel.de)</em></p>
  *
- * @version 2.30
+ * @version 2.41
  */
 public class Linear {
 
-    static final int VERSION = 230;
+    static final int VERSION = 241;
 
     static final Charset FILE_CHARSET = StandardCharsets.ISO_8859_1;
 
