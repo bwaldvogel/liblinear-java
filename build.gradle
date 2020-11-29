@@ -28,7 +28,7 @@ ext {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': title, 'Implementation-Version': version
+        attributes 'Implementation-Title': title, 'Implementation-Version': archiveVersion
     }
 }
 
