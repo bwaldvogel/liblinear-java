@@ -158,7 +158,7 @@ public class Linear {
             best_C = best_tmp.getBestC();
             best_score = best_tmp.getBestScore();
         } else if (param.getSolverType() == L2R_L2LOSS_SVR) {
-            double max_p = calc_max_p(prob, param_tmp);
+            double max_p = calc_max_p(prob);
             int num_p_steps = 20;
             double max_C = 1048576;
             best_score = Double.POSITIVE_INFINITY;
@@ -2344,7 +2344,7 @@ public class Linear {
         return Math.pow(2, Math.floor(Math.log(min_C) / Math.log(2.0)));
     }
 
-    private static double calc_max_p(Problem prob, Parameter param) {
+    private static double calc_max_p(Problem prob) {
         int i;
         double max_p = 0.0;
         for (i = 0; i < prob.l; i++)
