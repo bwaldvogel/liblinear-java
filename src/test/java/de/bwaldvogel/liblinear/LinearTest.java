@@ -741,7 +741,7 @@ class LinearTest {
         Parameter param = new Parameter(L2R_L2LOSS_SVR, 1, 0.001, 0.1);
         ParameterSearchResult result = Linear.findParameters(problem, param, 5, -1, -1);
         assertThat(result.getBestC()).isEqualTo(0.00390625);
-        assertThat(result.getBestScore()).isEqualTo(0.5699400237604259, Offset.offset(0.0000001));
+        assertThat(result.getBestScore()).isEqualTo(0.5699399182191544, Offset.offset(0.0000001));
         assertThat(result.getBestP()).isEqualTo(0.0);
     }
 

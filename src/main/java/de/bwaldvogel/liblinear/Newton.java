@@ -47,9 +47,9 @@ class Newton {
         double gnorm0 = Blas.dnrm2_(n, g, inc);
 
         f = fun_obj.fun(w);
-        info("init f %5.3e%n", f);
         fun_obj.grad(w, g);
         double gnorm = Blas.dnrm2_(n, g, inc);
+        info("init f %5.3e |g| %5.3e%n", f, gnorm);
 
         if (gnorm <= eps * gnorm0)
             search = false;
@@ -70,24 +70,24 @@ class Newton {
                 break;
             }
 
+            fun_obj.grad(w, g);
+            gnorm = Blas.dnrm2_(n, g, inc);
+
             info("iter %2d f %5.3e |g| %5.3e CG %3d step_size %4.2e%n", iter, f, gnorm, cg_iter, step_size);
 
-            actred = fold - f;
-            iter++;
-
-            fun_obj.grad(w, g);
-
-            gnorm = Blas.dnrm2_(n, g, inc);
             if (gnorm <= eps * gnorm0)
                 break;
             if (f < -1.0e+32) {
                 info("WARNING: f < -1.0e+32%n");
                 break;
             }
+            actred = fold - f;
             if (Math.abs(actred) <= 1.0e-12 * Math.abs(f)) {
                 info("WARNING: actred too small%n");
                 break;
             }
+
+            iter++;
         }
     }
 
@@ -97,7 +97,7 @@ class Newton {
         double one = 1;
         double[] d = new double[n];
         double[] Hd = new double[n];
-        double zTr, znewTrnew, alpha, beta, cgtol;
+        double zTr, znewTrnew, alpha, beta, cgtol, dHd;
         double[] z = new double[n];
         double Q = 0, newQ, Qdiff;
 
@@ -116,9 +116,14 @@ class Newton {
 
         while (cg_iter < max_cg_iter) {
             cg_iter++;
-            fun_obj.Hv(d, Hd);
 
-            alpha = zTr / Blas.ddot_(n, d, inc, Hd, inc);
+            fun_obj.Hv(d, Hd);
+            dHd = Blas.ddot_(n, d, inc, Hd, inc);
+            // avoid 0/0 in getting alpha
+            if (dHd <= 1.0e-16)
+                break;
+
+            alpha = zTr / dHd;
             Blas.daxpy_(n, alpha, d, inc, s, inc);
             alpha = -alpha;
             Blas.daxpy_(n, alpha, Hd, inc, r, inc);
