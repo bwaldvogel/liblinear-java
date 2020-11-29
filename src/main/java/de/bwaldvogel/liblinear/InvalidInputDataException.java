@@ -5,7 +5,7 @@ public class InvalidInputDataException extends Exception {
 
     private static final long serialVersionUID = 2945131732407207308L;
 
-    private final int         _line;
+    private final int _line;
 
     public InvalidInputDataException(String message, int line) {
         super(message);

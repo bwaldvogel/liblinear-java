@@ -1,7 +1,6 @@
 package de.bwaldvogel.liblinear;
 
-import static de.bwaldvogel.liblinear.Linear.info;
-import static de.bwaldvogel.liblinear.Linear.swap;
+import static de.bwaldvogel.liblinear.Linear.*;
 
 import java.util.Arrays;
 
@@ -37,19 +36,18 @@ class SolverMCSVM_CS {
     private final double[] G;
     private final int      max_iter;
     private final int      w_size, l;
-    private final int      nr_class;
-    private final Problem  prob;
+    private final int     nr_class;
+    private final Problem prob;
 
-    public SolverMCSVM_CS( Problem prob, int nr_class, double[] C ) {
+    public SolverMCSVM_CS(Problem prob, int nr_class, double[] C) {
         this(prob, nr_class, C, 0.1);
     }
 
-    public SolverMCSVM_CS( Problem prob, int nr_class, double[] C, double eps ) {
+    public SolverMCSVM_CS(Problem prob, int nr_class, double[] C, double eps) {
         this(prob, nr_class, C, eps, 100000);
     }
 
-
-    public SolverMCSVM_CS( Problem prob, int nr_class, double[] weighted_C, double eps, int max_iter ) {
+    public SolverMCSVM_CS(Problem prob, int nr_class, double[] weighted_C, double eps, int max_iter) {
         this.w_size = prob.n;
         this.l = prob.l;
         this.nr_class = nr_class;
@@ -67,8 +65,10 @@ class SolverMCSVM_CS {
 
     private boolean be_shrunk(int i, int m, int yi, double alpha_i, double minG) {
         double bound = 0;
-        if (m == yi) bound = C[GETI(i)];
-        if (alpha_i == bound && G[m] < minG) return true;
+        if (m == yi)
+            bound = C[GETI(i)];
+        if (alpha_i == bound && G[m] < minG)
+            return true;
         return false;
     }
 
@@ -139,7 +139,8 @@ class SolverMCSVM_CS {
                 if (Ai > 0) {
                     for (m = 0; m < active_size_i[i]; m++)
                         G[m] = 1;
-                    if (y_index[i] < active_size_i[i]) G[y_index[i]] = 0;
+                    if (y_index[i] < active_size_i[i])
+                        G[y_index[i]] = 0;
 
                     for (Feature xi : prob.x[i]) {
                         // double *w_i = &w[(xi.index-1)*nr_class];
@@ -153,8 +154,10 @@ class SolverMCSVM_CS {
                     double minG = Double.POSITIVE_INFINITY;
                     double maxG = Double.NEGATIVE_INFINITY;
                     for (m = 0; m < active_size_i[i]; m++) {
-                        if (alpha_i.get(alpha_index_i.get(m)) < 0 && G[m] < minG) minG = G[m];
-                        if (G[m] > maxG) maxG = G[m];
+                        if (alpha_i.get(alpha_index_i.get(m)) < 0 && G[m] < minG)
+                            minG = G[m];
+                        if (G[m] > maxG)
+                            maxG = G[m];
                     }
                     if (y_index[i] < active_size_i[i]) {
                         if (alpha_i.get((int)prob.y[i]) < C[GETI(i)] && G[y_index[i]] < minG) {
@@ -171,7 +174,8 @@ class SolverMCSVM_CS {
                                     swap(G, m, active_size_i[i]);
                                     if (y_index[i] == active_size_i[i])
                                         y_index[i] = m;
-                                    else if (y_index[i] == m) y_index[i] = active_size_i[i];
+                                    else if (y_index[i] == m)
+                                        y_index[i] = active_size_i[i];
                                     break;
                                 }
                                 active_size_i[i]--;
@@ -238,7 +242,8 @@ class SolverMCSVM_CS {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
         double v = 0;
@@ -248,7 +253,8 @@ class SolverMCSVM_CS {
         v = 0.5 * v;
         for (i = 0; i < l * nr_class; i++) {
             v += alpha[i];
-            if (Math.abs(alpha[i]) > 0) nSV++;
+            if (Math.abs(alpha[i]) > 0)
+                nSV++;
         }
         for (i = 0; i < l; i++)
             v -= alpha[i * nr_class + (int)prob.y[i]];
@@ -264,7 +270,8 @@ class SolverMCSVM_CS {
         double[] D = Arrays.copyOf(B, active_i);
         // clone(D, B, active_i);
 
-        if (yi < active_i) D[yi] += A_i * C_yi;
+        if (yi < active_i)
+            D[yi] += A_i * C_yi;
 
         // qsort(D, active_i, sizeof(double), compare_double);
         ArraySorter.reversedMergesort(D);

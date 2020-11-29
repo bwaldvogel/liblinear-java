@@ -48,18 +48,23 @@ public class FeatureNode implements Feature {
         result = prime * result + index;
         long temp;
         temp = Double.doubleToLongBits(value);
-        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + (int)(temp ^ (temp >>> 32));
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        FeatureNode other = (FeatureNode) obj;
-        if (index != other.index) return false;
-        if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value)) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        FeatureNode other = (FeatureNode)obj;
+        if (index != other.index)
+            return false;
+        if (Double.doubleToLongBits(value) != Double.doubleToLongBits(other.value))
+            return false;
         return true;
     }
 

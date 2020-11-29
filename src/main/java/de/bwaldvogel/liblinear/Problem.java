@@ -37,13 +37,13 @@ import java.nio.file.Path;
 public class Problem {
 
     /** the number of training data */
-    public int         l;
+    public int l;
 
     /** the number of features (including the bias feature if bias &gt;= 0) */
-    public int         n;
+    public int n;
 
     /** an array containing the target values */
-    public double[]    y;
+    public double[] y;
 
     /** array of sparse feature nodes */
     public Feature[][] x;
@@ -52,7 +52,7 @@ public class Problem {
      * If bias &gt;= 0, we assume that one additional feature is added
      * to the end of each data instance
      */
-    public double      bias = -1;
+    public double bias = -1;
 
     /**
      * @deprecated use {@link Problem#readFromFile(Path, double)} instead

@@ -101,10 +101,12 @@ public enum SolverType {
     }
 
     private static final Map<Integer, SolverType> SOLVERS_BY_ID = new HashMap<>();
+
     static {
         for (SolverType solverType : SolverType.values()) {
             SolverType old = SOLVERS_BY_ID.put(Integer.valueOf(solverType.getId()), solverType);
-            if (old != null) throw new Error("duplicate solver type ID: " + solverType.getId());
+            if (old != null)
+                throw new Error("duplicate solver type ID: " + solverType.getId());
         }
     }
 

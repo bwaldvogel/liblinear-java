@@ -5,29 +5,29 @@ import java.util.Arrays;
 
 public final class Parameter implements Cloneable {
 
-    double     C;
+    double C;
 
     /** stopping criteria */
-    double     eps;
+    double eps;
 
-    int        max_iters = 1000; // maximal iterations
+    int max_iters = 1000; // maximal iterations
 
     SolverType solverType;
 
-    double[]   weight      = null;
+    double[] weight = null;
 
-    int[]      weightLabel = null;
+    int[] weightLabel = null;
 
-    double     p = 0.1;
+    double p = 0.1;
 
-    double     nu = 0.5;
+    double nu = 0.5;
 
     /**
      * Initial-solution specification (only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC})
      */
-    double[]   init_sol = null;
+    double[] init_sol = null;
 
-    boolean    regularize_bias = true;
+    boolean regularize_bias = true;
 
     public Parameter(SolverType solver, double C, double eps) {
         setSolverType(solver);
@@ -70,7 +70,8 @@ public final class Parameter implements Cloneable {
      * just set nr_weight to 0.</p>
      */
     public void setWeights(double[] weights, int[] weightLabels) {
-        if (weights == null) throw new IllegalArgumentException("'weight' must not be null");
+        if (weights == null)
+            throw new IllegalArgumentException("'weight' must not be null");
         if (weightLabels == null || weightLabels.length != weights.length)
             throw new IllegalArgumentException("'weightLabels' must have same length as 'weight'");
         this.weightLabel = Arrays.copyOf(weightLabels, weightLabels.length);
@@ -102,7 +103,8 @@ public final class Parameter implements Cloneable {
      * @see #setWeights(double[], int[])
      */
     public int getNumWeights() {
-        if (weight == null) return 0;
+        if (weight == null)
+            return 0;
         return weight.length;
     }
 
@@ -110,7 +112,8 @@ public final class Parameter implements Cloneable {
      * C is the cost of constraints violation. (we usually use 1 to 1000)
      */
     public void setC(double C) {
-        if (C <= 0) throw new IllegalArgumentException("C must not be <= 0");
+        if (C <= 0)
+            throw new IllegalArgumentException("C must not be <= 0");
         this.C = C;
     }
 
@@ -122,7 +125,8 @@ public final class Parameter implements Cloneable {
      * eps is the stopping criterion. (we usually use 0.01).
      */
     public void setEps(double eps) {
-        if (eps <= 0) throw new IllegalArgumentException("eps must not be <= 0");
+        if (eps <= 0)
+            throw new IllegalArgumentException("eps must not be <= 0");
         this.eps = eps;
     }
 
@@ -131,7 +135,8 @@ public final class Parameter implements Cloneable {
     }
 
     public void setMaxIters(int iters) {
-        if (iters <= 0) throw new IllegalArgumentException("max iters not be <= 0");
+        if (iters <= 0)
+            throw new IllegalArgumentException("max iters not be <= 0");
         this.max_iters = iters;
     }
 
@@ -140,7 +145,8 @@ public final class Parameter implements Cloneable {
     }
 
     public void setSolverType(SolverType solverType) {
-        if (solverType == null) throw new IllegalArgumentException("solver type must not be null");
+        if (solverType == null)
+            throw new IllegalArgumentException("solver type must not be null");
         this.solverType = solverType;
     }
 
@@ -152,7 +158,8 @@ public final class Parameter implements Cloneable {
      * set the epsilon in loss function of epsilon-SVR (default 0.1)
      */
     public void setP(double p) {
-        if (p < 0) throw new IllegalArgumentException("p must not be less than 0");
+        if (p < 0)
+            throw new IllegalArgumentException("p must not be less than 0");
         this.p = p;
     }
 
@@ -161,11 +168,12 @@ public final class Parameter implements Cloneable {
     }
 
     /*
-    * Sets the initial-solution specification.
-    * Only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC}.
-    */
+     * Sets the initial-solution specification.
+     * Only supported for {@link SolverType#L2R_LR} and {@link SolverType#L2R_L2LOSS_SVC}.
+     */
     public void setInitSol(double[] init_sol) {
-        if (init_sol == null) this.init_sol = null;
+        if (init_sol == null)
+            this.init_sol = null;
         else {
             this.init_sol = Arrays.copyOf(init_sol, init_sol.length);
         }
@@ -179,8 +187,10 @@ public final class Parameter implements Cloneable {
     }
 
     public void setNu(double nu) {
-        if (nu <= 0) throw new IllegalArgumentException("nu must not be <=0");
-        if (nu >= 1) throw new IllegalArgumentException("nu must not be >=1");
+        if (nu <= 0)
+            throw new IllegalArgumentException("nu must not be <=0");
+        if (nu >= 1)
+            throw new IllegalArgumentException("nu must not be >=1");
         this.nu = nu;
     }
 

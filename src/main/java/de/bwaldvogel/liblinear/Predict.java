@@ -21,9 +21,9 @@ import java.util.regex.Pattern;
 
 public class Predict {
 
-    private static boolean       flag_predict_probability = false;
+    private static boolean flag_predict_probability = false;
 
-    private static final Pattern COLON                    = Pattern.compile(":");
+    private static final Pattern COLON = Pattern.compile(":");
 
     /**
      * <p><b>Note: The streams are NOT closed</b></p>
@@ -150,7 +150,8 @@ public class Predict {
 
         // parse options
         for (i = 0; i < argv.length; i++) {
-            if (argv[i].charAt(0) != '-') break;
+            if (argv[i].charAt(0) != '-')
+                break;
             ++i;
             switch (argv[i - 1].charAt(1)) {
                 case 'b':

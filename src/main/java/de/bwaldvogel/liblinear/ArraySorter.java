@@ -40,14 +40,17 @@ final class ArraySorter {
         int a = off, b = a, c = off + len - 1, d = c;
         while (true) {
             while (b <= c && x[b] >= v) {
-                if (x[b] == v) swap(x, a++, b);
+                if (x[b] == v)
+                    swap(x, a++, b);
                 b++;
             }
             while (c >= b && x[c] <= v) {
-                if (x[c] == v) swap(x, c, d--);
+                if (x[c] == v)
+                    swap(x, c, d--);
                 c--;
             }
-            if (b > c) break;
+            if (b > c)
+                break;
             swap(x, b++, c--);
         }
 
@@ -59,8 +62,10 @@ final class ArraySorter {
         vecswap(x, b, n - s, s);
 
         // Recursively sort non-partition-elements
-        if ((s = b - a) > 1) reversedMergesort(x, off, s);
-        if ((s = d - c) > 1) reversedMergesort(x, n - s, s);
+        if ((s = b - a) > 1)
+            reversedMergesort(x, off, s);
+        if ((s = d - c) > 1)
+            reversedMergesort(x, n - s, s);
     }
 
     /**

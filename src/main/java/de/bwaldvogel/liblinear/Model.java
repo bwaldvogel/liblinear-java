@@ -21,22 +21,22 @@ public final class Model implements Serializable {
 
     private static final long serialVersionUID = -6456047576741854834L;
 
-    double                    bias;
+    double bias;
 
     /** label of each class */
-    int[]                     label;
+    int[] label;
 
-    int                       nr_class;
+    int nr_class;
 
-    int                       nr_feature;
+    int nr_feature;
 
-    SolverType                solverType;
+    SolverType solverType;
 
     /** feature weight array */
-    double[]                  w;
+    double[] w;
 
     /** one-class SVM only */
-    double                    rho;
+    double rho;
 
     /**
      * @return number of classes
