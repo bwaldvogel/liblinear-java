@@ -54,7 +54,6 @@ class Newton {
         if (gnorm <= eps * gnorm0)
             search = false;
 
-        double[] w_new = new double[n];
         while (iter <= max_iter && search) {
             fun_obj.get_diag_preconditioner(M);
             for (i = 0; i < n; i++)
