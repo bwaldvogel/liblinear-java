@@ -746,7 +746,8 @@ public class Linear {
             if (iter % 10 == 0)
                 info(".");
 
-            if (PGmax_new - PGmin_new <= eps) {
+            if (PGmax_new - PGmin_new <= eps &&
+                Math.abs(PGmax_new) <= eps && Math.abs(PGmin_new) <= eps) {
                 if (active_size == l)
                     break;
                 else {
