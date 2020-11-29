@@ -7,7 +7,7 @@ public final class Parameter implements Cloneable {
 
     double C;
 
-    /** stopping criteria */
+    /** stopping tolerance */
     double eps;
 
     int max_iters = 1000; // maximal iterations

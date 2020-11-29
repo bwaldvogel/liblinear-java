@@ -89,6 +89,9 @@ class Newton {
 
             iter++;
         }
+
+        if (iter >= max_iter)
+            info("%nWARNING: reaching max number of Newton iterations%n");
     }
 
     private int pcg(double[] g, double[] M, double[] s, double[] r) {
