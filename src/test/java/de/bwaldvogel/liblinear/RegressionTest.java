@@ -74,9 +74,9 @@ class RegressionTest {
                     case L2R_L2LOSS_SVC_DUAL:
                         switch (bias) {
                             case -1:
-                                return 0.8386;
+                                return 0.84368;
                             case 1:
-                                return 0.85057;
+                                return 0.85241;
                         }
                     case L2R_L2LOSS_SVC:
                         switch (bias) {
@@ -88,9 +88,9 @@ class RegressionTest {
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {
                             case -1:
-                                return 0.8382;
+                                return 0.83494;
                             case 1:
-                                return 0.83448;
+                                return 0.83402;
                         }
                     case MCSVM_CS:
                         switch (bias) {
@@ -146,7 +146,7 @@ class RegressionTest {
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {
                             case -1:
-                                return 0.9477;
+                                return 0.94688;
                             case 1:
                                 return 0.94604;
                         }

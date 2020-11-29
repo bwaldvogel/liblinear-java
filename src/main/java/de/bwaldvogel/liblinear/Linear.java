@@ -616,13 +616,13 @@ public class Linear {
      *  D is a diagonal matrix
      *
      * In L1-SVM case:
-     *     upper_bound_i = Cp if y_i = 1
-     *      upper_bound_i = Cn if y_i = -1
-     *      D_ii = 0
+     *              upper_bound_i = Cp if y_i = 1
+     *              upper_bound_i = Cn if y_i = -1
+     *              D_ii = 0
      * In L2-SVM case:
-     *      upper_bound_i = INF
-     *      D_ii = 1/(2*Cp) if y_i = 1
-     *      D_ii = 1/(2*Cn) if y_i = -1
+     *              upper_bound_i = INF
+     *              D_ii = 1/(2*Cp) if y_i = 1
+     *              D_ii = 1/(2*Cn) if y_i = -1
      *
      * Given:
      * x, y, Cp, Cn
@@ -630,12 +630,16 @@ public class Linear {
      *
      * solution will be put in w
      *
+     * this function returns the number of iterations
+     *
      * See Algorithm 3 of Hsieh et al., ICML 2008
      *</pre>
      */
-    private static void solve_l2r_l1l2_svc(Problem prob, double[] w, double eps, double Cp, double Cn, SolverType solver_type, int max_iter) {
+    private static int solve_l2r_l1l2_svc(Problem prob, Parameter param, double[] w, double Cp, double Cn, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
+        double eps = param.eps;
+        SolverType solver_type = param.solverType;
         int i, s, iter = 0;
         double C, d, G;
         double[] QD = new double[l];
@@ -762,8 +766,6 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter)
-            info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -778,6 +780,8 @@ public class Linear {
         }
         info("Objective value = %g%n", v / 2);
         info("nSV = %d%n", nSV);
+
+        return iter;
     }
 
     // To support weights for instances, use GETI(i) (i)
@@ -796,11 +800,11 @@ public class Linear {
      *  D is a diagonal matrix
      *
      * In L1-SVM case:
-     *         upper_bound_i = C
-     *         lambda_i = 0
+     *              upper_bound_i = C
+     *              lambda_i = 0
      * In L2-SVM case:
-     *         upper_bound_i = INF
-     *         lambda_i = 1/(2*C)
+     *              upper_bound_i = INF
+     *              lambda_i = 1/(2*C)
      *
      * Given:
      * x, y, p, C
@@ -808,16 +812,18 @@ public class Linear {
      *
      * solution will be put in w
      *
+     * this function returns the number of iterations
+     *
      * See Algorithm 4 of Ho and Lin, 2012
      */
-    private static void solve_l2r_l1l2_svr(Problem prob, double[] w, Parameter param, SolverType solverType) {
+    private static int solve_l2r_l1l2_svr(Problem prob, Parameter param, double[] w, int max_iter) {
+        SolverType solver_type = param.solverType;
         int l = prob.l;
         double C = param.C;
         double p = param.p;
         int w_size = prob.n;
         double eps = param.eps;
         int i, s, iter = 0;
-        int max_iter = param.getMaxIters();
         int active_size = l;
         int[] index = new int[l];
 
@@ -833,11 +839,11 @@ public class Linear {
         double[] lambda = new double[] {0.5 / C};
         double[] upper_bound = new double[] {Double.POSITIVE_INFINITY};
 
-        if (solverType == L2R_L1LOSS_SVR_DUAL) {
+        if (solver_type == L2R_L1LOSS_SVR_DUAL) {
             lambda[0] = 0;
             upper_bound[0] = C;
         } else {
-            assert solverType == L2R_L2LOSS_SVR_DUAL;
+            assert solver_type == L2R_L2LOSS_SVR_DUAL;
         }
 
         // Initial beta can be set here. Note that
@@ -952,8 +958,6 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter)
-            info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
 
         // calculate objective value
         double v = 0;
@@ -969,6 +973,8 @@ public class Linear {
 
         info("Objective value = %g%n", v);
         info("nSV = %d%n", nSV);
+
+        return iter;
     }
 
     /**
@@ -988,23 +994,26 @@ public class Linear {
      *
      * solution will be put in w
      *
+     * this function returns the number of iterations
+     *
      * See Algorithm 5 of Yu et al., MLJ 2010
      *</pre>
      *
      * @since 1.7
      */
-    private static void solve_l2r_lr_dual(Problem prob, double[] w, double eps, double Cp, double Cn, int max_iter) {
+    private static int solve_l2r_lr_dual(Problem prob, Parameter param, double[] w, double Cp, double Cn, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
+        double eps = param.eps;
         int i, s, iter = 0;
-        double xTx[] = new double[l];
-        int index[] = new int[l];
-        double alpha[] = new double[2 * l]; // store alpha and C - alpha
-        byte y[] = new byte[l];
+        double[] xTx = new double[l];
+        int[] index = new int[l];
+        double[] alpha = new double[2 * l]; // store alpha and C - alpha
+        byte[] y = new byte[l];
         int max_inner_iter = 100; // for inner Newton
         double innereps = 1e-2;
         double innereps_min = Math.min(1e-8, eps);
-        double upper_bound[] = new double[] {Cn, 0, Cp};
+        double[] upper_bound = new double[] {Cn, 0, Cp};
 
         for (i = 0; i < l; i++) {
             if (prob.y[i] > 0) {
@@ -1103,8 +1112,6 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (iter >= max_iter)
-            info("%nWARNING: reaching max number of iterations%nUsing -s 0 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -1116,6 +1123,8 @@ public class Linear {
             v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
                 * Math.log(upper_bound[GETI(y, i)]);
         info("Objective value = %g%n", v);
+
+        return iter;
     }
 
     /**
@@ -1131,6 +1140,8 @@ public class Linear {
      *
      * solution will be put in w
      *
+     * this function returns the number of iterations
+     *
      * See Yuan et al. (2010) and appendix of LIBLINEAR paper, Fan et al. (2008)
      *
      * To not regularize the bias (i.e., regularize_bias = 0), a constant feature = 1
@@ -1139,10 +1150,11 @@ public class Linear {
      *
      * @since 1.5
      */
-    private static void solve_l1r_l2_svc(Problem prob_col, double[] w, double eps,
-        double Cp, double Cn, int max_iter, boolean regularize_bias) {
+    private static int solve_l1r_l2_svc(Problem prob_col, Parameter param, double[] w,
+        double Cp, double Cn, double eps, int max_iter) {
         int l = prob_col.l;
         int w_size = prob_col.n;
+        boolean regularize_bias = param.regularize_bias;
         int j, s, iter = 0;
         int active_size = w_size;
         int max_num_linesearch = 20;
@@ -1378,6 +1390,8 @@ public class Linear {
 
         info("Objective value = %g%n", v);
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
+
+        return iter;
     }
 
     /**
@@ -1393,6 +1407,8 @@ public class Linear {
      *
      * solution will be put in w
      *
+     * this function returns the number of iterations
+     *
      * See Yuan et al. (2011) and appendix of LIBLINEAR paper, Fan et al. (2008)
      *
      * To not regularize the bias (i.e., regularize_bias = 0), a constant feature = 1
@@ -1401,10 +1417,10 @@ public class Linear {
      *
      * @since 1.5
      */
-    private static void solve_l1r_lr(Problem prob_col, double[] w, double eps,
-        double Cp, double Cn, int max_iter, boolean regularize_bias) {
+    private static int solve_l1r_lr(Problem prob_col, Parameter param, double[] w, double Cp, double Cn, double eps, int max_iter) {
         int l = prob_col.l;
         int w_size = prob_col.n;
+        boolean regularize_bias = param.regularize_bias;
         int j, s, newton_iter = 0, iter = 0;
         int max_newton_iter = 100;
         int max_num_linesearch = 20;
@@ -1724,6 +1740,8 @@ public class Linear {
 
         info("Objective value = %g%n", v);
         info("#nonzeros/#features = %d/%d%n", nnz, w_size);
+
+        return newton_iter;
     }
 
     /*
@@ -1742,13 +1760,17 @@ public class Linear {
      *
      * solution will be put in w and rho
      *
+     * this function returns the number of iterations
+     *
      * See Algorithm 7 in supplementary materials of Chou et al., SDM 2020.
      *
      * @since 2.40
      */
-    static void solve_oneclass_svm(Problem prob, double[] w, MutableDouble rho, double eps, double nu, int max_iter) {
+    static int solve_oneclass_svm(Problem prob, Parameter param, double[] w, MutableDouble rho, int max_iter) {
         int l = prob.l;
         int w_size = prob.n;
+        double eps = param.eps;
+        double nu = param.nu;
         int i, j, s, iter = 0;
         double Gi, Gj;
         double Qij, quad_coef, delta, sum;
@@ -1955,6 +1977,8 @@ public class Linear {
             rho.set((ub + lb) / 2);
 
         info("rho = %f%n", rho.get());
+
+        return iter;
     }
 
     // transpose matrix X from row format to column format
@@ -2108,7 +2132,7 @@ public class Linear {
             model.nr_class = 2;
             model.label = null;
             MutableDouble rho = new MutableDouble();
-            solve_oneclass_svm(prob, model.w, rho, param.eps, param.nu, param.max_iters);
+            solve_oneclass_svm(prob, param, model.w, rho, param.max_iters);
             model.rho = rho.get();
         } else {
             int[] perm = new int[l];
@@ -2229,77 +2253,106 @@ public class Linear {
     }
 
     private static void train_one(Problem prob, Parameter param, double[] w, double Cp, double Cn) {
-        double eps = param.eps;
+        SolverType solver_type = param.solverType;
+        int dual_solver_max_iter = 300;
+        int iter;
 
-        int pos = 0;
-        int neg = 0;
-        for (int i = 0; i < prob.l; i++)
-            if (prob.y[i] > 0)
-                pos++;
-        neg = prob.l - pos;
-        double primal_solver_tol = eps * Math.max(Math.min(pos, neg), 1) / prob.l;
+        // upstream: (solver_type==L2R_L2LOSS_SVR || solver_type==L2R_L1LOSS_SVR_DUAL || solver_type==L2R_L2LOSS_SVR_DUAL)
+        boolean is_regression = solver_type.isSupportVectorRegression();
 
-        Function fun_obj = null;
-        switch (param.solverType) {
+        // Some solvers use Cp,Cn but not C array; extensions possible but no plan for now
+        double[] C = new double[prob.l];
+        double primal_solver_tol = param.eps;
+        if (is_regression) {
+            for (int i = 0; i < prob.l; i++)
+                C[i] = param.C;
+        } else {
+            int pos = 0;
+            for (int i = 0; i < prob.l; i++) {
+                if (prob.y[i] > 0) {
+                    pos++;
+                    C[i] = Cp;
+                } else
+                    C[i] = Cn;
+            }
+            int neg = prob.l - pos;
+            primal_solver_tol = param.eps * Math.max(Math.min(pos, neg), 1) / prob.l;
+        }
+
+        switch (solver_type) {
             case L2R_LR: {
-                double[] C = new double[prob.l];
-                for (int i = 0; i < prob.l; i++) {
-                    if (prob.y[i] > 0)
-                        C[i] = Cp;
-                    else
-                        C[i] = Cn;
-                }
-                fun_obj = new L2R_LrFunction(prob, param, C);
+                L2R_LrFunction fun_obj = new L2R_LrFunction(prob, param, C);
                 Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
                 newton_obj.newton(w);
                 break;
             }
             case L2R_L2LOSS_SVC: {
-                double[] C = new double[prob.l];
-                for (int i = 0; i < prob.l; i++) {
-                    if (prob.y[i] > 0)
-                        C[i] = Cp;
-                    else
-                        C[i] = Cn;
-                }
-                fun_obj = new L2R_L2_SvcFunction(prob, param, C);
+                L2R_L2_SvcFunction fun_obj = new L2R_L2_SvcFunction(prob, param, C);
                 Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
                 newton_obj.newton(w);
                 break;
             }
-            case L2R_L2LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L2LOSS_SVC_DUAL, param.max_iters);
+            case L2R_L2LOSS_SVC_DUAL: {
+                iter = solve_l2r_l1l2_svc(prob, param, w, Cp, Cn, dual_solver_max_iter);
+                if (iter >= dual_solver_max_iter) {
+                    info("%nWARNING: reaching max number of iterations%nSwitching to use -s 2%n%n");
+                    // primal_solver_tol obtained from eps for dual may be too loose
+                    primal_solver_tol *= 0.1;
+                    L2R_L2_SvcFunction fun_obj = new L2R_L2_SvcFunction(prob, param, C);
+                    Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
+                    newton_obj.newton(w);
+                }
                 break;
-            case L2R_L1LOSS_SVC_DUAL:
-                solve_l2r_l1l2_svc(prob, w, eps, Cp, Cn, L2R_L1LOSS_SVC_DUAL, param.max_iters);
+            }
+            case L2R_L1LOSS_SVC_DUAL: {
+                solve_l2r_l1l2_svc(prob, param, w, Cp, Cn, dual_solver_max_iter);
                 break;
+            }
             case L1R_L2LOSS_SVC: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_l2_svc(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters, param.regularize_bias);
+                solve_l1r_l2_svc(prob_col, param, w, Cp, Cn, primal_solver_tol, param.max_iters);
                 break;
             }
             case L1R_LR: {
                 Problem prob_col = transpose(prob);
-                solve_l1r_lr(prob_col, w, primal_solver_tol, Cp, Cn, param.max_iters, param.regularize_bias);
+                solve_l1r_lr(prob_col, param, w, Cp, Cn, primal_solver_tol, param.max_iters);
                 break;
             }
-            case L2R_LR_DUAL:
-                solve_l2r_lr_dual(prob, w, eps, Cp, Cn, param.max_iters);
+            case L2R_LR_DUAL: {
+                iter = solve_l2r_lr_dual(prob, param, w, Cp, Cn, dual_solver_max_iter);
+                if (iter >= dual_solver_max_iter) {
+                    info("%nWARNING: reaching max number of iterations%nSwitching to use -s 0%n%n");
+                    // primal_solver_tol obtained from eps for dual may be too loose
+                    primal_solver_tol *= 0.1;
+                    L2R_LrFunction fun_obj = new L2R_LrFunction(prob, param, C);
+                    Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
+                    newton_obj.newton(w);
+                }
                 break;
+            }
             case L2R_L2LOSS_SVR: {
-                double[] C = new double[prob.l];
-                for (int i = 0; i < prob.l; i++)
-                    C[i] = param.C;
-
-                fun_obj = new L2R_L2_SvrFunction(prob, param, C);
-                Newton newton_obj = new Newton(fun_obj, param.eps, param.max_iters);
+                L2R_L2_SvrFunction fun_obj = new L2R_L2_SvrFunction(prob, param, C);
+                Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
                 newton_obj.newton(w);
                 break;
+
             }
-            case L2R_L1LOSS_SVR_DUAL:
-            case L2R_L2LOSS_SVR_DUAL:
-                solve_l2r_l1l2_svr(prob, w, param, param.solverType);
+            case L2R_L1LOSS_SVR_DUAL: {
+                solve_l2r_l1l2_svr(prob, param, w, dual_solver_max_iter);
                 break;
+            }
+            case L2R_L2LOSS_SVR_DUAL: {
+                iter = solve_l2r_l1l2_svr(prob, param, w, dual_solver_max_iter);
+                if (iter >= dual_solver_max_iter) {
+                    info("%nWARNING: reaching max number of iterations%nSwitching to use -s 11%n%n");
+                    // primal_solver_tol obtained from eps for dual may be too loose
+                    primal_solver_tol *= 0.001;
+                    L2R_L2_SvrFunction fun_obj = new L2R_L2_SvrFunction(prob, param, C);
+                    Newton newton_obj = new Newton(fun_obj, primal_solver_tol, param.max_iters);
+                    newton_obj.newton(w);
+                }
+                break;
+            }
             default:
                 throw new IllegalStateException("unknown solver type: " + param.solverType);
         }
