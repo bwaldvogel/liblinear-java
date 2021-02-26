@@ -25,7 +25,7 @@ The only requirement is Java 8 or later.
 <dependency>
     <groupId>de.bwaldvogel</groupId>
     <artifactId>liblinear</artifactId>
-    <version>2.42</version>
+    <version>2.43</version>
 </dependency>
 ```
 
