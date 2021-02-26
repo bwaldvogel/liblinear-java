@@ -767,8 +767,6 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (solver_type == L2R_L1LOSS_SVC_DUAL && iter >= max_iter)
-            info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
 
@@ -961,8 +959,6 @@ public class Linear {
         }
 
         info("%noptimization finished, #iter = %d%n", iter);
-        if (solver_type == L2R_L1LOSS_SVR_DUAL && iter >= max_iter)
-            info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
 
         // calculate objective value
         double v = 0;
@@ -2310,7 +2306,9 @@ public class Linear {
                 break;
             }
             case L2R_L1LOSS_SVC_DUAL: {
-                solve_l2r_l1l2_svc(prob, param, w, Cp, Cn, dual_solver_max_iter);
+                iter = solve_l2r_l1l2_svc(prob, param, w, Cp, Cn, dual_solver_max_iter);
+                if (iter >= dual_solver_max_iter)
+                    info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
                 break;
             }
             case L1R_L2LOSS_SVC: {
@@ -2343,7 +2341,10 @@ public class Linear {
 
             }
             case L2R_L1LOSS_SVR_DUAL: {
-                solve_l2r_l1l2_svr(prob, param, w, dual_solver_max_iter);
+                iter = solve_l2r_l1l2_svr(prob, param, w, dual_solver_max_iter);
+                if (iter >= dual_solver_max_iter)
+                    info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster (also see FAQ)%n%n");
+
                 break;
             }
             case L2R_L2LOSS_SVR_DUAL: {
