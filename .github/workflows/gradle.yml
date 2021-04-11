@@ -21,5 +21,15 @@ jobs:
         java-version: ${{ matrix.java }}
     - name: Build with Gradle
       run: ./gradlew build
+
+  publishCoverage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
     - name: Publish coverage
       run: ./gradlew jacocoTestReport coveralls
