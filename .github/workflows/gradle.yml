@@ -31,5 +31,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 8
-    - name: Publish coverage
-      run: ./gradlew jacocoTestReport coveralls
+    - name: Build with Gradle
+      run: ./gradlew jacocoTestReport
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        files: ./build/reports/jacoco/test/jacocoTestReport.xml
+        name: codecov
