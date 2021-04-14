@@ -21,14 +21,12 @@ import java.util.regex.Pattern;
 
 public class Predict {
 
-    private static boolean flag_predict_probability = false;
-
     private static final Pattern COLON = Pattern.compile(":");
 
     /**
      * <p><b>Note: The streams are NOT closed</b></p>
      */
-    static void doPredict(BufferedReader reader, Writer writer, Model model) throws IOException {
+    static void doPredict(BufferedReader reader, Writer writer, Model model, boolean flag_predict_probability) throws IOException {
         int correct = 0;
         int total = 0;
         double error = 0;
@@ -146,6 +144,8 @@ public class Predict {
     }
 
     public static void main(String[] argv) throws IOException {
+        // Note: This flag is _static_ in predict.c but it causes a thread-safety issue as reported in https://github.com/bwaldvogel/liblinear-java/issues/38
+        boolean flag_predict_probability = false;
         int i;
 
         // parse options
@@ -182,7 +182,7 @@ public class Predict {
              FileOutputStream out = new FileOutputStream(argv[i + 2]);
              Writer writer = new BufferedWriter(new OutputStreamWriter(out, Linear.FILE_CHARSET))) {
             Model model = Linear.loadModel(Paths.get(argv[i + 1]));
-            doPredict(reader, writer, model);
+            doPredict(reader, writer, model, flag_predict_probability);
         }
     }
 }

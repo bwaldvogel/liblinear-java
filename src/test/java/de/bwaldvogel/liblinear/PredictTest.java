@@ -42,7 +42,7 @@ class PredictTest {
     private void testWithLines(StringBuilder sb) throws Exception {
         try (StringReader stringReader = new StringReader(sb.toString());
              BufferedReader reader = new BufferedReader(stringReader)) {
-            Predict.doPredict(reader, writer, testModel);
+            Predict.doPredict(reader, writer, testModel, false);
         }
     }
 
