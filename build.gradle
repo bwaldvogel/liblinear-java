@@ -157,8 +157,6 @@ dependencies {
     components.all { ComponentMetadataDetails details ->
         if (details.id.version =~ /(?i).+([-.])(CANDIDATE|RC|BETA|ALPHA).*/) {
             details.status = 'milestone'
-        } else {
-            details.status = 'release'
         }
     }
 }
