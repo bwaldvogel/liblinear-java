@@ -2,6 +2,9 @@ buildscript {
     repositories {
         mavenCentral()
     }
+    dependencyLocking {
+        lockAllConfigurations()
+    }
 }
 
 plugins {
@@ -9,8 +12,8 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'jacoco'
-    id 'de.undercouch.download' version '4.1.1'
-    id 'me.champeau.gradle.jmh' version '0.5.3'
+    id 'de.undercouch.download' version 'latest.release'
+    id 'me.champeau.gradle.jmh' version 'latest.release'
 }
 
 group = "de.bwaldvogel"
