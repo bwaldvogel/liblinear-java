@@ -21,13 +21,9 @@ targetCompatibility = 1.8
 
 compileJava.options.encoding = 'UTF-8'
 
-ext {
-    title = 'liblinear'
-}
-
 jar {
     manifest {
-        attributes 'Implementation-Title': title, 'Implementation-Version': archiveVersion
+        attributes 'Implementation-Title': project.name, 'Implementation-Version': archiveVersion
     }
 }
 
@@ -44,11 +40,11 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'de.bwaldvogel'
-            artifactId = 'liblinear'
+            groupId = project.group
+            artifactId = project.name
             version = project.version
             pom {
-                name = title
+                name = project.name
                 description = 'Java port of Liblinear'
                 url = 'https://github.com/bwaldvogel/liblinear'
                 inceptionYear = '2008'
