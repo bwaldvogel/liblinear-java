@@ -39,22 +39,14 @@ class SolverMCSVM_CS {
     private final int     nr_class;
     private final Problem prob;
 
-    public SolverMCSVM_CS(Problem prob, int nr_class, double[] C) {
-        this(prob, nr_class, C, 0.1);
-    }
-
     public SolverMCSVM_CS(Problem prob, int nr_class, double[] C, double eps) {
-        this(prob, nr_class, C, eps, 100000);
-    }
-
-    public SolverMCSVM_CS(Problem prob, int nr_class, double[] weighted_C, double eps, int max_iter) {
         this.w_size = prob.n;
         this.l = prob.l;
         this.nr_class = nr_class;
         this.eps = eps;
-        this.max_iter = max_iter;
+        this.max_iter = 100000;
         this.prob = prob;
-        this.C = weighted_C;
+        this.C = C;
         this.B = new double[nr_class];
         this.G = new double[nr_class];
     }
