@@ -21,7 +21,6 @@ class TrainTest {
 
     @BeforeEach
     public void reset() throws Exception {
-        Linear.resetRandom();
         Linear.disableDebugOutput();
     }
 

@@ -28,7 +28,6 @@ class PredictTest {
 
     @BeforeEach
     public void setUp() {
-        Linear.resetRandom();
         Linear.setDebugOutput(new PrintStream(byteArrayOutputStream));
         assertThat(testModel.getNrClass()).isGreaterThanOrEqualTo(2);
         assertThat(testModel.getNrFeature()).isGreaterThanOrEqualTo(10);

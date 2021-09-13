@@ -30,7 +30,6 @@ class LinearTest {
 
     @BeforeEach
     public void reset() throws Exception {
-        Linear.resetRandom();
         Linear.disableDebugOutput();
     }
 

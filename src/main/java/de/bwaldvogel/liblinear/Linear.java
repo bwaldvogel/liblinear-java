@@ -43,9 +43,6 @@ public class Linear {
     private static final Object      OUTPUT_MUTEX = new Object();
     private static       PrintStream DEBUG_OUTPUT = System.out;
 
-    private static final long   DEFAULT_RANDOM_SEED = 0L;
-    static               Random random              = new Random(DEFAULT_RANDOM_SEED);
-
     /**
      * @param target predicted classes
      */
@@ -63,7 +60,7 @@ public class Linear {
         for (i = 0; i < l; i++)
             perm[i] = i;
         for (i = 0; i < l; i++) {
-            int j = i + random.nextInt(l - i);
+            int j = i + param.random.nextInt(l - i);
             swap(perm, i, j);
         }
         for (i = 0; i <= nr_fold; i++)
@@ -115,7 +112,7 @@ public class Linear {
         for (i = 0; i < l; i++)
             perm[i] = i;
         for (i = 0; i < l; i++) {
-            int j = i + random.nextInt(l - i);
+            int j = i + param.random.nextInt(l - i);
             swap(perm, i, j);
         }
         for (i = 0; i <= nr_fold; i++)
@@ -694,7 +691,7 @@ public class Linear {
             PGmin_new = Double.POSITIVE_INFINITY;
 
             for (i = 0; i < active_size; i++) {
-                int j = i + random.nextInt(active_size - i);
+                int j = i + param.random.nextInt(active_size - i);
                 swap(index, i, j);
             }
 
@@ -867,7 +864,7 @@ public class Linear {
             Gnorm1_new = 0;
 
             for (i = 0; i < active_size; i++) {
-                int j = i + random.nextInt(active_size - i);
+                int j = i + param.random.nextInt(active_size - i);
                 swap(index, i, j);
             }
 
@@ -1043,7 +1040,7 @@ public class Linear {
 
         while (iter < max_iter) {
             for (i = 0; i < l; i++) {
-                int j = i + random.nextInt(l - i);
+                int j = i + param.random.nextInt(l - i);
                 swap(index, i, j);
             }
             int newton_iter = 0;
@@ -1206,7 +1203,7 @@ public class Linear {
             Gnorm1_new = 0;
 
             for (j = 0; j < active_size; j++) {
-                int i = j + random.nextInt(active_size - j);
+                int i = j + param.random.nextInt(active_size - j);
                 swap(index, i, j);
             }
 
@@ -1556,7 +1553,7 @@ public class Linear {
                 QP_Gnorm1_new = 0;
 
                 for (j = 0; j < QP_active_size; j++) {
-                    int i = random.nextInt(QP_active_size - j);
+                    int i = param.random.nextInt(QP_active_size - j);
                     swap(index, i, j);
                 }
 
@@ -2190,7 +2187,7 @@ public class Linear {
                     }
                 }
 
-                SolverMCSVM_CS solver = new SolverMCSVM_CS(sub_prob, nr_class, weighted_C, param.eps);
+                SolverMCSVM_CS solver = new SolverMCSVM_CS(sub_prob, nr_class, weighted_C, param.eps, param.random);
                 solver.solve(model.w);
             } else {
                 if (nr_class == 2) {
@@ -2537,9 +2534,8 @@ public class Linear {
     /**
      * resets the PRNG
      *
-     * this is i.a. needed for regression testing (eg. the Weka wrapper)
+     * @deprecated Use {@link Parameter#setRandom(Random)} instead
      */
     public static void resetRandom() {
-        random = new Random(DEFAULT_RANDOM_SEED);
     }
 }

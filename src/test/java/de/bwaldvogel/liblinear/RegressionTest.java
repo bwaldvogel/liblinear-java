@@ -210,7 +210,6 @@ class RegressionTest {
     @MethodSource("data")
     void regressionTest(TestParams params) throws Exception {
         log.info("Running regression test for '{}'", params);
-        Linear.resetRandom();
         Path trainingFile = Paths.get("src/test/datasets", params.dataset, params.dataset);
         Problem problem = Train.readProblem(trainingFile, params.bias);
         Parameter parameter = new Parameter(params.solverType, 1, 0.1);
@@ -292,7 +291,6 @@ class RegressionTest {
 
     @Test
     void testOneClass(@TempDir Path tempDir) throws Exception {
-        Linear.resetRandom();
         Path trainingFile = Paths.get("src/test/datasets/splice/splice");
 
         Path spliceClass1 = tempDir.resolve("splice-class-1");

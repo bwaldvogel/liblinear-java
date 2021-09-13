@@ -3,6 +3,8 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.SolverType.*;
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Random;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -181,6 +183,8 @@ class ParameterTest {
     void testClone_Full() throws Exception {
         Parameter parameter = new Parameter(L1R_LR, 123.456, 0.123, 9000, 1.2);
         parameter.setWeights(new double[] {1, 2}, new int[] {3, 4});
+        Random random = new Random(123);
+        parameter.setRandom(random);
         Parameter clone = parameter.clone();
         assertThat(clone.getSolverType()).isEqualTo(L1R_LR);
         assertThat(clone.getC()).isEqualTo(123.456);
@@ -190,6 +194,9 @@ class ParameterTest {
         assertThat(clone.getWeights()).containsExactly(1, 2);
         assertThat(clone.getWeightLabels()).containsExactly(3, 4);
         assertThat(clone.getNumWeights()).isEqualTo(2);
+
+        assertThat(clone.random).isNotSameAs(random);
+        assertThat(random.nextInt()).isEqualTo(clone.random.nextInt());
     }
 
 }

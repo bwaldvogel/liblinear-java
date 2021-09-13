@@ -1,9 +1,17 @@
 package de.bwaldvogel.liblinear;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Random;
 
 
 public final class Parameter implements Cloneable {
+
+    private static final long   DEFAULT_RANDOM_SEED = 0L;
 
     double C;
 
@@ -28,6 +36,8 @@ public final class Parameter implements Cloneable {
     double[] init_sol = null;
 
     boolean regularize_bias = true;
+
+    Random random = new Random(DEFAULT_RANDOM_SEED);
 
     public Parameter(SolverType solver, double C, double eps) {
         setSolverType(solver);
@@ -206,6 +216,10 @@ public final class Parameter implements Cloneable {
         return regularize_bias;
     }
 
+    public void setRandom(Random random) {
+        this.random = random;
+    }
+
     @Override
     public Parameter clone() {
         Parameter clone = new Parameter(solverType, C, eps, max_iters, p);
@@ -215,7 +229,23 @@ public final class Parameter implements Cloneable {
         clone.p = p;
         clone.nu = nu;
         clone.regularize_bias = regularize_bias;
+        clone.random = deepClone(random);
         return clone;
+    }
+
+    private static Random deepClone(Random random) {
+        try {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                 ObjectOutputStream out = new ObjectOutputStream(baos);) {
+                out.writeObject(random);
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
+                     ObjectInputStream in = new ObjectInputStream(bis)) {
+                    return (Random)in.readObject();
+                }
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to clone " + random, e);
+        }
     }
 
 }
