@@ -110,9 +110,9 @@ repositories {
 
 jacocoTestReport {
     reports {
-        html.enabled = true
-        xml.enabled = true
-        csv.enabled = false
+        html.required = true
+        xml.required = true
+        csv.required = false
     }
     dependsOn test
 }
@@ -128,7 +128,7 @@ test {
 }
 
 wrapper {
-    gradleVersion = "7.0"
+    gradleVersion = "7.2"
     distributionType = Wrapper.DistributionType.ALL
 }
 
