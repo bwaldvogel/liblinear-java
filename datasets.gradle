@@ -6,7 +6,6 @@ task downloadDatasetSplice(type: Download) {
     ])
     dest 'src/test/datasets/splice/'
     overwrite false
-    acceptAnyCertificate true
 }
 
 task verifyDatasetSpliceTrain(type: Verify, dependsOn: downloadDatasetSplice) {
@@ -29,7 +28,6 @@ task downloadDatasetDna(type: Download) {
     ])
     dest 'src/test/datasets/dna.scale/'
     overwrite false
-    acceptAnyCertificate true
 }
 
 task verifyDatasetDnaTrain(type: Verify, dependsOn: downloadDatasetDna) {
@@ -52,7 +50,6 @@ task downloadDatasetRcv1(type: Download) {
     ])
     dest 'src/test/datasets/rcv1/'
     overwrite false
-    acceptAnyCertificate true
 }
 
 task verifyDatasetRcv1Train(type: Verify, dependsOn: downloadDatasetRcv1) {
