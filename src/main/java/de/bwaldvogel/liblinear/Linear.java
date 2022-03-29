@@ -2056,7 +2056,7 @@ public class Linear {
         if (param.C <= 0) {
             throw new IllegalArgumentException("C <= 0");
         }
-        if (param.p < 0) {
+        if (param.p < 0 && param.solverType == L2R_L2LOSS_SVR) {
             throw new IllegalArgumentException("p < 0");
         }
 
