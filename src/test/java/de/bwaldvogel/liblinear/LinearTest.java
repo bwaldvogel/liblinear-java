@@ -345,6 +345,25 @@ class LinearTest {
     }
 
     @Test
+    void testTrain_IllegalParameters_P() throws Exception {
+        Problem prob = createRandomProblem(2);
+        Parameter param = new Parameter(L2R_L2LOSS_SVR, 10, 0.1);
+        param.p = -1;
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> Linear.train(prob, param))
+            .withMessage("p < 0");
+
+        // It must not fail for solvers other than L2R_L2LOSS_SVR
+        for (SolverType solverType : values()) {
+            if (solverType != L2R_L2LOSS_SVR) {
+                param.solverType = solverType;
+                Linear.train(prob, param);
+            }
+        }
+    }
+
+    @Test
     void testTrain_IllegalParameters_InitialSol() {
         Problem prob = createRandomProblem(2);
 
