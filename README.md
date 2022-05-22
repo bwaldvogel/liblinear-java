@@ -1,6 +1,6 @@
 [![CI](https://github.com/bwaldvogel/liblinear-java/workflows/CI/badge.svg)](https://github.com/bwaldvogel/liblinear-java/actions)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear/badge.svg)](http://maven-badges.herokuapp.com/maven-central/de.bwaldvogel/liblinear)
-[![codecov](https://codecov.io/gh/bwaldvogel/liblinear-java/branch/master/graph/badge.svg?token=Scy4yJzBf7)](https://codecov.io/gh/bwaldvogel/liblinear-java)
+[![codecov](https://codecov.io/gh/bwaldvogel/liblinear-java/branch/main/graph/badge.svg?token=Scy4yJzBf7)](https://codecov.io/gh/bwaldvogel/liblinear-java)
 [![BSD 3-Clause License](https://img.shields.io/github/license/bwaldvogel/liblinear-java.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/BenediktWaldvogel)
 
