@@ -1,8 +1,8 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-de.undercouch.download:de.undercouch.download.gradle.plugin:5.0.4=classpath
-de.undercouch:gradle-download-task:5.0.4=classpath
+de.undercouch.download:de.undercouch.download.gradle.plugin:5.1.0=classpath
+de.undercouch:gradle-download-task:5.1.0=classpath
 me.champeau.gradle.jmh:me.champeau.gradle.jmh.gradle.plugin:0.5.3=classpath
 me.champeau.gradle:jmh-gradle-plugin:0.5.3=classpath
 net.sf.jopt-simple:jopt-simple:4.6=classpath

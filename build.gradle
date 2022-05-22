@@ -154,7 +154,7 @@ dependencies {
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:latest.release' // for IntelliJ
 
     components.all { ComponentMetadataDetails details ->
-        if (details.id.version =~ /(?i).+([-.])(CANDIDATE|RC|BETA|ALPHA).*/) {
+        if (details.id.version =~ /(?i).+(-|\.)(CANDIDATE|RC|BETA|ALPHA|PR|M\d+).*/) {
             details.status = 'milestone'
         }
     }
