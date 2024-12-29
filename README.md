@@ -17,7 +17,7 @@ The upstream GitHub project can be found at
 
 ## Dependencies ##
 
-The only requirement is Java 8 or later.
+The only requirement is Java 11 or later.
 
 ## Usage ##
 

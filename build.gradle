@@ -19,8 +19,10 @@ plugins {
 group = "de.bwaldvogel"
 version = '2.44'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+}
 
 compileJava.options.encoding = 'UTF-8'
 

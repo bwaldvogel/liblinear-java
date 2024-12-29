@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '17', '21', '23' ]
+        java: [ '11', '17', '21', '23' ]
 
     steps:
     - uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v1
       with:
-        java-version: 8
+        java-version: 11
     - name: Build with Gradle
       run: ./gradlew jacocoTestReport
     - name: Upload coverage to Codecov
