@@ -48,7 +48,7 @@ for the following reasons:
         new bugs that are caused by porting to Java.
 
 - **Code Reviews**:
-        It should be more easy to conduct code reviews since the sources can be compared to the original version.
+        It should be easier to conduct code reviews since the sources can be compared to the original version.
 
 
 Below follows a slightly modified version of the original README file.
