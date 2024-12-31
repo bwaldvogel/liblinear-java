@@ -70,6 +70,8 @@ class RegressionTest {
                                 return 0.84184;
                             case 1:
                                 return regularizeBias ? 0.84552 : 0.84414;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L2LOSS_SVC_DUAL:
                         switch (bias) {
@@ -77,6 +79,8 @@ class RegressionTest {
                                 return 0.84368;
                             case 1:
                                 return 0.85241;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L2LOSS_SVC:
                         switch (bias) {
@@ -84,6 +88,8 @@ class RegressionTest {
                                 return 0.84276;
                             case 1:
                                 return regularizeBias ? 0.85057 : 0.85149;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {
@@ -91,6 +97,8 @@ class RegressionTest {
                                 return 0.83494;
                             case 1:
                                 return 0.83402;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case MCSVM_CS:
                         switch (bias) {
@@ -98,6 +106,8 @@ class RegressionTest {
                                 return 0.8377;
                             case 1:
                                 return 0.83862;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L1R_L2LOSS_SVC:
                         switch (bias) {
@@ -105,6 +115,8 @@ class RegressionTest {
                                 return 0.8478;
                             case 1:
                                 return regularizeBias ? 0.8478 : 0.84782;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L1R_LR:
                         switch (bias) {
@@ -112,6 +124,8 @@ class RegressionTest {
                                 return 0.8473;
                             case 1:
                                 return regularizeBias ? 0.84782 : 0.84598;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_LR_DUAL:
                         switch (bias) {
@@ -119,7 +133,11 @@ class RegressionTest {
                                 return 0.8423;
                             case 1:
                                 return 0.8492;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
+                    default:
+                        throw new IllegalArgumentException("Unexpected solverType: " + solverType);
                 }
             case "dna.scale":
                 switch (solverType) {
@@ -129,12 +147,16 @@ class RegressionTest {
                                 return 0.94941;
                             case 1:
                                 return regularizeBias ? 0.950253 : 0.951096;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L2LOSS_SVC_DUAL:
                         switch (bias) {
                             case -1:
                             case 1:
                                 return 0.9452;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L2LOSS_SVC:
                         switch (bias) {
@@ -142,6 +164,8 @@ class RegressionTest {
                                 return 0.94941;
                             case 1:
                                 return 0.95194;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_L1LOSS_SVC_DUAL:
                         switch (bias) {
@@ -149,6 +173,8 @@ class RegressionTest {
                                 return 0.94688;
                             case 1:
                                 return 0.94604;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case MCSVM_CS:
                         switch (bias) {
@@ -156,6 +182,8 @@ class RegressionTest {
                                 return 0.9292;
                             case 1:
                                 return 0.92749;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L1R_L2LOSS_SVC:
                         switch (bias) {
@@ -163,6 +191,8 @@ class RegressionTest {
                                 return 0.9553;
                             case 1:
                                 return regularizeBias ? 0.956998 : 0.95363;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L1R_LR:
                         switch (bias) {
@@ -170,6 +200,8 @@ class RegressionTest {
                                 return 0.9536;
                             case 1:
                                 return regularizeBias ? 0.95194 : 0.95278;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
                     case L2R_LR_DUAL:
                         switch (bias) {
@@ -177,7 +209,11 @@ class RegressionTest {
                                 return 0.9486;
                             case 1:
                                 return 0.94941;
+                            default:
+                                throw new IllegalArgumentException("Unexpected bias: " + bias);
                         }
+                    default:
+                        throw new IllegalArgumentException("Unexpected solverType: " + solverType);
                 }
             default:
                 throw new IllegalArgumentException("Unknown expectation: " + dataset + ", " + solverType + ", " + bias);
