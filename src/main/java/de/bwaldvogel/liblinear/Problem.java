@@ -57,6 +57,7 @@ public class Problem {
     /**
      * @deprecated use {@link Problem#readFromFile(Path, double)} instead
      */
+    @Deprecated
     public static Problem readFromFile(File file, double bias) throws IOException, InvalidInputDataException {
         return readFromFile(file.toPath(), bias);
     }
@@ -71,6 +72,7 @@ public class Problem {
     /**
      * @deprecated use {@link Problem#readFromFile(Path, Charset, double)} instead
      */
+    @Deprecated
     public static Problem readFromFile(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
         return readFromFile(file.toPath(), charset, bias);
     }

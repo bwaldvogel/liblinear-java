@@ -254,6 +254,7 @@ public final class Model implements Serializable {
     /**
      * @deprecated use {@link Model#save(Path)} instead
      */
+    @Deprecated
     public void save(File modelFile) throws IOException {
         save(modelFile.toPath());
     }
@@ -275,6 +276,7 @@ public final class Model implements Serializable {
     /**
      * @deprecated use {@link Model#load(Path)} instead
      */
+    @Deprecated
     public static Model load(File modelFile) throws IOException {
         return load(modelFile.toPath());
     }

@@ -401,6 +401,7 @@ public class Linear {
      *
      * @deprecated use {@link Linear#loadModel(Path)} instead
      */
+    @Deprecated
     public static Model loadModel(File modelFile) throws IOException {
         return loadModel(modelFile.toPath());
     }
@@ -580,6 +581,7 @@ public class Linear {
      *
      * @deprecated use {@link Linear#saveModel(Path, Model)} instead
      */
+    @Deprecated
     public static void saveModel(File modelFile, Model model) throws IOException {
         saveModel(modelFile.toPath(), model);
     }
@@ -2536,6 +2538,7 @@ public class Linear {
      *
      * @deprecated Use {@link Parameter#setRandom(Random)} instead
      */
+    @Deprecated
     public static void resetRandom() {
     }
 }

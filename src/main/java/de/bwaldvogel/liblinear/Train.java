@@ -287,6 +287,7 @@ public class Train {
      * @throws InvalidInputDataException if the input file is not correctly formatted
      * @deprecated use {@link Train#readProblem(Path, double)} instead
      */
+    @Deprecated
     public static Problem readProblem(File file, double bias) throws IOException, InvalidInputDataException {
         return readProblem(file.toPath(), bias);
     }
@@ -305,6 +306,7 @@ public class Train {
     /**
      * @deprecated use {@link Train#readProblem(Path, Charset, double)} instead
      */
+    @Deprecated
     public static Problem readProblem(File file, Charset charset, double bias) throws IOException, InvalidInputDataException {
         return readProblem(file.toPath(), charset, bias);
     }
