@@ -246,8 +246,7 @@ public final class Model implements Serializable {
             if (element == -0.0) {
                 element = 0.0;
             }
-            long bits = Double.doubleToLongBits(element);
-            result = 31 * result + (int)(bits ^ (bits >>> 32));
+            result = 31 * result + Double.hashCode(element);
         }
         return result;
     }
