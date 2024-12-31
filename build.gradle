@@ -24,7 +24,10 @@ java {
     targetCompatibility = '11'
 }
 
-compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
+}
 
 jar {
     manifest {
