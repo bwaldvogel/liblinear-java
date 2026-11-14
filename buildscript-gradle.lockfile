@@ -3,9 +3,9 @@
 # This file is expected to be part of source control.
 de.undercouch.download:de.undercouch.download.gradle.plugin:5.6.0=classpath
 de.undercouch:gradle-download-task:5.6.0=classpath
-me.champeau.gradle.jmh:me.champeau.gradle.jmh.gradle.plugin:0.5.3=classpath
-me.champeau.gradle:jmh-gradle-plugin:0.5.3=classpath
-net.sf.jopt-simple:jopt-simple:4.6=classpath
-org.apache.commons:commons-math3:3.2=classpath
-org.openjdk.jmh:jmh-core:1.27=classpath
+me.champeau.jmh:jmh-gradle-plugin:0.7.4=classpath
+me.champeau.jmh:me.champeau.jmh.gradle.plugin:0.7.4=classpath
+net.sf.jopt-simple:jopt-simple:5.0.4=classpath
+org.apache.commons:commons-math3:3.6.1=classpath
+org.openjdk.jmh:jmh-core:1.37=classpath
 empty=
