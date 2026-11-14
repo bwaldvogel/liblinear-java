@@ -12,37 +12,39 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'jacoco'
-    id 'de.undercouch.download' version 'latest.release'
-    id 'me.champeau.gradle.jmh' version 'latest.release'
+    id 'de.undercouch.download' version '5.6.0'
+    id 'me.champeau.jmh' version '0.7.4'
 }
 
 group = "de.bwaldvogel"
 version = '2.44'
 
 java {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
     options.encoding = 'UTF-8'
     options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
 }
 
 jar {
     manifest {
-        attributes 'Implementation-Title': project.name, 'Implementation-Version': archiveVersion
+        attributes 'Implementation-Title': project.name, 'Implementation-Version': archiveVersion.get()
     }
 }
 
-task sourceJar(type: Jar) {
+tasks.register('sourceJar', Jar) {
     archiveClassifier = "sources"
     from sourceSets.main.allJava
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
+tasks.register('javadocJar', Jar) {
+    dependsOn tasks.named('javadoc')
     archiveClassifier = "javadoc"
-    from javadoc.destinationDir
+    from tasks.named('javadoc').map { it.destinationDir }
 }
 
 publishing {
@@ -80,8 +82,8 @@ publishing {
 
             from components.java
 
-            artifact sourceJar
-            artifact javadocJar
+            artifact tasks.named('sourceJar')
+            artifact tasks.named('javadocJar')
 
             versionMapping {
                 usage('java-api') {
@@ -133,12 +135,12 @@ test {
 }
 
 wrapper {
-    gradleVersion = "8.12"
+    gradleVersion = "9.9.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
 jmh {
-    include = ['de\\.bwaldvogel\\.liblinear\\.LinearBenchmark.*']
+    includes = ['de\\.bwaldvogel\\.liblinear\\.LinearBenchmark.*']
     jvmArgs = ["-Ddataset.directory=" + projectDir + "/src/test/datasets"]
 }
 
@@ -147,17 +149,18 @@ tasks.named('jmh').configure {
 }
 
 dependencies {
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: 'latest.release'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: 'latest.release'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: 'latest.release'
-    testImplementation group: 'org.slf4j', name: 'slf4j-api', version: 'latest.release'
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: 'latest.release'
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: 'latest.release'
-    testImplementation group: 'nl.jqno.equalsverifier', name: 'equalsverifier', version: 'latest.release'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:latest.release'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:latest.release'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:latest.release'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.slf4j:slf4j-api:latest.release'
+    testImplementation 'org.assertj:assertj-core:latest.release'
+    testImplementation 'org.mockito:mockito-core:latest.release'
+    testImplementation 'nl.jqno.equalsverifier:equalsverifier:latest.release'
 
-    testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
+    testRuntimeOnly 'ch.qos.logback:logback-classic:latest.release'
 
-    jmh group: 'org.apache.commons', name: 'commons-compress', version: 'latest.release'
+    jmh 'org.apache.commons:commons-compress:latest.release'
     jmh 'org.openjdk.jmh:jmh-generator-annprocess:latest.release' // for IntelliJ
 
     components.all { ComponentMetadataDetails details ->
