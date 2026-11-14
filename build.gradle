@@ -12,8 +12,8 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'jacoco'
-    id 'de.undercouch.download' version '5.6.0'
-    id 'me.champeau.jmh' version '0.7.4'
+    id 'de.undercouch.download' version 'latest.release'
+    id 'me.champeau.jmh' version 'latest.release'
 }
 
 group = "de.bwaldvogel"
@@ -149,9 +149,10 @@ tasks.named('jmh').configure {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:latest.release'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:latest.release'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:latest.release'
+    testImplementation platform('org.junit:junit-bom:latest.release')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.slf4j:slf4j-api:latest.release'
     testImplementation 'org.assertj:assertj-core:latest.release'
