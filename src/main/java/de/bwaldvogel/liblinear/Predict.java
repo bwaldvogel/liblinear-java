@@ -3,14 +3,10 @@ package de.bwaldvogel.liblinear;
 import static de.bwaldvogel.liblinear.Linear.*;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -177,11 +173,9 @@ public class Predict {
             exit_with_help();
         }
 
-        try (FileInputStream in = new FileInputStream(argv[i]);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(in, Linear.FILE_CHARSET));
-             FileOutputStream out = new FileOutputStream(argv[i + 2]);
-             Writer writer = new BufferedWriter(new OutputStreamWriter(out, Linear.FILE_CHARSET))) {
-            Model model = Linear.loadModel(Paths.get(argv[i + 1]));
+        try (BufferedReader reader = Files.newBufferedReader(Path.of(argv[i]), Linear.FILE_CHARSET);
+             Writer writer = Files.newBufferedWriter(Path.of(argv[i + 2]), Linear.FILE_CHARSET)) {
+            Model model = Linear.loadModel(Path.of(argv[i + 1]));
             doPredict(reader, writer, model, flag_predict_probability);
         }
     }
