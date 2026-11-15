@@ -93,49 +93,51 @@ public class Train {
     }
 
     private void exit_with_help() {
-        System.out.printf("Usage: train [options] training_set_file [model_file]%n" //
-            + "options:%n"
-            + "-s type : set type of solver (default 1)%n"
-            + "  for multi-class classification%n"
-            + "        0 -- L2-regularized logistic regression (primal)%n"
-            + "        1 -- L2-regularized L2-loss support vector classification (dual)%n"
-            + "        2 -- L2-regularized L2-loss support vector classification (primal)%n"
-            + "        3 -- L2-regularized L1-loss support vector classification (dual)%n"
-            + "        4 -- support vector classification by Crammer and Singer%n"
-            + "        5 -- L1-regularized L2-loss support vector classification%n"
-            + "        6 -- L1-regularized logistic regression%n"
-            + "        7 -- L2-regularized logistic regression (dual)%n"
-            + "  for regression%n"
-            + "       11 -- L2-regularized L2-loss support vector regression (primal)%n"
-            + "       12 -- L2-regularized L2-loss support vector regression (dual)%n"
-            + "       13 -- L2-regularized L1-loss support vector regression (dual)%n"
-            + "  for outlier detection%n"
-            + "       21 -- one-class support vector machine (dual)%n"
-            + "-c cost : set the parameter C (default 1)%n"
-            + "-p epsilon : set the epsilon in loss function of SVR (default 0.1)%n"
-            + "-n nu : set the parameter nu of one-class SVM (default 0.5)%n"
-            + "-e epsilon : set tolerance of termination criterion%n"
-            + "       -s 0 and 2%n"
-            + "               |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,%n"
-            + "               where f is the primal function and pos/neg are # of%n"
-            + "               positive/negative data (default 0.01)%n"
-            + "       -s 11%n"
-            + "               |f'(w)|_2 <= eps*|f'(w0)|_2 (default 0.0001)%n"
-            + "       -s 1, 3, 4, 7, and 21%n"
-            + "               Dual maximal violation <= eps; similar to libsvm (default 0.1 except 0.01 for -s 21)%n"
-            + "      -s 5 and 6%n"
-            + "               |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,%n"
-            + "               where f is the primal function (default 0.01)%n"
-            + "       -s 12 and 13%n"
-            + "               |f'(alpha)|_1 <= eps |f'(alpha0)|,%n"
-            + "               where f is the dual function (default 0.1)%n"
-            + "-B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)%n"
-            + "-R : not regularize the bias; must with -B 1 to have the bias; DON'T use this unless you know what it is%n"
-            + "       (for -s 0, 2, 5, 6, 11)%n"
-            + "-wi weight: weights adjust the parameter C of different classes (see README for details)%n"
-            + "-v n: n-fold cross validation mode%n"
-            + "-C : find parameters (C for -s 0, 2 and C, p for -s 11)%n"
-            + "-q : quiet mode (no outputs)%n");
+        System.out.print("""
+            Usage: train [options] training_set_file [model_file]
+            options:
+            -s type : set type of solver (default 1)
+              for multi-class classification
+                    0 -- L2-regularized logistic regression (primal)
+                    1 -- L2-regularized L2-loss support vector classification (dual)
+                    2 -- L2-regularized L2-loss support vector classification (primal)
+                    3 -- L2-regularized L1-loss support vector classification (dual)
+                    4 -- support vector classification by Crammer and Singer
+                    5 -- L1-regularized L2-loss support vector classification
+                    6 -- L1-regularized logistic regression
+                    7 -- L2-regularized logistic regression (dual)
+              for regression
+                   11 -- L2-regularized L2-loss support vector regression (primal)
+                   12 -- L2-regularized L2-loss support vector regression (dual)
+                   13 -- L2-regularized L1-loss support vector regression (dual)
+              for outlier detection
+                   21 -- one-class support vector machine (dual)
+            -c cost : set the parameter C (default 1)
+            -p epsilon : set the epsilon in loss function of SVR (default 0.1)
+            -n nu : set the parameter nu of one-class SVM (default 0.5)
+            -e epsilon : set tolerance of termination criterion
+                   -s 0 and 2
+                           |f'(w)|_2 <= eps*min(pos,neg)/l*|f'(w0)|_2,
+                           where f is the primal function and pos/neg are # of
+                           positive/negative data (default 0.01)
+                   -s 11
+                           |f'(w)|_2 <= eps*|f'(w0)|_2 (default 0.0001)
+                   -s 1, 3, 4, 7, and 21
+                           Dual maximal violation <= eps; similar to libsvm (default 0.1 except 0.01 for -s 21)
+                  -s 5 and 6
+                           |f'(w)|_1 <= eps*min(pos,neg)/l*|f'(w0)|_1,
+                           where f is the primal function (default 0.01)
+                   -s 12 and 13
+                           |f'(alpha)|_1 <= eps |f'(alpha0)|,
+                           where f is the dual function (default 0.1)
+            -B bias : if bias >= 0, instance x becomes [x; bias]; if < 0, no bias term added (default -1)
+            -R : not regularize the bias; must with -B 1 to have the bias; DON'T use this unless you know what it is
+                   (for -s 0, 2, 5, 6, 11)
+            -wi weight: weights adjust the parameter C of different classes (see README for details)
+            -v n: n-fold cross validation mode
+            -C : find parameters (C for -s 0, 2 and C, p for -s 11)
+            -q : quiet mode (no outputs)
+            """.replace("\n", System.lineSeparator()));
         System.exit(1);
     }
 

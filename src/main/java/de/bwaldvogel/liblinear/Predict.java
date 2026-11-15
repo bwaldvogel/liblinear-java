@@ -132,10 +132,12 @@ public class Predict {
     }
 
     private static void exit_with_help() {
-        System.out.printf("Usage: predict [options] test_file model_file output_file%n" //
-            + "options:%n" //
-            + "-b probability_estimates: whether to output probability estimates, 0 or 1 (default 0); currently for logistic regression only%n" //
-            + "-q quiet mode (no outputs)%n");
+        System.out.print("""
+            Usage: predict [options] test_file model_file output_file
+            options:
+            -b probability_estimates: whether to output probability estimates, 0 or 1 (default 0); currently for logistic regression only
+            -q quiet mode (no outputs)
+            """.replace("\n", System.lineSeparator()));
         System.exit(1);
     }
 
