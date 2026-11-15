@@ -326,12 +326,9 @@ public class Linear {
 
         Pattern whitespace = Pattern.compile("\\s+");
 
-        BufferedReader reader = null;
-        if (inputReader instanceof BufferedReader) {
-            reader = (BufferedReader)inputReader;
-        } else {
-            reader = new BufferedReader(inputReader);
-        }
+        BufferedReader reader = inputReader instanceof BufferedReader bufferedReader
+            ? bufferedReader
+            : new BufferedReader(inputReader);
 
         String line;
         while ((line = reader.readLine()) != null) {
