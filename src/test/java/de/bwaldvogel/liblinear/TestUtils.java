@@ -21,12 +21,4 @@ final class TestUtils {
             bufferedWriter.flush();
         }
     }
-
-    static String repeat(String stringToRepeat, int numTimes) {
-        StringBuilder longString = new StringBuilder();
-        for (int i = 0; i < numTimes; i++) {
-            longString.append(stringToRepeat);
-        }
-        return longString.toString();
-    }
 }

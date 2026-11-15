@@ -251,10 +251,10 @@ class LinearTest {
             "bias -1.0",
             "w",
             "0.1 0.2 0.3 ",
-            "0.4 0.5 " + repeat("0", 1024));
+            "0.4 0.5 " + "0".repeat(1024));
         writeToFile(file, lines);
 
-        String x = repeat("0", 128);
+        String x = "0".repeat(128);
 
         assertThatExceptionOfType(RuntimeException.class)
             .isThrownBy(() -> Model.load(file))
